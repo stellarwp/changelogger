@@ -4,16 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to write (e.g., 1.0.0)'
+        description: "Version to write (e.g., 1.0.0)"
         required: true
         type: string
       branch:
-        description: 'Target branch'
+        description: "Target branch"
         required: true
-        default: 'main'
+        default: "main"
         type: string
       date:
-        description: 'Release date (YYYY-MM-DD)'
+        description: "Release date (YYYY-MM-DD)"
         required: false
         type: string
         default: ${{ fromJSON('{"date":"' + github.event.repository.updated_at + '"}').date }}
@@ -25,31 +25,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Write changelog
         run: |
           npx changelogger write \
             --version "${{ github.event.inputs.version }}" \
             --date "${{ github.event.inputs.date || github.event.repository.updated_at }}"
-            
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: 'docs: write changelog for version ${{ github.event.inputs.version }}'
-          title: 'docs: write changelog for version ${{ github.event.inputs.version }}'
+          commit-message: "docs: write changelog for version ${{ github.event.inputs.version }}"
+          title: "docs: write changelog for version ${{ github.event.inputs.version }}"
           body: |
             Writes changelog entries for version ${{ github.event.inputs.version }}
-            
+
             Release Date: ${{ github.event.inputs.date || github.event.repository.updated_at }}
           branch: changelog/write-${{ github.event.inputs.version }}
           base: ${{ github.event.inputs.branch }}
-          delete-branch: true 
+          delete-branch: true

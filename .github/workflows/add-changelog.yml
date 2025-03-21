@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       type:
-        description: 'Type of change (feature, fix, tweak, etc.)'
+        description: "Type of change (feature, fix, tweak, etc.)"
         required: true
         type: choice
         options:
@@ -17,11 +17,11 @@ on:
           - deprecated
           - removed
       entry:
-        description: 'Changelog entry description'
+        description: "Changelog entry description"
         required: true
         type: string
       significance:
-        description: 'Change significance'
+        description: "Change significance"
         required: true
         type: choice
         options:
@@ -30,7 +30,7 @@ on:
           - major
           - hotfix
       create_pr:
-        description: 'Create Pull Request'
+        description: "Create Pull Request"
         required: true
         type: boolean
         default: true
@@ -40,23 +40,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Add changelog entry
         run: |
           npx changelogger add \
             --type "${{ github.event.inputs.type }}" \
             --entry "${{ github.event.inputs.entry }}" \
-            --significance "${{ github.event.inputs.significance }}"
-            
+            --significance "${{ github.event.inputs.significance }}" \
+            --no-prompt
+
       # Commit directly to the branch if create_pr is false
       - name: Commit changes
         if: ${{ !github.event.inputs.create_pr }}
@@ -66,20 +67,20 @@ jobs:
           git add .
           git commit -m "docs: add changelog entry for ${{ github.event.inputs.type }}"
           git push
-            
+
       # Create PR if create_pr is true
       - name: Create Pull Request
         if: ${{ github.event.inputs.create_pr }}
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: 'docs: add changelog entry for ${{ github.event.inputs.type }}'
-          title: 'docs: add changelog entry for ${{ github.event.inputs.type }}'
+          commit-message: "docs: add changelog entry for ${{ github.event.inputs.type }}"
+          title: "docs: add changelog entry for ${{ github.event.inputs.type }}"
           body: |
             Adds a new changelog entry:
-            
+
             - Type: ${{ github.event.inputs.type }}
             - Entry: ${{ github.event.inputs.entry }}
             - Significance: ${{ github.event.inputs.significance }}
           branch: changelog/add-${{ github.event.inputs.type }}-entry
           base: ${{ github.ref_name }}
-          delete-branch: true 
+          delete-branch: true

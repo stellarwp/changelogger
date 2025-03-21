@@ -58,7 +58,7 @@ const stellarwp = {
         return sections.join("\n");
     },
     formatVersionHeader(version, date, previousVersion) {
-        return `= [${version}] ${date} =\n`;
+        return `### [${version}] ${date}\n\n`;
     },
     formatVersionLink(version, previousVersion, template) {
         // StellarWP format doesn't use version links
@@ -72,7 +72,7 @@ const stellarwp = {
                 const readmeTxtPath = path.join(process.cwd(), "readme.txt");
                 let readmeTxt = await fs.readFile(readmeTxtPath, "utf8");
                 // Generate WordPress-style changelog entry
-                const wpEntry = `\n= ${version} - ${date} =\n`;
+                const wpEntry = `\n= [${version}] ${date} =\n\n`;
                 const formattedChanges = changes.reduce((acc, change) => {
                     const type = config.types[change.type];
                     if (change.entry) {
@@ -82,7 +82,7 @@ const stellarwp = {
                 }, []);
                 const wpChanges = formattedChanges.join("\n");
                 // Insert after == Changelog == line
-                readmeTxt = readmeTxt.replace(/(== Changelog ==\n)/, `$1${wpEntry}\n${wpChanges}\n`);
+                readmeTxt = readmeTxt.replace(/(== Changelog ==\n)/, `$1${wpEntry}${wpChanges}\n`);
                 await fs.writeFile(readmeTxtPath, readmeTxt);
             }
             catch (error) {
