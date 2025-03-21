@@ -188,11 +188,12 @@ The changelogger supports multiple writing strategies for formatting the changel
    ```markdown
    ### [1.2.3] 2024-03-22
 
-   * Feature - Added new feature
-   * Fix - Fixed a bug
+   - Feature - Added new feature
+   - Fix - Fixed a bug
    ```
 
    And automatically updates readme.txt if present:
+
    ```text
    == Changelog ==
 

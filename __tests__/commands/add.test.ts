@@ -179,4 +179,77 @@ describe("add command", () => {
       recursive: true,
     });
   });
+
+  it("should validate entry input", async () => {
+    await run({});
+    const promptConfig = mockedInquirer.prompt.mock.calls[0][0] as Array<{
+      name: string;
+      validate?: (input: string) => string | boolean;
+    }>;
+    const entryQuestion = promptConfig.find((q) => q.name === "entry");
+
+    expect(entryQuestion?.validate?.("")).toBe(
+      "Changelog entry cannot be empty",
+    );
+    expect(entryQuestion?.validate?.("  ")).toBe(
+      "Changelog entry cannot be empty",
+    );
+    expect(entryQuestion?.validate?.("Valid entry")).toBe(true);
+  });
+
+  it("should validate filename input", async () => {
+    await run({});
+    const promptConfig = mockedInquirer.prompt.mock.calls[0][0] as Array<{
+      name: string;
+      validate?: (input: string) => string | boolean;
+    }>;
+    const filenameQuestion = promptConfig.find((q) => q.name === "filename");
+
+    expect(filenameQuestion?.validate?.("")).toBe("Filename cannot be empty");
+    expect(filenameQuestion?.validate?.("  ")).toBe("Filename cannot be empty");
+    expect(filenameQuestion?.validate?.("valid-filename")).toBe(true);
+  });
+
+  it("should handle cleanup of complex filenames", async () => {
+    const options: AddCommandOptions = {
+      type: "added",
+      significance: "minor",
+      entry: "Test change",
+      filename: "---COMPLEX@#$%^&*()   FILE  ___NAME---",
+    };
+
+    await run(options);
+
+    expect(mockedFs.writeFile).toHaveBeenCalled();
+    const writeCall = mockedFs.writeFile.mock.calls[0];
+    expect(writeCall[0].toString()).toContain("complex-file-name.yaml");
+  });
+
+  it("should handle file system errors", async () => {
+    const options: AddCommandOptions = {
+      type: "added",
+      significance: "minor",
+      entry: "Test change",
+      filename: "test-file",
+    };
+
+    // Mock fs.writeFile to throw an error
+    mockedFs.writeFile.mockRejectedValueOnce(new Error("Write error"));
+
+    await expect(run(options)).rejects.toThrow("Write error");
+  });
+
+  it("should handle mkdir errors", async () => {
+    const options: AddCommandOptions = {
+      type: "added",
+      significance: "minor",
+      entry: "Test change",
+      filename: "test-file",
+    };
+
+    // Mock fs.mkdir to throw an error
+    mockedFs.mkdir.mockRejectedValueOnce(new Error("Directory creation error"));
+
+    await expect(run(options)).rejects.toThrow("Directory creation error");
+  });
 });

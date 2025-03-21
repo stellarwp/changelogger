@@ -58,7 +58,7 @@ const stellarwp = {
         return sections.join("\n");
     },
     formatVersionHeader(version, date, previousVersion) {
-        return `### [${version}] ${date}\n\n`;
+        return `= [${version}] ${date} =\n`;
     },
     formatVersionLink(version, previousVersion, template) {
         // StellarWP format doesn't use version links
@@ -72,7 +72,7 @@ const stellarwp = {
                 const readmeTxtPath = path.join(process.cwd(), "readme.txt");
                 let readmeTxt = await fs.readFile(readmeTxtPath, "utf8");
                 // Generate WordPress-style changelog entry
-                const wpEntry = `\n= [${version}] ${date} =\n\n`;
+                const wpEntry = `\n= ${version} - ${date} =\n\n`;
                 const formattedChanges = changes.reduce((acc, change) => {
                     const type = config.types[change.type];
                     if (change.entry) {

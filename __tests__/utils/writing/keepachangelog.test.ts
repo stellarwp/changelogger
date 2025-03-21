@@ -1,43 +1,6 @@
 import keepachangelog from "../../../src/utils/writing/keepachangelog";
 import { ChangeFile } from "../../../src/types";
 
-jest.mock("../../../src/utils/writing/keepachangelog", () => ({
-  __esModule: true,
-  default: {
-    formatChanges: jest.fn((version, changes) => {
-      const groupedChanges = changes.reduce(
-        (acc: Record<string, string[]>, change: ChangeFile) => {
-          if (!acc[change.type]) {
-            acc[change.type] = [];
-          }
-          acc[change.type].push(change.entry);
-          return acc;
-        },
-        {},
-      );
-
-      return (Object.entries(groupedChanges) as [string, string[]][])
-        .map(([type, entries]) => {
-          const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-          return `### ${capitalizedType}\n${entries.map((entry) => `- ${entry}`).join("\n")}`;
-        })
-        .join("\n\n");
-    }),
-    formatVersionHeader: jest.fn(
-      (version, date) => `## [${version}] - ${date}`,
-    ),
-    formatVersionLink: jest.fn((version, oldVersion, template) => {
-      if (!template) {
-        return "";
-      }
-      const link = template
-        .replace("{old}", oldVersion)
-        .replace("{new}", version);
-      return `[${version}]: ${link}`;
-    }),
-  },
-}));
-
 describe("Keep a Changelog Writing Strategy", () => {
   describe("formatChanges", () => {
     it("should group changes by type", () => {
@@ -78,6 +41,25 @@ describe("Keep a Changelog Writing Strategy", () => {
       const result = keepachangelog.formatChanges("1.0.0", changes);
       expect(result).toContain("- **Bold** and _italic_ text");
     });
+
+    it("should handle multiple entries of different types", () => {
+      const changes: ChangeFile[] = [
+        { type: "added", entry: "Feature A", significance: "minor" },
+        { type: "changed", entry: "Change B", significance: "minor" },
+        { type: "deprecated", entry: "Deprecation C", significance: "minor" },
+        { type: "removed", entry: "Removal D", significance: "major" },
+        { type: "fixed", entry: "Fix E", significance: "patch" },
+        { type: "security", entry: "Security F", significance: "patch" },
+      ];
+
+      const result = keepachangelog.formatChanges("1.0.0", changes);
+      expect(result).toContain("### Added\n- Feature A");
+      expect(result).toContain("### Changed\n- Change B");
+      expect(result).toContain("### Deprecated\n- Deprecation C");
+      expect(result).toContain("### Removed\n- Removal D");
+      expect(result).toContain("### Fixed\n- Fix E");
+      expect(result).toContain("### Security\n- Security F");
+    });
   });
 
   describe("formatVersionHeader", () => {
@@ -93,11 +75,20 @@ describe("Keep a Changelog Writing Strategy", () => {
       );
       expect(result).toBe("## [1.0.0.1] - 2024-03-20");
     });
+
+    it("should handle previous version parameter", () => {
+      const result = keepachangelog.formatVersionHeader(
+        "2.0.0",
+        "2024-03-20",
+        "1.0.0",
+      );
+      expect(result).toBe("## [2.0.0] - 2024-03-20");
+    });
   });
 
   describe("formatVersionLink", () => {
     it("should format version link with template", () => {
-      const template = "https://github.com/org/repo/compare/{old}...{new}";
+      const template = "https://github.com/org/repo/compare/${old}...${new}";
       const result =
         keepachangelog.formatVersionLink?.("1.2.3", "1.2.2", template) ?? "";
       expect(result).toBe(
@@ -111,7 +102,7 @@ describe("Keep a Changelog Writing Strategy", () => {
     });
 
     it("should handle versions with hotfixes", () => {
-      const template = "https://github.com/org/repo/compare/{old}...{new}";
+      const template = "https://github.com/org/repo/compare/${old}...${new}";
       const result =
         keepachangelog.formatVersionLink?.("1.2.3.4", "1.2.3.3", template) ??
         "";

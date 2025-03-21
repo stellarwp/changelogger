@@ -40,7 +40,7 @@ const stellarwp: WritingStrategy = {
     date: string,
     previousVersion?: string,
   ): string {
-    return `### [${version}] ${date}\n\n`;
+    return `= [${version}] ${date} =\n`;
   },
 
   formatVersionLink(
@@ -68,7 +68,7 @@ const stellarwp: WritingStrategy = {
           let readmeTxt = await fs.readFile(readmeTxtPath, "utf8");
 
           // Generate WordPress-style changelog entry
-          const wpEntry = `\n= [${version}] ${date} =\n\n`;
+          const wpEntry = `\n= ${version} - ${date} =\n\n`;
           const formattedChanges = changes.reduce((acc, change) => {
             const type = config.types[change.type];
             if (change.entry) {
