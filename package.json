@@ -3,6 +3,10 @@
   "description": "A TypeScript-based changelog management tool that works both as a GitHub Action and CLI tool",
   "version": "0.1.0",
   "author": "StellarWP",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stellarwp/changelogger.git"
+  },
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",

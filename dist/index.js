@@ -56,6 +56,9 @@ const git_1 = __nccwpck_require__(6538);
  * - Replaces non-alphanumeric characters with hyphens
  * - Removes leading/trailing hyphens
  * - Collapses multiple hyphens into one
+ *
+ * @param name - The string to clean up
+ * @returns A cleaned up string suitable for use as a filename
  */
 function cleanupFilename(name) {
     return name
@@ -64,6 +67,38 @@ function cleanupFilename(name) {
         .replace(/^-+|-+$/g, "")
         .replace(/-{2,}/g, "-");
 }
+/**
+ * Adds a new changelog entry to the project.
+ *
+ * This command is part of the CLI tool and handles the creation of new changelog entries.
+ * It can be used in two ways:
+ * 1. Interactive mode: When no options are provided, it will prompt the user for all required information
+ * 2. Non-interactive mode: When options are provided, it will use those values directly
+ *
+ * The command will:
+ * - Create a new YAML file in the configured changes directory
+ * - Generate a filename based on the branch name or timestamp
+ * - Handle duplicate filenames by appending a timestamp
+ * - Validate all inputs before creating the file
+ *
+ * @example
+ * ```bash
+ * # Interactive mode
+ * changelogger add
+ *
+ * # Non-interactive mode
+ * changelogger add --significance minor --type feature --entry "Added new feature X"
+ * ```
+ *
+ * @param options - Command options that can be provided to skip interactive prompts
+ * @param options.significance - The significance of the change (patch, minor, major)
+ * @param options.type - The type of change (e.g., feature, fix, enhancement)
+ * @param options.entry - The changelog entry text
+ * @param options.filename - The desired filename for the changelog entry
+ *
+ * @returns A promise that resolves to a string message indicating the result
+ * @throws {Error} If there are issues with file operations or invalid inputs
+ */
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
     // Get the default filename from the branch name
@@ -192,6 +227,26 @@ const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const config_1 = __nccwpck_require__(55042);
 const yaml = __importStar(__nccwpck_require__(38815));
+/**
+ * Validates all changelog entries in the changes directory.
+ *
+ * This command is part of the CLI tool and performs validation checks on all YAML files
+ * in the changes directory. It ensures that:
+ * 1. All files are valid YAML
+ * 2. Each change file has the required fields
+ * 3. The significance value is valid (patch, minor, or major)
+ * 4. The type value is valid according to the configuration
+ * 5. Non-patch changes have an entry description
+ *
+ * @example
+ * ```bash
+ * # Validate all change files
+ * changelogger validate
+ * ```
+ *
+ * @returns A promise that resolves to a string message indicating the validation result
+ * @throws {Error} If validation fails, with details about the validation errors
+ */
 async function run() {
     const config = await (0, config_1.loadConfig)();
     const errors = [];
@@ -284,6 +339,35 @@ const semver = __importStar(__nccwpck_require__(62088));
 const yaml = __importStar(__nccwpck_require__(38815));
 const config_1 = __nccwpck_require__(55042);
 const writing_1 = __nccwpck_require__(59306);
+/**
+ * Writes changelog entries to the main changelog file.
+ *
+ * This command is part of the CLI tool and handles the process of:
+ * 1. Reading all YAML change files from the changes directory
+ * 2. Determining the next version number based on change significance
+ * 3. Writing the changes to the main changelog file using the configured writing strategy
+ * 4. Cleaning up processed change files
+ *
+ * The command can be used in two ways:
+ * 1. Automatic versioning: When no version is specified, it will determine the next version
+ * 2. Manual versioning: When a version is specified, it will use that version
+ *
+ * @example
+ * ```bash
+ * # Automatic versioning
+ * changelogger write
+ *
+ * # Manual versioning
+ * changelogger write --version 1.2.3
+ * ```
+ *
+ * @param options - Command options for controlling the write process
+ * @param options.version - Optional version number to use instead of auto-determining
+ * @param options.dryRun - If true, only show what would be written without making changes
+ *
+ * @returns A promise that resolves to a string message indicating the result
+ * @throws {Error} If there are issues with file operations or invalid inputs
+ */
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
     const changes = [];
@@ -393,6 +477,12 @@ async function run(options) {
     }
     return `Updated ${config.changelogFile} to version ${version}`;
 }
+/**
+ * Gets the current version from the changelog file.
+ *
+ * @param changelogFile - Path to the changelog file
+ * @returns The current version string
+ */
 async function getCurrentVersion(changelogFile) {
     try {
         const content = await fs.readFile(changelogFile, "utf8");
@@ -406,6 +496,12 @@ async function getCurrentVersion(changelogFile) {
         throw error;
     }
 }
+/**
+ * Determines the overall significance of a set of changes.
+ *
+ * @param changes - Array of change files
+ * @returns The highest significance level among the changes
+ */
 function determineSignificance(changes) {
     if (changes.some((c) => c.significance === "major"))
         return "major";
@@ -413,6 +509,13 @@ function determineSignificance(changes) {
         return "minor";
     return "patch";
 }
+/**
+ * Gets the next version number based on the current version and significance.
+ *
+ * @param currentVersion - The current version string
+ * @param significance - The significance of the changes
+ * @returns The next version string
+ */
 function getNextVersion(currentVersion, significance) {
     const version = semver.valid(currentVersion) || "0.1.0";
     return semver.inc(version, significance) || "0.1.0";

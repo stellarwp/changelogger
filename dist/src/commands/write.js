@@ -40,6 +40,35 @@ const semver = __importStar(require("semver"));
 const yaml = __importStar(require("yaml"));
 const config_1 = require("../utils/config");
 const writing_1 = require("../utils/writing");
+/**
+ * Writes changelog entries to the main changelog file.
+ *
+ * This command is part of the CLI tool and handles the process of:
+ * 1. Reading all YAML change files from the changes directory
+ * 2. Determining the next version number based on change significance
+ * 3. Writing the changes to the main changelog file using the configured writing strategy
+ * 4. Cleaning up processed change files
+ *
+ * The command can be used in two ways:
+ * 1. Automatic versioning: When no version is specified, it will determine the next version
+ * 2. Manual versioning: When a version is specified, it will use that version
+ *
+ * @example
+ * ```bash
+ * # Automatic versioning
+ * changelogger write
+ *
+ * # Manual versioning
+ * changelogger write --version 1.2.3
+ * ```
+ *
+ * @param options - Command options for controlling the write process
+ * @param options.version - Optional version number to use instead of auto-determining
+ * @param options.dryRun - If true, only show what would be written without making changes
+ *
+ * @returns A promise that resolves to a string message indicating the result
+ * @throws {Error} If there are issues with file operations or invalid inputs
+ */
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
     const changes = [];
@@ -149,6 +178,12 @@ async function run(options) {
     }
     return `Updated ${config.changelogFile} to version ${version}`;
 }
+/**
+ * Gets the current version from the changelog file.
+ *
+ * @param changelogFile - Path to the changelog file
+ * @returns The current version string
+ */
 async function getCurrentVersion(changelogFile) {
     try {
         const content = await fs.readFile(changelogFile, "utf8");
@@ -162,6 +197,12 @@ async function getCurrentVersion(changelogFile) {
         throw error;
     }
 }
+/**
+ * Determines the overall significance of a set of changes.
+ *
+ * @param changes - Array of change files
+ * @returns The highest significance level among the changes
+ */
 function determineSignificance(changes) {
     if (changes.some((c) => c.significance === "major"))
         return "major";
@@ -169,6 +210,13 @@ function determineSignificance(changes) {
         return "minor";
     return "patch";
 }
+/**
+ * Gets the next version number based on the current version and significance.
+ *
+ * @param currentVersion - The current version string
+ * @param significance - The significance of the changes
+ * @returns The next version string
+ */
 function getNextVersion(currentVersion, significance) {
     const version = semver.valid(currentVersion) || "0.1.0";
     return semver.inc(version, significance) || "0.1.0";

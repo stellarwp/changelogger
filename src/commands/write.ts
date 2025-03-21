@@ -6,6 +6,35 @@ import { loadConfig } from "../utils/config";
 import { loadWritingStrategy } from "../utils/writing";
 import { ChangeFile, WriteCommandOptions } from "../types";
 
+/**
+ * Writes changelog entries to the main changelog file.
+ *
+ * This command is part of the CLI tool and handles the process of:
+ * 1. Reading all YAML change files from the changes directory
+ * 2. Determining the next version number based on change significance
+ * 3. Writing the changes to the main changelog file using the configured writing strategy
+ * 4. Cleaning up processed change files
+ *
+ * The command can be used in two ways:
+ * 1. Automatic versioning: When no version is specified, it will determine the next version
+ * 2. Manual versioning: When a version is specified, it will use that version
+ *
+ * @example
+ * ```bash
+ * # Automatic versioning
+ * changelogger write
+ *
+ * # Manual versioning
+ * changelogger write --version 1.2.3
+ * ```
+ *
+ * @param options - Command options for controlling the write process
+ * @param options.version - Optional version number to use instead of auto-determining
+ * @param options.dryRun - If true, only show what would be written without making changes
+ *
+ * @returns A promise that resolves to a string message indicating the result
+ * @throws {Error} If there are issues with file operations or invalid inputs
+ */
 export async function run(options: WriteCommandOptions): Promise<string> {
   const config = await loadConfig();
   const changes: ChangeFile[] = [];
@@ -140,6 +169,12 @@ export async function run(options: WriteCommandOptions): Promise<string> {
   return `Updated ${config.changelogFile} to version ${version}`;
 }
 
+/**
+ * Gets the current version from the changelog file.
+ *
+ * @param changelogFile - Path to the changelog file
+ * @returns The current version string
+ */
 async function getCurrentVersion(changelogFile: string): Promise<string> {
   try {
     const content = await fs.readFile(changelogFile, "utf8");
@@ -153,6 +188,12 @@ async function getCurrentVersion(changelogFile: string): Promise<string> {
   }
 }
 
+/**
+ * Determines the overall significance of a set of changes.
+ *
+ * @param changes - Array of change files
+ * @returns The highest significance level among the changes
+ */
 function determineSignificance(
   changes: ChangeFile[],
 ): "major" | "minor" | "patch" {
@@ -161,6 +202,13 @@ function determineSignificance(
   return "patch";
 }
 
+/**
+ * Gets the next version number based on the current version and significance.
+ *
+ * @param currentVersion - The current version string
+ * @param significance - The significance of the changes
+ * @returns The next version string
+ */
 function getNextVersion(
   currentVersion: string,
   significance: "major" | "minor" | "patch",

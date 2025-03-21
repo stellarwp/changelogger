@@ -33,6 +33,77 @@ npm run changelog validate
 npm run changelog write
 ```
 
+### CLI Commands Reference
+
+#### `add` Command
+
+Adds a new changelog entry to the project. Can be used in interactive or non-interactive mode.
+
+```bash
+# Interactive mode - prompts for all required information
+npm run changelog add
+
+# Non-interactive mode - provide all options directly
+npm run changelog add --significance minor --type feature --entry "Added new feature X"
+```
+
+Options:
+
+- `--significance`: The significance of the change (patch, minor, major)
+- `--type`: The type of change (e.g., feature, fix, enhancement)
+- `--entry`: The changelog entry text
+- `--filename`: The desired filename for the changelog entry (optional)
+
+The command will:
+
+- Create a new YAML file in the configured changes directory
+- Generate a filename based on the branch name or timestamp
+- Handle duplicate filenames by appending a timestamp
+- Validate all inputs before creating the file
+
+#### `validate` Command
+
+Validates all changelog entries in the changes directory.
+
+```bash
+npm run changelog validate
+```
+
+This command performs the following checks:
+
+- Validates YAML format of all change files
+- Ensures required fields are present
+- Verifies significance values (patch, minor, or major)
+- Validates type values against configuration
+- Ensures non-patch changes have an entry description
+
+#### `write` Command
+
+Writes changelog entries to the main changelog file.
+
+```bash
+# Automatic versioning
+npm run changelog write
+
+# Manual versioning
+npm run changelog write --version 1.2.3
+
+# Dry run - show what would be written without making changes
+npm run changelog write --dry-run
+```
+
+Options:
+
+- `--version`: Optional version number to use instead of auto-determining
+- `--dry-run`: If true, only show what would be written without making changes
+
+The command will:
+
+- Read all YAML change files from the changes directory
+- Determine the next version number based on change significance
+- Write the changes to the main changelog file using the configured writing strategy
+- Clean up processed change files
+
 ### As a GitHub Action
 
 ```yaml

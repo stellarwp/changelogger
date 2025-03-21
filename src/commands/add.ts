@@ -17,6 +17,9 @@ import { getBranchName } from "../utils/git";
  * - Replaces non-alphanumeric characters with hyphens
  * - Removes leading/trailing hyphens
  * - Collapses multiple hyphens into one
+ *
+ * @param name - The string to clean up
+ * @returns A cleaned up string suitable for use as a filename
  */
 function cleanupFilename(name: string): string {
   return name
@@ -26,6 +29,38 @@ function cleanupFilename(name: string): string {
     .replace(/-{2,}/g, "-");
 }
 
+/**
+ * Adds a new changelog entry to the project.
+ *
+ * This command is part of the CLI tool and handles the creation of new changelog entries.
+ * It can be used in two ways:
+ * 1. Interactive mode: When no options are provided, it will prompt the user for all required information
+ * 2. Non-interactive mode: When options are provided, it will use those values directly
+ *
+ * The command will:
+ * - Create a new YAML file in the configured changes directory
+ * - Generate a filename based on the branch name or timestamp
+ * - Handle duplicate filenames by appending a timestamp
+ * - Validate all inputs before creating the file
+ *
+ * @example
+ * ```bash
+ * # Interactive mode
+ * changelogger add
+ *
+ * # Non-interactive mode
+ * changelogger add --significance minor --type feature --entry "Added new feature X"
+ * ```
+ *
+ * @param options - Command options that can be provided to skip interactive prompts
+ * @param options.significance - The significance of the change (patch, minor, major)
+ * @param options.type - The type of change (e.g., feature, fix, enhancement)
+ * @param options.entry - The changelog entry text
+ * @param options.filename - The desired filename for the changelog entry
+ *
+ * @returns A promise that resolves to a string message indicating the result
+ * @throws {Error} If there are issues with file operations or invalid inputs
+ */
 export async function run(options: AddCommandOptions): Promise<string> {
   const config = await loadConfig();
 
