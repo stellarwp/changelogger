@@ -186,18 +186,18 @@ The changelogger supports multiple writing strategies for formatting the changel
    Example output in changelog.md:
 
    ```markdown
-   = [1.2.3] 2024-03-22 =
+   ### [1.2.3] 2024-03-22
 
-   - Feature - Added new feature
-   - Fix - Fixed a bug
+   * Feature - Added new feature
+   * Fix - Fixed a bug
    ```
 
    And automatically updates readme.txt if present:
-
    ```text
    == Changelog ==
 
-   = 1.2.3 - 2024-03-22 =
+   = [1.2.3] 2024-03-22 =
+
    * Feature - Added new feature
    * Fix - Fixed a bug
    ```
