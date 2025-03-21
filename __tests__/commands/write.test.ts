@@ -85,6 +85,7 @@ describe("write command", () => {
       entry: "Added new feature",
     };
 
+    // Mock reading change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
     mockedFs.readFile.mockImplementation(
       async (path: PathLike | FileHandle) => {
@@ -98,6 +99,9 @@ describe("write command", () => {
         return "";
       },
     );
+
+    // Mock writing the changelog file
+    mockedFs.writeFile.mockResolvedValue(undefined);
 
     const options: WriteCommandOptions = {
       version: "1.1.0",
@@ -116,6 +120,8 @@ describe("write command", () => {
       "All notable changes to this project will be documented in this file.",
     );
     expect(writtenContent).toContain("## [1.1.0]");
+    expect(writtenContent).toContain("### Added");
+    expect(writtenContent).toContain("- Added new feature");
   });
 
   it("should clean up change files after writing", async () => {
@@ -414,6 +420,57 @@ describe("write command", () => {
     expect(writtenContent).toContain("- New feature");
     expect(writtenContent).toContain("### Fixed");
     expect(writtenContent).toContain("- Bug fix");
+  });
+
+  it("should append changes to existing version", async () => {
+    const existingChanges: ChangeFile[] = [
+      {
+        type: "added",
+        significance: "minor",
+        entry: "Initial feature",
+      },
+    ];
+
+    const newChanges: ChangeFile[] = [
+      {
+        type: "fixed",
+        significance: "patch",
+        entry: "Fixed bug in feature",
+      },
+    ];
+
+    // Mock reading existing changelog
+    mockedFs.readFile.mockImplementation(
+      async (path: PathLike | FileHandle) => {
+        const filePath = path.toString();
+        if (filePath.endsWith("changelog.md")) {
+          return `# Change Log\n\n## [1.0.0] - 2024-03-21\n\n### Added\n- Initial feature\n`;
+        }
+        if (filePath.endsWith("change1.yaml")) {
+          return yaml.stringify(newChanges[0]);
+        }
+        return "";
+      },
+    );
+
+    // Mock reading new change files
+    mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
+
+    // Mock writing the changelog file
+    mockedFs.writeFile.mockResolvedValue(undefined);
+
+    const result = await run({ version: "1.0.0" });
+
+    expect(result).toBe("Updated existing version 1.0.0 in changelog.md");
+
+    // Verify changelog content
+    const writeCall = mockedFs.writeFile.mock.calls[0];
+    const writtenContent = writeCall[1] as string;
+    expect(writtenContent).toContain("## [1.0.0]");
+    expect(writtenContent).toContain("### Added");
+    expect(writtenContent).toContain("- Initial feature");
+    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("- Fixed bug in feature");
   });
 
   it("should handle filesystem errors", async () => {

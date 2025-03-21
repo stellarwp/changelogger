@@ -41,6 +41,40 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     const currentVersion = await getCurrentVersion(config.changelogFile);
     const significance = determineSignificance(changes);
     version = getNextVersion(currentVersion, significance);
+  } else {
+    // Check if version already exists in changelog
+    try {
+      const changelogContent = await fs.readFile(config.changelogFile, "utf8");
+      const versionExists = changelogContent.includes(`## [${version}]`);
+      if (versionExists) {
+        // If version exists, we'll append to it
+        const writingStrategy = await loadWritingStrategy(config.formatter);
+        const date = new Date().toISOString().split("T")[0];
+        const entry = writingStrategy.formatChanges(version, changes);
+
+        // Insert the new changes after the existing version header
+        const updatedContent = changelogContent.replace(
+          `## [${version}]`,
+          `## [${version}]\n${entry}`,
+        );
+
+        await fs.writeFile(config.changelogFile, updatedContent);
+
+        // Clean up change files
+        for (const file of await fs.readdir(config.changesDir)) {
+          if (file.startsWith(".") || !file.endsWith(".yaml")) {
+            continue;
+          }
+          await fs.unlink(path.join(config.changesDir, file));
+        }
+
+        return `Updated existing version ${version} in changelog.md`;
+      }
+    } catch (error) {
+      if ((error as { code: string }).code !== "ENOENT") {
+        throw error;
+      }
+    }
   }
 
   // Group changes by type
@@ -111,8 +145,11 @@ async function getCurrentVersion(changelogFile: string): Promise<string> {
     const content = await fs.readFile(changelogFile, "utf8");
     const match = content.match(/## \[([^\]]+)\]/);
     return match ? match[1] : "0.1.0";
-  } catch {
-    return "0.1.0";
+  } catch (error) {
+    if ((error as { code: string }).code === "ENOENT") {
+      return "0.1.0";
+    }
+    throw error;
   }
 }
 
