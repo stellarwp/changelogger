@@ -3,6 +3,7 @@ import * as path from "path";
 import * as semver from "semver";
 import * as yaml from "yaml";
 import { loadConfig } from "../utils/config";
+import { loadWritingStrategy } from "../utils/writing";
 import { ChangeFile, WriteCommandOptions } from "../types";
 
 export async function run(options: WriteCommandOptions): Promise<string> {
@@ -79,6 +80,20 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     } else {
       throw error;
     }
+  }
+
+  // Load and use the writing strategy
+  const strategy = await loadWritingStrategy(config.formatter);
+
+  // Handle additional files if the strategy supports it
+  if (strategy.handleAdditionalFiles) {
+    const filePromises = strategy.handleAdditionalFiles(
+      version,
+      date,
+      changes,
+      config,
+    );
+    await Promise.all(filePromises);
   }
 
   // Clean up change files

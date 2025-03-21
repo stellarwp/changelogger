@@ -1,5 +1,5 @@
 import * as path from "path";
-import { ChangeFile } from "../types";
+import { ChangeFile, Config } from "../types";
 
 export interface WritingStrategy {
   /**
@@ -28,6 +28,17 @@ export interface WritingStrategy {
     previousVersion: string,
     template?: string,
   ) => string;
+
+  /**
+   * Handle additional files that need to be updated with the changelog
+   * Returns an array of promises for each file operation
+   */
+  handleAdditionalFiles?: (
+    version: string,
+    date: string,
+    changes: ChangeFile[],
+    config: Config,
+  ) => Promise<void>[];
 }
 
 export async function loadWritingStrategy(

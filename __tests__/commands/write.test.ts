@@ -30,7 +30,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return yaml.stringify(changeFile);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n";
         }
         return "";
@@ -44,7 +44,7 @@ describe("write command", () => {
     const result = await run(options);
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
-    expect(result).toContain("Updated CHANGELOG.md to version 1.1.0");
+    expect(result).toContain("Updated changelog.md to version 1.1.0");
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
@@ -92,7 +92,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return yaml.stringify(changeFile);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           throw { code: "ENOENT" };
         }
         return "";
@@ -106,7 +106,7 @@ describe("write command", () => {
     const result = await run(options);
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
-    expect(result).toContain("Updated CHANGELOG.md to version 1.1.0");
+    expect(result).toContain("Updated changelog.md to version 1.1.0");
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
@@ -132,7 +132,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return yaml.stringify(changeFile);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n";
         }
         return "";
@@ -174,7 +174,7 @@ describe("write command", () => {
         if (filePath.endsWith("change2.yaml")) {
           return yaml.stringify(changes[1]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n## [1.0.0] - 2024-03-21\n";
         }
         return "";
@@ -183,7 +183,7 @@ describe("write command", () => {
 
     const result = await run({});
 
-    expect(result).toContain("Updated CHANGELOG.md to version 1.1.0");
+    expect(result).toContain("Updated changelog.md to version 1.1.0");
   });
 
   it("should handle multiple change types", async () => {
@@ -222,7 +222,7 @@ describe("write command", () => {
         if (filePath.endsWith("change3.yaml")) {
           return yaml.stringify(changes[2]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n";
         }
         return "";
@@ -231,7 +231,7 @@ describe("write command", () => {
 
     const result = await run({ version: "2.0.0" });
 
-    expect(result).toContain("Updated CHANGELOG.md to version 2.0.0");
+    expect(result).toContain("Updated changelog.md to version 2.0.0");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall[1] as string;
@@ -267,7 +267,7 @@ describe("write command", () => {
         if (filePath.endsWith("change2.yaml")) {
           return yaml.stringify(changes[1]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n";
         }
         return "";
@@ -276,7 +276,7 @@ describe("write command", () => {
 
     const result = await run({ version: "1.0.1" });
 
-    expect(result).toContain("Updated CHANGELOG.md to version 1.0.1");
+    expect(result).toContain("Updated changelog.md to version 1.0.1");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall[1] as string;
@@ -293,7 +293,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return "invalid: yaml: content:";
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n";
         }
         return "";
@@ -319,7 +319,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return yaml.stringify(changes[0]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n## [1.0.0] - 2024-03-21\n";
         }
         return "";
@@ -328,7 +328,7 @@ describe("write command", () => {
 
     const result = await run({});
 
-    expect(result).toContain("Updated CHANGELOG.md to version 2.0.0");
+    expect(result).toContain("Updated changelog.md to version 2.0.0");
   });
 
   it("should handle invalid version in changelog", async () => {
@@ -347,7 +347,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return yaml.stringify(changes[0]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n## [invalid] - 2024-03-21\n";
         }
         return "";
@@ -356,7 +356,7 @@ describe("write command", () => {
 
     const result = await run({});
 
-    expect(result).toContain("Updated CHANGELOG.md to version 0.1.1");
+    expect(result).toContain("Updated changelog.md to version 0.1.1");
   });
 
   it("should handle mixed significance levels", async () => {
@@ -395,7 +395,7 @@ describe("write command", () => {
         if (filePath.endsWith("change3.yaml")) {
           return yaml.stringify(changes[2]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n## [1.0.0] - 2024-03-21\n";
         }
         return "";
@@ -404,7 +404,7 @@ describe("write command", () => {
 
     const result = await run({});
 
-    expect(result).toContain("Updated CHANGELOG.md to version 2.0.0");
+    expect(result).toContain("Updated changelog.md to version 2.0.0");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall[1] as string;
@@ -432,7 +432,7 @@ describe("write command", () => {
         if (filePath.endsWith("change1.yaml")) {
           return yaml.stringify(changes[0]);
         }
-        if (filePath.endsWith("CHANGELOG.md")) {
+        if (filePath.endsWith("changelog.md")) {
           return "# Change Log\n";
         }
         return "";

@@ -3,7 +3,7 @@ import { Config } from "../../src/types";
 describe("config", () => {
   it("should have valid default config structure", () => {
     const defaultConfig: Config = {
-      changelogFile: "CHANGELOG.md",
+      changelogFile: "changelog.md",
       changesDir: "changelog",
       ordering: ["type", "content"],
       types: {
@@ -24,7 +24,7 @@ describe("config", () => {
     };
 
     // Basic structure validation
-    expect(defaultConfig.changelogFile).toBe("CHANGELOG.md");
+    expect(defaultConfig.changelogFile).toBe("changelog.md");
     expect(defaultConfig.changesDir).toBe("changelog");
     expect(Array.isArray(defaultConfig.ordering)).toBe(true);
     expect(typeof defaultConfig.types).toBe("object");

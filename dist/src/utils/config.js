@@ -37,7 +37,7 @@ exports.loadConfig = loadConfig;
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const DEFAULT_CONFIG = {
-    changelogFile: "CHANGELOG.md",
+    changelogFile: "changelog.md",
     changesDir: "changelog",
     ordering: ["type", "content"],
     types: {

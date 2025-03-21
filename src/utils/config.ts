@@ -3,7 +3,7 @@ import * as path from "path";
 import { Config } from "../types";
 
 const DEFAULT_CONFIG: Config = {
-  changelogFile: "CHANGELOG.md",
+  changelogFile: "changelog.md",
   changesDir: "changelog",
   ordering: ["type", "content"],
   types: {

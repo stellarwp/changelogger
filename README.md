@@ -123,6 +123,7 @@ The changelogger supports multiple versioning strategies:
    ```
 
 3. **Custom Versioning**: You can provide a path to a JavaScript file that implements the versioning strategy:
+
    ```json
    {
      "changelogger": {
@@ -130,7 +131,9 @@ The changelogger supports multiple versioning strategies:
      }
    }
    ```
+
    The custom versioning file must export these functions:
+
    ```typescript
    export function getNextVersion(
      currentVersion: string,
@@ -170,7 +173,36 @@ The changelogger supports multiple writing strategies for formatting the changel
    [1.2.3]: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
 
-2. **Custom Writing**: You can provide a path to a JavaScript file that implements the writing strategy:
+2. **stellarwp**: A WordPress-style changelog format that also updates readme.txt
+
+   ```json
+   {
+     "changelogger": {
+       "formatter": "stellarwp"
+     }
+   }
+   ```
+
+   Example output in changelog.md:
+
+   ```markdown
+   = [1.2.3] 2024-03-22 =
+
+   - Feature - Added new feature
+   - Fix - Fixed a bug
+   ```
+
+   And automatically updates readme.txt if present:
+
+   ```text
+   == Changelog ==
+
+   = 1.2.3 - 2024-03-22 =
+   * Feature - Added new feature
+   * Fix - Fixed a bug
+   ```
+
+3. **Custom Writing**: You can provide a path to a JavaScript file that implements the writing strategy:
 
    ```json
    {
@@ -180,37 +212,115 @@ The changelogger supports multiple writing strategies for formatting the changel
    }
    ```
 
-   The custom writing file must export these functions:
+   The custom writing file must implement the WritingStrategy interface:
 
    ```typescript
-   export function formatChanges(
-     version: string,
-     changes: Array<{type: string, entry: string}>,
-     previousVersion?: string
-   ): string;
+   interface WritingStrategy {
+     /**
+      * Format the changes into a changelog entry
+      */
+     formatChanges(
+       version: string,
+       changes: Array<{ type: string; entry: string }>,
+       previousVersion?: string,
+     ): string;
 
-   export function formatVersionHeader(
-     version: string,
-     date: string,
-     previousVersion?: string
-   ): string;
+     /**
+      * Format the header for a new version
+      */
+     formatVersionHeader(
+       version: string,
+       date: string,
+       previousVersion?: string,
+     ): string;
 
-   // Optional: Format version comparison links
-   export function formatVersionLink?(
-     version: string,
-     previousVersion: string,
-     template?: string
-   ): string;
+     /**
+      * Optional: Format version comparison links
+      */
+     formatVersionLink?(
+       version: string,
+       previousVersion: string,
+       template?: string,
+     ): string;
+
+     /**
+      * Optional: Handle additional files that need to be updated
+      * with the changelog (e.g., readme.txt, package.json)
+      */
+     handleAdditionalFiles?(
+       version: string,
+       date: string,
+       changes: Array<{ type: string; entry: string }>,
+       config: {
+         changelogFile: string;
+         changesDir: string;
+         types: Record<string, string>;
+         [key: string]: any;
+       },
+     ): Promise<void>[];
+   }
    ```
 
-   Example custom format:
+   Example custom writing strategy:
+
+   ```typescript
+   // custom-writing.ts
+   import * as fs from "fs/promises";
+   import * as path from "path";
+   import { WritingStrategy } from "@stellarwp/changelogger";
+
+   const customStrategy: WritingStrategy = {
+     formatChanges(version, changes) {
+       return changes
+         .map((change) => `- [${change.type.toUpperCase()}] ${change.entry}`)
+         .join("\n");
+     },
+
+     formatVersionHeader(version, date) {
+       return `# Version ${version} (${date})`;
+     },
+
+     formatVersionLink(version, previousVersion, template) {
+       if (!template) return "";
+       return `Compare: ${template
+         .replace("${old}", previousVersion)
+         .replace("${new}", version)}`;
+     },
+
+     handleAdditionalFiles(version, date, changes, config) {
+       const promises: Promise<void>[] = [];
+
+       // Example: Update package.json version
+       promises.push(
+         (async () => {
+           try {
+             const pkgPath = path.join(process.cwd(), "package.json");
+             const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
+             pkg.version = version;
+             await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2));
+           } catch (error) {
+             if ((error as { code: string }).code !== "ENOENT") {
+               throw error;
+             }
+           }
+         })(),
+       );
+
+       return promises;
+     },
+   };
+
+   export default customStrategy;
+   ```
+
+   Example output:
 
    ```markdown
    # Version 1.2.3 (2024-03-22)
 
    - [ADDED] New feature description
    - [FIXED] Bug fix description
-     Compare 1.2.2...1.2.3: https://github.com/owner/repo/compare/1.2.2...1.2.3
+     Compare: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
 
 ### Change File Handling

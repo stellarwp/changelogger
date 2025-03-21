@@ -1,4 +1,6 @@
-import { ChangeFile } from "../../types";
+import * as fs from "fs/promises";
+import * as path from "path";
+import { ChangeFile, Config } from "../../types";
 import { WritingStrategy } from "../writing";
 
 const stellarwp: WritingStrategy = {
@@ -19,23 +21,18 @@ const stellarwp: WritingStrategy = {
       {} as Record<string, string[]>,
     );
 
-    // Define the order of types
-    const typeOrder = ["Feature", "Tweak", "Fix", "Compatibility", "Language"];
-
-    // Format each type's changes
-    const sections = typeOrder
-      .filter((type) => groupedChanges[type.toLowerCase()])
-      .map((type) => {
-        const entries = groupedChanges[type.toLowerCase()];
-        return entries.map((entry) => `* ${type} - ${entry}`).join("\n");
+    // Format each type's changes using the original types from the changes
+    const sections = Object.entries(groupedChanges)
+      .map(([type, entries]) => {
+        // Capitalize the first letter of the type
+        const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+        return entries
+          .map((entry) => `* ${formattedType} - ${entry}`)
+          .join("\n");
       })
       .filter((section) => section.length > 0);
 
-    // Add language section if there are changes
-    const languageSection =
-      "* Language - 0 new strings added, 0 updated, 0 fuzzied, and 0 obsoleted.";
-
-    return [...sections, languageSection].join("\n");
+    return sections.join("\n");
   },
 
   formatVersionHeader(
@@ -53,6 +50,52 @@ const stellarwp: WritingStrategy = {
   ): string {
     // StellarWP format doesn't use version links
     return "";
+  },
+
+  handleAdditionalFiles(
+    version: string,
+    date: string,
+    changes: ChangeFile[],
+    config: Config,
+  ): Promise<void>[] {
+    const promises: Promise<void>[] = [];
+
+    // Handle readme.txt
+    promises.push(
+      (async () => {
+        try {
+          const readmeTxtPath = path.join(process.cwd(), "readme.txt");
+          let readmeTxt = await fs.readFile(readmeTxtPath, "utf8");
+
+          // Generate WordPress-style changelog entry
+          const wpEntry = `\n= ${version} - ${date} =\n`;
+          const formattedChanges = changes.reduce((acc, change) => {
+            const type = config.types[change.type];
+            if (change.entry) {
+              acc.push(`* ${type} - ${change.entry}`);
+            }
+            return acc;
+          }, [] as string[]);
+
+          const wpChanges = formattedChanges.join("\n");
+
+          // Insert after == Changelog == line
+          readmeTxt = readmeTxt.replace(
+            /(== Changelog ==\n)/,
+            `$1${wpEntry}\n${wpChanges}\n`,
+          );
+
+          await fs.writeFile(readmeTxtPath, readmeTxt);
+        } catch (error) {
+          if ((error as { code: string }).code !== "ENOENT") {
+            throw error;
+          }
+          // Silently ignore if readme.txt doesn't exist
+        }
+      })(),
+    );
+
+    return promises;
   },
 };
 

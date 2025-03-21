@@ -283,6 +283,7 @@ const path = __importStar(__nccwpck_require__(16928));
 const semver = __importStar(__nccwpck_require__(62088));
 const yaml = __importStar(__nccwpck_require__(38815));
 const config_1 = __nccwpck_require__(55042);
+const writing_1 = __nccwpck_require__(59306);
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
     const changes = [];
@@ -347,6 +348,13 @@ async function run(options) {
         else {
             throw error;
         }
+    }
+    // Load and use the writing strategy
+    const strategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
+    // Handle additional files if the strategy supports it
+    if (strategy.handleAdditionalFiles) {
+        const filePromises = strategy.handleAdditionalFiles(version, date, changes, config);
+        await Promise.all(filePromises);
     }
     // Clean up change files
     for (const file of await fs.readdir(config.changesDir)) {
@@ -513,7 +521,7 @@ exports.loadConfig = loadConfig;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const DEFAULT_CONFIG = {
-    changelogFile: "CHANGELOG.md",
+    changelogFile: "changelog.md",
     changesDir: "changelog",
     ordering: ["type", "content"],
     types: {
@@ -605,6 +613,116 @@ async function getRemoteUrl() {
         return null;
     }
 }
+
+
+/***/ }),
+
+/***/ 59306:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.loadWritingStrategy = loadWritingStrategy;
+const path = __importStar(__nccwpck_require__(16928));
+async function loadWritingStrategy(formatter) {
+    // If it's a file path, try to load it
+    if (formatter.endsWith(".js") || formatter.endsWith(".ts")) {
+        try {
+            const absolutePath = path.resolve(process.cwd(), formatter);
+            const module = await Promise.resolve(`${absolutePath}`).then(s => __importStar(require(s)));
+            // Validate that the module exports the required methods
+            if (typeof module.formatChanges !== "function" ||
+                typeof module.formatVersionHeader !== "function") {
+                throw new Error(`Writing strategy file ${formatter} does not export required methods`);
+            }
+            return module;
+        }
+        catch (err) {
+            const error = err instanceof Error ? err.message : String(err);
+            throw new Error(`Failed to load writing strategy file ${formatter}: ${error}`);
+        }
+    }
+    // Handle built-in writing strategies
+    if (formatter === "keepachangelog") {
+        return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(28411)))).default;
+    }
+    throw new Error(`Unknown writing strategy: ${formatter}`);
+}
+
+
+/***/ }),
+
+/***/ 28411:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const keepachangelog = {
+    formatChanges(version, changes, previousVersion) {
+        // Group changes by type
+        const groupedChanges = changes.reduce((acc, change) => {
+            if (!acc[change.type]) {
+                acc[change.type] = [];
+            }
+            acc[change.type].push(change.entry);
+            return acc;
+        }, {});
+        // Format each type's changes
+        const sections = Object.entries(groupedChanges).map(([type, entries]) => {
+            const title = type.charAt(0).toUpperCase() + type.slice(1);
+            const items = entries.map((entry) => `- ${entry}`).join("\n");
+            return `### ${title}\n${items}`;
+        });
+        return sections.join("\n\n");
+    },
+    formatVersionHeader(version, date, previousVersion) {
+        return `## [${version}] - ${date}`;
+    },
+    formatVersionLink(version, previousVersion, template) {
+        if (!template)
+            return "";
+        const link = template
+            .replace("${old}", previousVersion)
+            .replace("${new}", version);
+        return `[${version}]: ${link}`;
+    },
+};
+exports["default"] = keepachangelog;
 
 
 /***/ }),

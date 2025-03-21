@@ -39,6 +39,7 @@ const path = __importStar(require("path"));
 const semver = __importStar(require("semver"));
 const yaml = __importStar(require("yaml"));
 const config_1 = require("../utils/config");
+const writing_1 = require("../utils/writing");
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
     const changes = [];
@@ -103,6 +104,13 @@ async function run(options) {
         else {
             throw error;
         }
+    }
+    // Load and use the writing strategy
+    const strategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
+    // Handle additional files if the strategy supports it
+    if (strategy.handleAdditionalFiles) {
+        const filePromises = strategy.handleAdditionalFiles(version, date, changes, config);
+        await Promise.all(filePromises);
     }
     // Clean up change files
     for (const file of await fs.readdir(config.changesDir)) {
