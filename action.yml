@@ -1,0 +1,32 @@
+name: Changelogger
+description: Manage changelogs through change files in a changelog directory
+author: StellarWP
+branding:
+  icon: file-text
+  color: purple
+inputs:
+  command:
+    required: true
+    description: The changelogger command to run (add, validate, write)
+    default: "validate"
+  significance:
+    required: false
+    description: The significance of the change (patch, minor, major)
+  type:
+    required: false
+    description: The type of change (added, changed, deprecated, removed, fixed, security)
+  entry:
+    required: false
+    description: The changelog entry text
+  version:
+    required: false
+    description: The version to use when writing the changelog
+  github-token:
+    required: false
+    description: GitHub token for creating PRs or accessing private repos
+outputs:
+  result:
+    description: The result of the command execution
+runs:
+  using: "node20"
+  main: "dist/src/main.js"

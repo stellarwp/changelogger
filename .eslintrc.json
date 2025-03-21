@@ -1,0 +1,36 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "github", "jest", "prettier"],
+  "extends": [
+    "plugin:github/recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "jest/globals": true
+  },
+  "ignorePatterns": ["**/__tests__/**/*", "**/*.test.ts", "examples/**/*"],
+  "rules": {
+    "filenames/match-regex": "off",
+    "github/no-then": "off",
+    "i18n-text/no-en": "off",
+    "import/no-namespace": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/explicit-function-return-type": [
+      "error",
+      {
+        "allowExpressions": true
+      }
+    ],
+    "no-console": "off"
+  }
+}
