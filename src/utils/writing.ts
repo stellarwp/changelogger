@@ -1,5 +1,5 @@
 import * as path from "path";
-import { ChangeFile, Config } from "../types";
+import { ChangeFile, Config, WriteCommandOptions } from "../types";
 
 export interface WritingStrategy {
   /**
@@ -38,6 +38,7 @@ export interface WritingStrategy {
     date: string,
     changes: ChangeFile[],
     config: Config,
+    options?: WriteCommandOptions,
   ) => Promise<void>[];
 }
 
@@ -72,6 +73,11 @@ export async function loadWritingStrategy(
   // Handle built-in writing strategies
   if (formatter === "keepachangelog") {
     return (await import("./writing/keepachangelog")).default;
+  }
+
+  // Handle built-in writing strategies
+  if (formatter === "stellarwp") {
+    return (await import("./writing/stellarwp")).default;
   }
 
   throw new Error(`Unknown writing strategy: ${formatter}`);

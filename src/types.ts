@@ -24,17 +24,22 @@ export interface AddCommandOptions {
   significance?: string;
   type?: string;
   entry?: string;
-  githubToken?: string;
   filename?: string;
 }
 
 export interface WriteCommandOptions {
   version?: string;
-  githubToken?: string;
+  /**
+   * If true, only show what would be written without making changes
+   * @default false
+   */
+  dryRun?: boolean;
+  rotateVersions?: number;
 }
 
 export interface Config {
   changelogFile: string;
+  readmeFile?: string;
   changesDir: string;
   linkTemplate?: string;
   ordering: ("type" | "significance" | "timestamp" | "content")[];

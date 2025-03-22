@@ -10,7 +10,8 @@ async function run(): Promise<void> {
     const type = core.getInput("type");
     const entry = core.getInput("entry");
     const version = core.getInput("version");
-    const githubToken = core.getInput("github-token");
+    const dryRun = core.getInput("dry-run") === "true";
+    const rotateVersions = core.getInput("rotate-versions");
 
     let result: string;
 
@@ -20,7 +21,6 @@ async function run(): Promise<void> {
           significance,
           type,
           entry,
-          githubToken,
         });
         break;
       case "validate":
@@ -29,7 +29,10 @@ async function run(): Promise<void> {
       case "write":
         result = await writeCommand({
           version,
-          githubToken,
+          dryRun,
+          rotateVersions: rotateVersions
+            ? parseInt(rotateVersions, 10)
+            : undefined,
         });
         break;
       default:

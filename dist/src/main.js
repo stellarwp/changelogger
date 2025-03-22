@@ -44,7 +44,8 @@ async function run() {
         const type = core.getInput("type");
         const entry = core.getInput("entry");
         const version = core.getInput("version");
-        const githubToken = core.getInput("github-token");
+        const dryRun = core.getInput("dry-run") === "true";
+        const rotateVersions = core.getInput("rotate-versions");
         let result;
         switch (command) {
             case "add":
@@ -52,7 +53,6 @@ async function run() {
                     significance,
                     type,
                     entry,
-                    githubToken,
                 });
                 break;
             case "validate":
@@ -61,7 +61,10 @@ async function run() {
             case "write":
                 result = await (0, write_1.run)({
                     version,
-                    githubToken,
+                    dryRun,
+                    rotateVersions: rotateVersions
+                        ? parseInt(rotateVersions, 10)
+                        : undefined,
                 });
                 break;
             default:

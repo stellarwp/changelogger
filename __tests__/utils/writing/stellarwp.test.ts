@@ -126,7 +126,7 @@ describe("stellarwp", () => {
         );
         expect(mockedFs.writeFile).toHaveBeenCalledWith(
           expect.stringContaining("readme.txt"),
-          expect.stringContaining("= 1.0.0 - 2024-03-22 =\n"),
+          expect.stringContaining("= [1.0.0] - 2024-03-22 ="),
         );
         expect(mockedFs.writeFile).toHaveBeenCalledWith(
           expect.stringContaining("readme.txt"),
@@ -196,7 +196,7 @@ describe("stellarwp", () => {
         expect(mockedFs.writeFile).toHaveBeenCalledWith(
           expect.stringContaining("readme.txt"),
           expect.stringMatching(
-            /=== Plugin Name ===[\r\n]*== Changelog ==[\r\n]*= 1\.0\.0 - 2024-03-22 =[\r\n]*\* Feature - Major feature[\r\n]*\* Tweak - Small tweak[\r\n]*\* Fix - Critical fix[\r\n]*Old entries/,
+            /=== Plugin Name ===[\r\n]*== Changelog ==[\r\n]*= \[1\.0\.0\] - 2024-03-22 =[\r\n]*\* Feature - Major feature[\r\n]*\* Tweak - Small tweak[\r\n]*\* Fix - Critical fix[\r\n]*Old entries/,
           ),
         );
       }

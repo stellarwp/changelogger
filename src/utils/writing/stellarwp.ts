@@ -1,6 +1,6 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import { ChangeFile, Config } from "../../types";
+import { ChangeFile, Config, WriteCommandOptions } from "../../types";
 import { WritingStrategy } from "../writing";
 
 const stellarwp: WritingStrategy = {
@@ -57,18 +57,23 @@ const stellarwp: WritingStrategy = {
     date: string,
     changes: ChangeFile[],
     config: Config,
+    options?: WriteCommandOptions,
   ): Promise<void>[] {
     const promises: Promise<void>[] = [];
 
-    // Handle readme.txt
+    // Handle readme file
     promises.push(
       (async () => {
         try {
-          const readmeTxtPath = path.join(process.cwd(), "readme.txt");
-          let readmeTxt = await fs.readFile(readmeTxtPath, "utf8");
+          // Use readmeFile from config if available, otherwise fallback to readme.txt
+          const readmePath = path.join(
+            process.cwd(),
+            config.readmeFile || "readme.txt",
+          );
+          let readmeContent = await fs.readFile(readmePath, "utf8");
 
           // Generate WordPress-style changelog entry
-          const wpEntry = `\n= ${version} - ${date} =\n\n`;
+          const wpEntry = `\n= [${version}] - ${date} =\n\n`;
           const formattedChanges = changes.reduce((acc, change) => {
             const type = config.types[change.type];
             if (change.entry) {
@@ -80,17 +85,70 @@ const stellarwp: WritingStrategy = {
           const wpChanges = formattedChanges.join("\n");
 
           // Insert after == Changelog == line
-          readmeTxt = readmeTxt.replace(
+          readmeContent = readmeContent.replace(
             /(== Changelog ==\n)/,
             `$1${wpEntry}${wpChanges}\n`,
           );
 
-          await fs.writeFile(readmeTxtPath, readmeTxt);
+          if (options?.dryRun) {
+            // In dry run mode, just log what would be written
+            console.log(`[DRY RUN] Would write to ${readmePath}:`);
+            console.log("=== Changes to be written ===");
+            console.log(wpEntry + wpChanges);
+            console.log("===========================");
+          } else {
+            await fs.writeFile(readmePath, readmeContent);
+
+            // Handle version rotation if specified
+            if (options?.rotateVersions) {
+              // Find all version entries
+              const versionMatches = readmeContent.matchAll(
+                /= \[([^\]]+)\] - ([^\n]+) =/g,
+              );
+              const versions = Array.from(versionMatches).map((match) => ({
+                version: match[1],
+                date: match[2],
+                startIndex: match.index!,
+                endIndex: match.index! + match[0].length,
+              }));
+
+              // If we have more versions than allowed, remove the oldest ones
+              if (versions.length > options.rotateVersions) {
+                // Sort versions by date (newest first)
+                versions.sort(
+                  (a, b) =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime(),
+                );
+
+                // Keep only the allowed number of versions
+                const versionsToKeep = versions.slice(
+                  0,
+                  options.rotateVersions,
+                );
+
+                // Find the end of the last version to keep
+                const lastVersionToKeep =
+                  versionsToKeep[versionsToKeep.length - 1];
+                const nextVersionStart = versions.find(
+                  (v) => v.startIndex > lastVersionToKeep.endIndex,
+                )?.startIndex;
+
+                // Extract the content up to the last version to keep
+                const contentToKeep = readmeContent.substring(
+                  0,
+                  nextVersionStart || readmeContent.length,
+                );
+
+                // Write the rotated content back to the file
+                await fs.writeFile(readmePath, contentToKeep);
+              }
+            }
+          }
         } catch (error) {
           if ((error as { code: string }).code !== "ENOENT") {
             throw error;
           }
-          // Silently ignore if readme.txt doesn't exist
+          // Silently ignore if readme file doesn't exist
         }
       })(),
     );

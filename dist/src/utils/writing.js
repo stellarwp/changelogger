@@ -57,5 +57,9 @@ async function loadWritingStrategy(formatter) {
     if (formatter === "keepachangelog") {
         return (await Promise.resolve().then(() => __importStar(require("./writing/keepachangelog")))).default;
     }
+    // Handle built-in writing strategies
+    if (formatter === "stellarwp") {
+        return (await Promise.resolve().then(() => __importStar(require("./writing/stellarwp")))).default;
+    }
     throw new Error(`Unknown writing strategy: ${formatter}`);
 }

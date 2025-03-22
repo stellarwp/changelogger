@@ -400,35 +400,6 @@ async function run(options) {
         const significance = determineSignificance(changes);
         version = getNextVersion(currentVersion, significance);
     }
-    else {
-        // Check if version already exists in changelog
-        try {
-            const changelogContent = await fs.readFile(config.changelogFile, "utf8");
-            const versionExists = changelogContent.includes(`## [${version}]`);
-            if (versionExists) {
-                // If version exists, we'll append to it
-                const writingStrategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
-                const date = new Date().toISOString().split("T")[0];
-                const entry = writingStrategy.formatChanges(version, changes);
-                // Insert the new changes after the existing version header
-                const updatedContent = changelogContent.replace(`## [${version}]`, `## [${version}]\n${entry}`);
-                await fs.writeFile(config.changelogFile, updatedContent);
-                // Clean up change files
-                for (const file of await fs.readdir(config.changesDir)) {
-                    if (file.startsWith(".") || !file.endsWith(".yaml")) {
-                        continue;
-                    }
-                    await fs.unlink(path.join(config.changesDir, file));
-                }
-                return `Updated existing version ${version} in changelog.md`;
-            }
-        }
-        catch (error) {
-            if (error.code !== "ENOENT") {
-                throw error;
-            }
-        }
-    }
     // Group changes by type
     const groupedChanges = changes.reduce((acc, change) => {
         const type = config.types[change.type];
@@ -438,24 +409,68 @@ async function run(options) {
     }, {});
     // Generate changelog entry
     const date = new Date().toISOString().split("T")[0];
-    let entry = `\n## [${version}] - ${date}\n`;
-    for (const [type, entries] of Object.entries(groupedChanges)) {
-        entry += `\n### ${type}\n`;
-        for (const text of entries) {
-            if (text) {
-                entry += `- ${text}\n`;
+    const writingStrategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
+    const changelogEntryFormatted = writingStrategy.formatChanges(version, changes);
+    const versionHeader = writingStrategy.formatVersionHeader(version, date);
+    const versionLink = writingStrategy.formatVersionLink?.(version, await getCurrentVersion(config.changelogFile), config.linkTemplate) || "";
+    const entry = `${versionHeader}${changelogEntryFormatted}\n${versionLink}`;
+    // If dry run, show what would be written and exit
+    if (options.dryRun) {
+        console.log("[DRY RUN] Would write the following changes:");
+        console.log("=== Changelog Entry ===");
+        console.log(entry);
+        console.log("=====================");
+        // Load writing strategy to show additional files that would be updated
+        const strategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
+        if (strategy.handleAdditionalFiles) {
+            const filePromises = strategy.handleAdditionalFiles(version, date, changes, config, options);
+            await Promise.all(filePromises);
+        }
+        return "Dry run completed - no changes were made";
+    }
+    // Check if version already exists in changelog
+    let versionExists = false;
+    try {
+        const changelogContent = await fs.readFile(config.changelogFile, "utf8");
+        versionExists = changelogContent.includes(versionHeader.trim());
+        if (versionExists) {
+            // If version exists, we'll append to it
+            const changelogEntry = writingStrategy.formatChanges(version, changes);
+            // Insert the new changes after the existing version header
+            const updatedContent = changelogContent.replace(versionHeader.trim(), `${versionHeader.trim()}\n${changelogEntry}`);
+            await fs.writeFile(config.changelogFile, updatedContent);
+            // Clean up change files
+            for (const file of await fs.readdir(config.changesDir)) {
+                if (file.startsWith(".") || !file.endsWith(".yaml")) {
+                    continue;
+                }
+                await fs.unlink(path.join(config.changesDir, file));
             }
+            return `Updated existing version ${version} in changelog.md`;
+        }
+    }
+    catch (error) {
+        if (error.code !== "ENOENT") {
+            throw error;
         }
     }
     // Update changelog file
     try {
         let changelog = await fs.readFile(config.changelogFile, "utf8");
-        changelog = changelog.replace(/^(# Change Log\n)/, `$1${entry}`);
+        const firstEntry = changelog.indexOf("\n= [");
+        if (firstEntry > -1) {
+            // Insert after the header but before the first entry
+            changelog = `${changelog.slice(0, firstEntry)} \n ${entry} ${changelog.slice(firstEntry)}`;
+        }
+        else {
+            // No existing entries, just append
+            changelog = changelog.replace(/^(# Changelog\n)/, `$1\n${entry}`);
+        }
         await fs.writeFile(config.changelogFile, changelog);
     }
     catch (error) {
         if (error.code === "ENOENT") {
-            const header = "# Change Log\n\nAll notable changes to this project will be documented in this file.\n";
+            const header = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
             await fs.writeFile(config.changelogFile, header + entry);
         }
         else {
@@ -466,7 +481,7 @@ async function run(options) {
     const strategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
     // Handle additional files if the strategy supports it
     if (strategy.handleAdditionalFiles) {
-        const filePromises = strategy.handleAdditionalFiles(version, date, changes, config);
+        const filePromises = strategy.handleAdditionalFiles(version, date, changes, config, options);
         await Promise.all(filePromises);
     }
     // Clean up change files
@@ -475,7 +490,9 @@ async function run(options) {
             await fs.unlink(path.join(config.changesDir, file));
         }
     }
-    return `Updated ${config.changelogFile} to version ${version}`;
+    return versionExists
+        ? `Updated existing version ${version} in changelog.md`
+        : `Updated changelog.md to version ${version}`;
 }
 /**
  * Gets the current version from the changelog file.
@@ -486,7 +503,12 @@ async function run(options) {
 async function getCurrentVersion(changelogFile) {
     try {
         const content = await fs.readFile(changelogFile, "utf8");
-        const match = content.match(/## \[([^\]]+)\]/);
+        // Try StellarWP format first
+        let match = content.match(/= \[([^\]]+)\]/);
+        if (!match) {
+            // Try Keep a Changelog format
+            match = content.match(/## \[([^\]]+)\]/);
+        }
         return match ? match[1] : "0.1.0";
     }
     catch (error) {
@@ -574,7 +596,8 @@ async function run() {
         const type = core.getInput("type");
         const entry = core.getInput("entry");
         const version = core.getInput("version");
-        const githubToken = core.getInput("github-token");
+        const dryRun = core.getInput("dry-run") === "true";
+        const rotateVersions = core.getInput("rotate-versions");
         let result;
         switch (command) {
             case "add":
@@ -582,7 +605,6 @@ async function run() {
                     significance,
                     type,
                     entry,
-                    githubToken,
                 });
                 break;
             case "validate":
@@ -591,7 +613,10 @@ async function run() {
             case "write":
                 result = await (0, write_1.run)({
                     version,
-                    githubToken,
+                    dryRun,
+                    rotateVersions: rotateVersions
+                        ? parseInt(rotateVersions, 10)
+                        : undefined,
                 });
                 break;
             default:
@@ -815,6 +840,10 @@ async function loadWritingStrategy(formatter) {
     if (formatter === "keepachangelog") {
         return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(28411)))).default;
     }
+    // Handle built-in writing strategies
+    if (formatter === "stellarwp") {
+        return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(46107)))).default;
+    }
     throw new Error(`Unknown writing strategy: ${formatter}`);
 }
 
@@ -858,6 +887,147 @@ const keepachangelog = {
     },
 };
 exports["default"] = keepachangelog;
+
+
+/***/ }),
+
+/***/ 46107:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const fs = __importStar(__nccwpck_require__(91943));
+const path = __importStar(__nccwpck_require__(16928));
+const stellarwp = {
+    formatChanges(version, changes, previousVersion) {
+        // Group changes by type
+        const groupedChanges = changes.reduce((acc, change) => {
+            if (!acc[change.type]) {
+                acc[change.type] = [];
+            }
+            acc[change.type].push(change.entry);
+            return acc;
+        }, {});
+        // Format each type's changes using the original types from the changes
+        const sections = Object.entries(groupedChanges)
+            .map(([type, entries]) => {
+            // Capitalize the first letter of the type
+            const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+            return entries
+                .map((entry) => `* ${formattedType} - ${entry}`)
+                .join("\n");
+        })
+            .filter((section) => section.length > 0);
+        return sections.join("\n");
+    },
+    formatVersionHeader(version, date, previousVersion) {
+        return `= [${version}] ${date} =\n`;
+    },
+    formatVersionLink(version, previousVersion, template) {
+        // StellarWP format doesn't use version links
+        return "";
+    },
+    handleAdditionalFiles(version, date, changes, config, options) {
+        const promises = [];
+        // Handle readme file
+        promises.push((async () => {
+            try {
+                // Use readmeFile from config if available, otherwise fallback to readme.txt
+                const readmePath = path.join(process.cwd(), config.readmeFile || "readme.txt");
+                let readmeContent = await fs.readFile(readmePath, "utf8");
+                // Generate WordPress-style changelog entry
+                const wpEntry = `\n= [${version}] - ${date} =\n\n`;
+                const formattedChanges = changes.reduce((acc, change) => {
+                    const type = config.types[change.type];
+                    if (change.entry) {
+                        acc.push(`* ${type} - ${change.entry}`);
+                    }
+                    return acc;
+                }, []);
+                const wpChanges = formattedChanges.join("\n");
+                // Insert after == Changelog == line
+                readmeContent = readmeContent.replace(/(== Changelog ==\n)/, `$1${wpEntry}${wpChanges}\n`);
+                if (options?.dryRun) {
+                    // In dry run mode, just log what would be written
+                    console.log(`[DRY RUN] Would write to ${readmePath}:`);
+                    console.log("=== Changes to be written ===");
+                    console.log(wpEntry + wpChanges);
+                    console.log("===========================");
+                }
+                else {
+                    await fs.writeFile(readmePath, readmeContent);
+                    // Handle version rotation if specified
+                    if (options?.rotateVersions) {
+                        // Find all version entries
+                        const versionMatches = readmeContent.matchAll(/= \[([^\]]+)\] - ([^\n]+) =/g);
+                        const versions = Array.from(versionMatches).map((match) => ({
+                            version: match[1],
+                            date: match[2],
+                            startIndex: match.index,
+                            endIndex: match.index + match[0].length,
+                        }));
+                        // If we have more versions than allowed, remove the oldest ones
+                        if (versions.length > options.rotateVersions) {
+                            // Sort versions by date (newest first)
+                            versions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                            // Keep only the allowed number of versions
+                            const versionsToKeep = versions.slice(0, options.rotateVersions);
+                            // Find the end of the last version to keep
+                            const lastVersionToKeep = versionsToKeep[versionsToKeep.length - 1];
+                            const nextVersionStart = versions.find((v) => v.startIndex > lastVersionToKeep.endIndex)?.startIndex;
+                            // Extract the content up to the last version to keep
+                            const contentToKeep = readmeContent.substring(0, nextVersionStart || readmeContent.length);
+                            // Write the rotated content back to the file
+                            await fs.writeFile(readmePath, contentToKeep);
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                if (error.code !== "ENOENT") {
+                    throw error;
+                }
+                // Silently ignore if readme file doesn't exist
+            }
+        })());
+        return promises;
+    },
+};
+exports["default"] = stellarwp;
 
 
 /***/ }),

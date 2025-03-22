@@ -5,11 +5,16 @@ const commander_1 = require("commander");
 const add_1 = require("./commands/add");
 const validate_1 = require("./commands/validate");
 const write_1 = require("./commands/write");
+const fs_1 = require("fs");
+const path_1 = require("path");
 const program = new commander_1.Command();
+// Get version from package.json
+const packageJson = JSON.parse((0, fs_1.readFileSync)((0, path_1.join)(__dirname, "..", "..", "package.json"), "utf8"));
 program
     .name("changelogger")
-    .description("A tool for managing changelogs through change files")
-    .version("0.1.0");
+    .description("A TypeScript-based changelog management tool that works both as a GitHub Action and CLI tool")
+    .version(packageJson.version);
+// Add commands
 program
     .command("add")
     .description("Add a new changelog entry")
@@ -43,6 +48,8 @@ program
     .command("write")
     .description("Write changes to the changelog file")
     .option("-v, --version <version>", "The version to use")
+    .option("--dry-run", "Show what would be written without making changes")
+    .option("--rotate-versions <number>", "Number of versions to keep in additional files (e.g. readme.txt). Does not affect changelog.md")
     .action(async (options) => {
     try {
         const result = await (0, write_1.run)(options);

@@ -1,7 +1,7 @@
 {
   "name": "@stellarwp/changelogger",
   "description": "A TypeScript-based changelog management tool that works both as a GitHub Action and CLI tool",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "StellarWP",
   "repository": {
     "type": "git",
@@ -64,5 +64,25 @@
     "fix:format": "prettier --write .",
     "test": "TS_NODE_PROJECT='tsconfig.test.json' jest --config jest.config.ts",
     "changelog": "node ./dist/src/cli.js"
+  },
+  "changelogger": {
+    "changelogFile": "debug/changelog.md",
+    "readmeFile": "debug/readme.txt",
+    "changesDir": "changelog",
+    "linkTemplate": "https://github.com/owner/repo/compare/${old}...${new}",
+    "ordering": [
+      "type",
+      "content"
+    ],
+    "types": {
+      "added": "Added",
+      "changed": "Changed",
+      "deprecated": "Deprecated",
+      "removed": "Removed",
+      "fixed": "Fixed",
+      "security": "Security"
+    },
+    "formatter": "stellarwp",
+    "versioning": "stellarwp"
   }
 }
