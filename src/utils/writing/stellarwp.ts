@@ -52,6 +52,24 @@ const stellarwp: WritingStrategy = {
     return "";
   },
 
+  versionHeaderMatcher(content: string, version: string): string | undefined {
+    // Match StellarWP version headers
+    const versionRegex = new RegExp(`^= \\[${version}\\] ([^=]+) =$`, 'm');
+    const match = content.match(versionRegex);
+    return match ? match[1].trim() : undefined;
+  },
+
+  changelogHeaderMatcher(content: string): number {
+    // Find the position after the first version header
+    const firstVersionMatch = content.match(/^= \[[^\]]+\] [^=]+ =$/m);
+    if (!firstVersionMatch) {
+      // If no version header found, find the position after the main header
+      const mainHeaderMatch = content.match(/^== Changelog ==$/m);
+      return mainHeaderMatch ? mainHeaderMatch.index! + mainHeaderMatch[0].length + 1 : 0;
+    }
+    return firstVersionMatch.index!;
+  },
+
   handleAdditionalFiles(
     version: string,
     date: string,

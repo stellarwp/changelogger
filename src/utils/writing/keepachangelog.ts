@@ -50,6 +50,24 @@ const keepachangelog: WritingStrategy = {
 
     return `[${version}]: ${link}`;
   },
+
+  versionHeaderMatcher(content: string, version: string): string | undefined {
+    // Match Keep a Changelog version headers
+    const versionRegex = new RegExp(`^## \\[${version}\\] - ([^\n]+)$`, 'm');
+    const match = content.match(versionRegex);
+    return match ? match[1] : undefined;
+  },
+
+  changelogHeaderMatcher(content: string): number {
+    // Find the position after the first version header
+    const firstVersionMatch = content.match(/^## \[[^\]]+\] - [^\n]+$/m);
+    if (!firstVersionMatch) {
+      // If no version header found, find the position after the main header
+      const mainHeaderMatch = content.match(/^# Changelog$/m);
+      return mainHeaderMatch ? mainHeaderMatch.index! + mainHeaderMatch[0].length + 1 : 0;
+    }
+    return firstVersionMatch.index!;
+  },
 };
 
 export default keepachangelog;
