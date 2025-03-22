@@ -7,12 +7,12 @@ import { loadWritingStrategy } from "../utils/writing";
 import { ChangeFile, WriteCommandOptions } from "../types";
 
 /**
- * Writes changelog entries to the main changelog file.
+ * Writes changelog entries to the configured files.
  *
  * This command is part of the CLI tool and handles the process of:
  * 1. Reading all YAML change files from the changes directory
  * 2. Determining the next version number based on change significance
- * 3. Writing the changes to the main changelog file using the configured writing strategy
+ * 3. Writing the changes to each configured file using its specific writing strategy
  * 4. Cleaning up processed change files
  *
  * The command can be used in two ways:
@@ -67,129 +67,84 @@ export async function run(options: WriteCommandOptions): Promise<string> {
   // Determine version bump
   let version = options.overwriteVersion;
   if (!version) {
-    const currentVersion = await getCurrentVersion(config.changelogFile);
+    const currentVersion = await getCurrentVersion(config.files[0].path);
     const significance = determineSignificance(changes);
     version = getNextVersion(currentVersion, significance);
   }
 
-  // Group changes by type
-  const groupedChanges = changes.reduce(
-    (acc, change) => {
-      const type = config.types[change.type];
-      acc[type] = acc[type] || [];
-      acc[type].push(change.entry);
-      return acc;
-    },
-    {} as Record<string, string[]>,
-  );
-
   // Generate changelog entry
   const date = new Date().toISOString().split("T")[0];
-  const writingStrategy = await loadWritingStrategy(config.formatter);
-  const changelogEntryFormatted = writingStrategy.formatChanges(
-    version,
-    changes,
-  );
-  const versionHeader = writingStrategy.formatVersionHeader(version, date);
-  const versionLink =
-    writingStrategy.formatVersionLink?.(
-      version,
-      await getCurrentVersion(config.changelogFile),
-      config.linkTemplate,
-    ) || "";
-  const entry = `${versionHeader}${changelogEntryFormatted}\n${versionLink}`;
 
   // If dry run, show what would be written and exit
   if (options.dryRun) {
     console.log("[DRY RUN] Would write the following changes:");
-    console.log("=== Changelog Entry ===");
-    console.log(entry);
-    console.log("=====================");
+    console.log("=== Changelog Entries ===");
 
-    // Load writing strategy to show additional files that would be updated
-    const strategy = await loadWritingStrategy(config.formatter);
-    if (strategy.handleAdditionalFiles) {
-      const filePromises = strategy.handleAdditionalFiles(
-        version,
-        date,
-        changes,
-        config,
-        options,
-      );
-      await Promise.all(filePromises);
+    // Show what would be written for each file
+    for (const file of config.files) {
+      const strategy = await loadWritingStrategy(file.strategy);
+      const changelogEntryFormatted = strategy.formatChanges(version, changes);
+      const versionHeader = strategy.formatVersionHeader(version, date);
+      const versionLink =
+        strategy.formatVersionLink?.(
+          version,
+          await getCurrentVersion(file.path),
+          config.linkTemplate,
+        ) || "";
+      const entry = `${versionHeader}${changelogEntryFormatted}\n${versionLink}`;
+
+      console.log(`\nFile: ${file.path}`);
+      console.log(entry);
     }
-
+    console.log("=====================");
     return "Dry run completed - no changes were made";
   }
 
-  // Check if version already exists in changelog
-  let versionExists = false;
-  try {
-    const changelogContent = await fs.readFile(config.changelogFile, "utf8");
-    versionExists = changelogContent.includes(versionHeader.trim());
-    if (versionExists) {
-      // If version exists, we'll append to it
-      const changelogEntry = writingStrategy.formatChanges(version, changes);
+  // Process each file
+  const results: string[] = [];
+  for (const file of config.files) {
+    const strategy = await loadWritingStrategy(file.strategy);
+    const changelogEntryFormatted = strategy.formatChanges(version, changes);
+    const versionHeader = strategy.formatVersionHeader(version, date);
+    const versionLink =
+      strategy.formatVersionLink?.(
+        version,
+        await getCurrentVersion(file.path),
+        config.linkTemplate,
+      ) || "";
+    const entry = `${versionHeader}${changelogEntryFormatted}\n${versionLink}`;
 
-      // Insert the new changes after the existing version header
-      const updatedContent = changelogContent.replace(
-        versionHeader.trim(),
-        `${versionHeader.trim()}\n${changelogEntry}`,
-      );
+    try {
+      const content = await fs.readFile(file.path, "utf8");
 
-      await fs.writeFile(config.changelogFile, updatedContent);
-
-      // Clean up change files
-      for (const file of await fs.readdir(config.changesDir)) {
-        if (file.startsWith(".") || !file.endsWith(".yaml")) {
-          continue;
-        }
-        await fs.unlink(path.join(config.changesDir, file));
+      // Check if version already exists
+      const existingDate = strategy.versionHeaderMatcher(content, version);
+      if (existingDate) {
+        // If version exists, append to it
+        const updatedContent = content.replace(
+          versionHeader.trim(),
+          `${versionHeader.trim()}\n${changelogEntryFormatted}`,
+        );
+        await fs.writeFile(file.path, updatedContent);
+        results.push(`Updated existing version ${version} in ${file.path}`);
+      } else {
+        // Find where to insert the new entry
+        const insertIndex = strategy.changelogHeaderMatcher(content);
+        const updatedContent =
+          content.slice(0, insertIndex) + entry + content.slice(insertIndex);
+        await fs.writeFile(file.path, updatedContent);
+        results.push(`Updated ${file.path} to version ${version}`);
       }
-
-      return `Updated existing version ${version} in changelog.md`;
+    } catch (error) {
+      if ((error as { code: string }).code === "ENOENT") {
+        // File doesn't exist, create it with header
+        const header = "# Changelog\n\n";
+        await fs.writeFile(file.path, header + entry);
+        results.push(`Created ${file.path} with version ${version}`);
+      } else {
+        throw error;
+      }
     }
-  } catch (error) {
-    if ((error as { code: string }).code !== "ENOENT") {
-      throw error;
-    }
-  }
-
-  // Update changelog file
-  try {
-    let changelog = await fs.readFile(config.changelogFile, "utf8");
-    const firstEntry = changelog.indexOf("\n= [");
-    if (firstEntry > -1) {
-      // Insert after the header but before the first entry
-      changelog = `${changelog.slice(0, firstEntry)} \n ${entry} ${changelog.slice(firstEntry)}`;
-    } else {
-      // No existing entries, just append
-      changelog = changelog.replace(/^(# Changelog\n)/, `$1\n${entry}`);
-    }
-    await fs.writeFile(config.changelogFile, changelog);
-  } catch (error) {
-    if ((error as { code: string }).code === "ENOENT") {
-      const header =
-        "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
-      await fs.writeFile(config.changelogFile, header + entry);
-    } else {
-      throw error;
-    }
-  }
-
-  // Load and use the writing strategy
-  const strategy = await loadWritingStrategy(config.formatter);
-
-  // Handle additional files if the strategy supports it
-  if (strategy.handleAdditionalFiles) {
-    const filePromises = strategy.handleAdditionalFiles(
-      version,
-      date,
-      changes,
-      config,
-      options,
-    );
-    await Promise.all(filePromises);
   }
 
   // Clean up change files
@@ -199,20 +154,18 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     }
   }
 
-  return versionExists
-    ? `Updated existing version ${version} in changelog.md`
-    : `Updated changelog.md to version ${version}`;
+  return results.join("\n");
 }
 
 /**
- * Gets the current version from the changelog file.
+ * Gets the current version from a file.
  *
- * @param changelogFile - Path to the changelog file
+ * @param filePath - Path to the file
  * @returns The current version string
  */
-async function getCurrentVersion(changelogFile: string): Promise<string> {
+async function getCurrentVersion(filePath: string): Promise<string> {
   try {
-    const content = await fs.readFile(changelogFile, "utf8");
+    const content = await fs.readFile(filePath, "utf8");
     // Try StellarWP format first
     let match = content.match(/= \[([^\]]+)\]/);
     if (!match) {

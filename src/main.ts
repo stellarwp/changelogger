@@ -1,52 +1,26 @@
-import * as core from "@actions/core";
+// Import command functions for programmatic usage
 import { run as addCommand } from "./commands/add";
 import { run as validateCommand } from "./commands/validate";
 import { run as writeCommand } from "./commands/write";
 
-async function run(): Promise<void> {
-  try {
-    const command = core.getInput("command", { required: true });
-    const significance = core.getInput("significance");
-    const type = core.getInput("type");
-    const entry = core.getInput("entry");
-    const overwriteVersion = core.getInput("overwrite-version");
-    const dryRun = core.getInput("dry-run") === "true";
-    const rotateVersions = core.getInput("rotate-versions");
+// Export types
+export * from "./types";
 
-    let result: string;
+// Export writing strategies
+export { WritingStrategy } from "./utils/writing";
+export { default as keepachangelog } from "./utils/writing/keepachangelog";
+export { default as stellarwpChangelog } from "./utils/writing/stellarwp-changelog";
+export { default as stellarwpReadme } from "./utils/writing/stellarwp-readme";
 
-    switch (command) {
-      case "add":
-        result = await addCommand({
-          significance,
-          type,
-          entry,
-        });
-        break;
-      case "validate":
-        result = await validateCommand();
-        break;
-      case "write":
-        result = await writeCommand({
-          overwriteVersion,
-          dryRun,
-          rotateVersions: rotateVersions
-            ? parseInt(rotateVersions, 10)
-            : undefined,
-        });
-        break;
-      default:
-        throw new Error(`Unknown command: ${command}`);
-    }
+// Export versioning strategies
+export { VersioningStrategy } from "./utils/versioning";
+export { default as semverStrategy } from "./utils/versioning/semver";
+export { default as stellarStrategy } from "./utils/versioning/stellarwp";
 
-    core.setOutput("result", result);
-  } catch (error) {
-    if (error instanceof Error) {
-      core.setFailed(error.message);
-    } else {
-      core.setFailed("An unexpected error occurred");
-    }
-  }
-}
+// Export utility functions
+export { loadConfig } from "./utils/config";
+export { loadWritingStrategy } from "./utils/writing";
+export { loadVersioningStrategy } from "./utils/versioning";
 
-run();
+// Export command functions for programmatic usage
+export { addCommand, validateCommand, writeCommand };

@@ -43,7 +43,9 @@ async function loadWritingStrategy(formatter) {
             const module = await Promise.resolve(`${absolutePath}`).then(s => __importStar(require(s)));
             // Validate that the module exports the required methods
             if (typeof module.formatChanges !== "function" ||
-                typeof module.formatVersionHeader !== "function") {
+                typeof module.formatVersionHeader !== "function" ||
+                typeof module.versionHeaderMatcher !== "function" ||
+                typeof module.changelogHeaderMatcher !== "function") {
                 throw new Error(`Writing strategy file ${formatter} does not export required methods`);
             }
             return module;
@@ -54,12 +56,14 @@ async function loadWritingStrategy(formatter) {
         }
     }
     // Handle built-in writing strategies
-    if (formatter === "keepachangelog") {
-        return (await Promise.resolve().then(() => __importStar(require("./writing/keepachangelog")))).default;
+    switch (formatter) {
+        case "keepachangelog":
+            return (await Promise.resolve().then(() => __importStar(require("./writing/keepachangelog")))).default;
+        case "stellarwp-changelog":
+            return (await Promise.resolve().then(() => __importStar(require("./writing/stellarwp-changelog")))).default;
+        case "stellarwp-readme":
+            return (await Promise.resolve().then(() => __importStar(require("./writing/stellarwp-readme")))).default;
+        default:
+            throw new Error(`Unknown writing strategy: ${formatter}`);
     }
-    // Handle built-in writing strategies
-    if (formatter === "stellarwp") {
-        return (await Promise.resolve().then(() => __importStar(require("./writing/stellarwp")))).default;
-    }
-    throw new Error(`Unknown writing strategy: ${formatter}`);
 }

@@ -13,6 +13,16 @@ export interface WritingStrategy {
      */
     formatVersionLink?: (version: string, previousVersion: string, template?: string) => string;
     /**
+     * Match an existing version header in the changelog
+     * Returns the matched version if found, undefined if not
+     */
+    versionHeaderMatcher: (content: string, version: string) => string | undefined;
+    /**
+     * Match where to insert new changelog entries
+     * Returns the index where new entries should be inserted
+     */
+    changelogHeaderMatcher: (content: string) => number;
+    /**
      * Handle additional files that need to be updated with the changelog
      * Returns an array of promises for each file operation
      */

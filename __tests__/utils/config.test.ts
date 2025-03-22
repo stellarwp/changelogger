@@ -21,6 +21,12 @@ describe("config", () => {
       },
       formatter: "keepachangelog",
       versioning: "semver",
+      files: [
+        {
+          path: "changelog.md",
+          strategy: "keepachangelog",
+        },
+      ],
     };
 
     // Basic structure validation
@@ -30,6 +36,9 @@ describe("config", () => {
     expect(typeof defaultConfig.types).toBe("object");
     expect(defaultConfig.formatter).toBe("keepachangelog");
     expect(defaultConfig.versioning).toBe("semver");
+    expect(Array.isArray(defaultConfig.files)).toBe(true);
+    expect(defaultConfig.files[0].path).toBe("changelog.md");
+    expect(defaultConfig.files[0].strategy).toBe("keepachangelog");
 
     // Validate required type keys exist
     const requiredTypes = [

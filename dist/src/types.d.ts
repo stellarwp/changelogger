@@ -37,4 +37,11 @@ export interface Config {
      * - A path to a JavaScript file that exports the versioning methods
      */
     versioning: string;
+    /**
+     * Array of files to update with their individual writing strategies
+     */
+    files: Array<{
+        path: string;
+        strategy: string;
+    }>;
 }

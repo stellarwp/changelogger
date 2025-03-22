@@ -55,6 +55,12 @@ const DEFAULT_CONFIG = {
     },
     formatter: "keepachangelog",
     versioning: "semver",
+    files: [
+        {
+            path: "changelog.md",
+            strategy: "keepachangelog",
+        },
+    ],
 };
 async function loadConfig() {
     try {

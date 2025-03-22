@@ -33,7 +33,10 @@ export interface WritingStrategy {
    * Match an existing version header in the changelog
    * Returns the matched version if found, undefined if not
    */
-  versionHeaderMatcher: (content: string, version: string) => string | undefined;
+  versionHeaderMatcher: (
+    content: string,
+    version: string,
+  ) => string | undefined;
 
   /**
    * Match where to insert new changelog entries
@@ -85,14 +88,14 @@ export async function loadWritingStrategy(
   }
 
   // Handle built-in writing strategies
-  if (formatter === "keepachangelog") {
-    return (await import("./writing/keepachangelog")).default;
+  switch (formatter) {
+    case "keepachangelog":
+      return (await import("./writing/keepachangelog")).default;
+    case "stellarwp-changelog":
+      return (await import("./writing/stellarwp-changelog")).default;
+    case "stellarwp-readme":
+      return (await import("./writing/stellarwp-readme")).default;
+    default:
+      throw new Error(`Unknown writing strategy: ${formatter}`);
   }
-
-  // Handle built-in writing strategies
-  if (formatter === "stellarwp") {
-    return (await import("./writing/stellarwp")).default;
-  }
-
-  throw new Error(`Unknown writing strategy: ${formatter}`);
 }

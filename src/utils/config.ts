@@ -21,6 +21,12 @@ const DEFAULT_CONFIG: Config = {
   },
   formatter: "keepachangelog",
   versioning: "semver",
+  files: [
+    {
+      path: "changelog.md",
+      strategy: "keepachangelog",
+    },
+  ],
 };
 
 export async function loadConfig(): Promise<Config> {

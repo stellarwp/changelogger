@@ -58,11 +58,29 @@ const stellarwp = {
         return sections.join("\n");
     },
     formatVersionHeader(version, date, previousVersion) {
-        return `= [${version}] ${date} =\n`;
+        return `\n### [${version}] ${date}\n\n`;
     },
     formatVersionLink(version, previousVersion, template) {
         // StellarWP format doesn't use version links
         return "";
+    },
+    versionHeaderMatcher(content, version) {
+        // Match StellarWP version headers
+        const versionRegex = new RegExp(`^### \\[${version}\\] ([^=]+)$`, "m");
+        const match = content.match(versionRegex);
+        return match ? match[1].trim() : undefined;
+    },
+    changelogHeaderMatcher(content) {
+        // Find the position after the first version header
+        const firstVersionMatch = content.match(/^### \[[^\]]+\] [^=]+$/m);
+        if (!firstVersionMatch) {
+            // If no version header found, find the position after the main header
+            const mainHeaderMatch = content.match(/^== Changelog ==$/m);
+            return mainHeaderMatch
+                ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1
+                : 0;
+        }
+        return firstVersionMatch.index;
     },
     handleAdditionalFiles(version, date, changes, config, options) {
         const promises = [];
@@ -73,7 +91,7 @@ const stellarwp = {
                 const readmePath = path.join(process.cwd(), config.readmeFile || "readme.txt");
                 let readmeContent = await fs.readFile(readmePath, "utf8");
                 // Generate WordPress-style changelog entry
-                const wpEntry = `\n= [${version}] - ${date} =\n\n`;
+                const wpEntry = `\n= [${version}] ${date} =\n\n`;
                 const formattedChanges = changes.reduce((acc, change) => {
                     const type = config.types[change.type];
                     if (change.entry) {
@@ -82,13 +100,14 @@ const stellarwp = {
                     return acc;
                 }, []);
                 const wpChanges = formattedChanges.join("\n");
+                const finalContent = `${wpEntry}${wpChanges}\n`;
                 // Insert after == Changelog == line
-                readmeContent = readmeContent.replace(/(== Changelog ==\n)/, `$1${wpEntry}${wpChanges}\n`);
+                readmeContent = readmeContent.replace(/(== Changelog ==\n)/, `$1${finalContent}`);
                 if (options?.dryRun) {
                     // In dry run mode, just log what would be written
                     console.log(`[DRY RUN] Would write to ${readmePath}:`);
                     console.log("=== Changes to be written ===");
-                    console.log(wpEntry + wpChanges);
+                    console.log(finalContent);
                     console.log("===========================");
                 }
                 else {

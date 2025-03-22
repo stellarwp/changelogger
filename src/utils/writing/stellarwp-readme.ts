@@ -1,7 +1,7 @@
 import { ChangeFile } from "../../types";
 import { WritingStrategy } from "../writing";
 
-const keepachangelog: WritingStrategy = {
+const stellarwpReadme: WritingStrategy = {
   formatChanges(
     version: string,
     changes: ChangeFile[],
@@ -19,14 +19,18 @@ const keepachangelog: WritingStrategy = {
       {} as Record<string, string[]>,
     );
 
-    // Format each type's changes
-    const sections = Object.entries(groupedChanges).map(([type, entries]) => {
-      const title = type.charAt(0).toUpperCase() + type.slice(1);
-      const items = entries.map((entry) => `- ${entry}`).join("\n");
-      return `### ${title}\n${items}`;
-    });
+    // Format each type's changes using the original types from the changes
+    const sections = Object.entries(groupedChanges)
+      .map(([type, entries]) => {
+        // Capitalize the first letter of the type
+        const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+        return entries
+          .map((entry) => `* ${formattedType} - ${entry}`)
+          .join("\n");
+      })
+      .filter((section) => section.length > 0);
 
-    return sections.join("\n\n");
+    return sections.join("\n");
   },
 
   formatVersionHeader(
@@ -34,7 +38,7 @@ const keepachangelog: WritingStrategy = {
     date: string,
     previousVersion?: string,
   ): string {
-    return `## [${version}] - ${date}`;
+    return `\n= [${version}] ${date} =\n\n`;
   },
 
   formatVersionLink(
@@ -42,28 +46,23 @@ const keepachangelog: WritingStrategy = {
     previousVersion: string,
     template?: string,
   ): string {
-    if (!template) return "";
-
-    const link = template
-      .replace("${old}", previousVersion)
-      .replace("${new}", version);
-
-    return `[${version}]: ${link}`;
+    // StellarWP format doesn't use version links
+    return "";
   },
 
   versionHeaderMatcher(content: string, version: string): string | undefined {
-    // Match Keep a Changelog version headers
-    const versionRegex = new RegExp(`^## \\[${version}\\] - ([^\n]+)$`, "m");
+    // Match StellarWP version headers
+    const versionRegex = new RegExp(`^= \\[${version}\\] ([^=]+) =$`, "m");
     const match = content.match(versionRegex);
-    return match ? match[1] : undefined;
+    return match ? match[1].trim() : undefined;
   },
 
   changelogHeaderMatcher(content: string): number {
     // Find the position after the first version header
-    const firstVersionMatch = content.match(/^## \[[^\]]+\] - [^\n]+$/m);
+    const firstVersionMatch = content.match(/^= \[[^\]]+\] [^=]+ =$/m);
     if (!firstVersionMatch) {
       // If no version header found, find the position after the main header
-      const mainHeaderMatch = content.match(/^# Changelog$/m);
+      const mainHeaderMatch = content.match(/^== Changelog ==$/m);
       return mainHeaderMatch
         ? mainHeaderMatch.index! + mainHeaderMatch[0].length + 1
         : 0;
@@ -72,4 +71,4 @@ const keepachangelog: WritingStrategy = {
   },
 };
 
-export default keepachangelog;
+export default stellarwpReadme;

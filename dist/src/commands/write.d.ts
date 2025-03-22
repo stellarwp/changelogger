@@ -1,11 +1,11 @@
 import { WriteCommandOptions } from "../types";
 /**
- * Writes changelog entries to the main changelog file.
+ * Writes changelog entries to the configured files.
  *
  * This command is part of the CLI tool and handles the process of:
  * 1. Reading all YAML change files from the changes directory
  * 2. Determining the next version number based on change significance
- * 3. Writing the changes to the main changelog file using the configured writing strategy
+ * 3. Writing the changes to each configured file using its specific writing strategy
  * 4. Cleaning up processed change files
  *
  * The command can be used in two ways:
