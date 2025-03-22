@@ -362,7 +362,7 @@ const writing_1 = __nccwpck_require__(59306);
  * ```
  *
  * @param options - Command options for controlling the write process
- * @param options.version - Optional version number to use instead of auto-determining
+ * @param options.overwriteVersion - Optional version number to use instead of auto-determining
  * @param options.dryRun - If true, only show what would be written without making changes
  *
  * @returns A promise that resolves to a string message indicating the result
@@ -394,7 +394,7 @@ async function run(options) {
         return "No changes to write";
     }
     // Determine version bump
-    let version = options.version;
+    let version = options.overwriteVersion;
     if (!version) {
         const currentVersion = await getCurrentVersion(config.changelogFile);
         const significance = determineSignificance(changes);
@@ -595,7 +595,7 @@ async function run() {
         const significance = core.getInput("significance");
         const type = core.getInput("type");
         const entry = core.getInput("entry");
-        const version = core.getInput("version");
+        const overwriteVersion = core.getInput("overwrite-version");
         const dryRun = core.getInput("dry-run") === "true";
         const rotateVersions = core.getInput("rotate-versions");
         let result;
@@ -612,7 +612,7 @@ async function run() {
                 break;
             case "write":
                 result = await (0, write_1.run)({
-                    version,
+                    overwriteVersion,
                     dryRun,
                     rotateVersions: rotateVersions
                         ? parseInt(rotateVersions, 10)

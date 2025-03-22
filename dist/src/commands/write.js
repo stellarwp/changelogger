@@ -63,7 +63,7 @@ const writing_1 = require("../utils/writing");
  * ```
  *
  * @param options - Command options for controlling the write process
- * @param options.version - Optional version number to use instead of auto-determining
+ * @param options.overwriteVersion - Optional version number to use instead of auto-determining
  * @param options.dryRun - If true, only show what would be written without making changes
  *
  * @returns A promise that resolves to a string message indicating the result
@@ -95,7 +95,7 @@ async function run(options) {
         return "No changes to write";
     }
     // Determine version bump
-    let version = options.version;
+    let version = options.overwriteVersion;
     if (!version) {
         const currentVersion = await getCurrentVersion(config.changelogFile);
         const significance = determineSignificance(changes);

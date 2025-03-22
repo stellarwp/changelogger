@@ -22,7 +22,7 @@ import { WriteCommandOptions } from "../types";
  * ```
  *
  * @param options - Command options for controlling the write process
- * @param options.version - Optional version number to use instead of auto-determining
+ * @param options.overwriteVersion - Optional version number to use instead of auto-determining
  * @param options.dryRun - If true, only show what would be written without making changes
  *
  * @returns A promise that resolves to a string message indicating the result

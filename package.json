@@ -1,7 +1,7 @@
 {
   "name": "@stellarwp/changelogger",
   "description": "A TypeScript-based changelog management tool that works both as a GitHub Action and CLI tool",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "StellarWP",
   "repository": {
     "type": "git",

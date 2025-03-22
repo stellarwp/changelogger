@@ -52,7 +52,7 @@ describe("write command", () => {
     );
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -115,7 +115,7 @@ describe("write command", () => {
     );
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -167,7 +167,7 @@ describe("write command", () => {
     );
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -195,7 +195,7 @@ describe("write command", () => {
     );
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -216,7 +216,7 @@ describe("write command", () => {
     );
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -263,7 +263,7 @@ describe("write command", () => {
     mockedFs.writeFile.mockResolvedValue(undefined);
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -322,7 +322,7 @@ describe("write command", () => {
     mockedFs.writeFile.mockResolvedValue(undefined);
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     const result = await run(options);
@@ -364,7 +364,7 @@ describe("write command", () => {
     );
 
     const options: WriteCommandOptions = {
-      version: "1.1.0",
+      overwriteVersion: "1.1.0",
     };
 
     await run(options);
@@ -503,7 +503,7 @@ describe("write command", () => {
       },
     );
 
-    const result = await run({ version: "2.0.0" });
+    const result = await run({ overwriteVersion: "2.0.0" });
 
     expect(result).toContain("Updated changelog.md to version 2.0.0");
 
@@ -574,7 +574,7 @@ describe("write command", () => {
       },
     );
 
-    const result = await run({ version: "1.0.1" });
+    const result = await run({ overwriteVersion: "1.0.1" });
 
     expect(result).toContain("Updated changelog.md to version 1.0.1");
 
@@ -608,7 +608,7 @@ describe("write command", () => {
       },
     );
 
-    await expect(run({ version: "1.0.0" })).rejects.toThrow();
+    await expect(run({ overwriteVersion: "1.0.0" })).rejects.toThrow();
   });
 
   it("should handle major version bumps", async () => {
@@ -797,7 +797,7 @@ describe("write command", () => {
     // Mock writing the changelog file
     mockedFs.writeFile.mockResolvedValue(undefined);
 
-    const result = await run({ version: "1.0.0" });
+    const result = await run({ overwriteVersion: "1.0.0" });
 
     expect(result).toBe("Updated changelog.md to version 1.0.0");
 
@@ -860,7 +860,7 @@ describe("write command", () => {
     // Mock writing the changelog file
     mockedFs.writeFile.mockResolvedValue(undefined);
 
-    const result = await run({ version: "1.0.0" });
+    const result = await run({ overwriteVersion: "1.0.0" });
 
     expect(result).toBe("Updated changelog.md to version 1.0.0");
 

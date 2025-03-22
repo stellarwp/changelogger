@@ -9,7 +9,7 @@ async function run(): Promise<void> {
     const significance = core.getInput("significance");
     const type = core.getInput("type");
     const entry = core.getInput("entry");
-    const version = core.getInput("version");
+    const overwriteVersion = core.getInput("overwrite-version");
     const dryRun = core.getInput("dry-run") === "true";
     const rotateVersions = core.getInput("rotate-versions");
 
@@ -28,7 +28,7 @@ async function run(): Promise<void> {
         break;
       case "write":
         result = await writeCommand({
-          version,
+          overwriteVersion,
           dryRun,
           rotateVersions: rotateVersions
             ? parseInt(rotateVersions, 10)

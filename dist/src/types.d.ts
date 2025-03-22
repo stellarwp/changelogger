@@ -13,7 +13,7 @@ export interface AddCommandOptions {
     filename?: string;
 }
 export interface WriteCommandOptions {
-    version?: string;
+    overwriteVersion?: string;
     /**
      * If true, only show what would be written without making changes
      * @default false

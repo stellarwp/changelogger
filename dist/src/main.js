@@ -43,7 +43,7 @@ async function run() {
         const significance = core.getInput("significance");
         const type = core.getInput("type");
         const entry = core.getInput("entry");
-        const version = core.getInput("version");
+        const overwriteVersion = core.getInput("overwrite-version");
         const dryRun = core.getInput("dry-run") === "true";
         const rotateVersions = core.getInput("rotate-versions");
         let result;
@@ -60,7 +60,7 @@ async function run() {
                 break;
             case "write":
                 result = await (0, write_1.run)({
-                    version,
+                    overwriteVersion,
                     dryRun,
                     rotateVersions: rotateVersions
                         ? parseInt(rotateVersions, 10)

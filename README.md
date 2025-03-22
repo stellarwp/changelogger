@@ -86,7 +86,7 @@ Writes changelog entries to the main changelog file.
 npm run changelog write
 
 # Manual versioning
-npm run changelog write --version 1.2.3
+npm run changelog write --overwrite-version 1.2.3
 
 # Dry run - show what would be written without making changes
 npm run changelog write --dry-run
@@ -94,7 +94,7 @@ npm run changelog write --dry-run
 
 Options:
 
-- `--version`: Optional version number to use instead of auto-determining
+- `--overwrite-version`: Optional version number to use instead of auto-determining
 - `--dry-run`: If true, only show what would be written without making changes
 
 The command will:
@@ -103,6 +103,25 @@ The command will:
 - Determine the next version number based on change significance
 - Write the changes to the main changelog file using the configured writing strategy
 - Clean up processed change files
+
+You can also specify a version directly:
+
+```bash
+npx changelogger write --overwrite-version 1.0.0
+```
+
+When you specify a version:
+
+- If the version doesn't exist in the changelog, it will create a new version entry
+- If the version already exists, it will append the new changes to that version's entry
+
+This is useful when you need to:
+
+- Add more changes to an existing version
+- Fix typos or add missing information to a version
+- Keep all related changes together under the same version
+
+The command will use your configured writing strategy to format the changes appropriately.
 
 ### As a GitHub Action
 
@@ -438,31 +457,3 @@ entry: Description of the change
 ## License
 
 MIT
-
-### Writing Changes
-
-The `write` command writes all pending changes to the changelog file. By default, it will:
-
-1. Determine the next version based on the significance of the changes
-2. Create a new version entry in the changelog
-3. Group changes by type
-4. Clean up the change files
-
-You can also specify a version directly:
-
-```bash
-npx changelogger write --version 1.0.0
-```
-
-When you specify a version:
-
-- If the version doesn't exist in the changelog, it will create a new version entry
-- If the version already exists, it will append the new changes to that version's entry
-
-This is useful when you need to:
-
-- Add more changes to an existing version
-- Fix typos or add missing information to a version
-- Keep all related changes together under the same version
-
-The command will use your configured writing strategy to format the changes appropriately.

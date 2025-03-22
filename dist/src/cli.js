@@ -47,7 +47,7 @@ program
 program
     .command("write")
     .description("Write changes to the changelog file")
-    .option("-v, --version <version>", "The version to use")
+    .option("--overwrite-version <version>", "The version to use")
     .option("--dry-run", "Show what would be written without making changes")
     .option("--rotate-versions <number>", "Number of versions to keep in additional files (e.g. readme.txt). Does not affect changelog.md")
     .action(async (options) => {
