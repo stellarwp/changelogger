@@ -7,10 +7,13 @@ import { default as keepachangelog } from "./utils/writing/keepachangelog";
 import { default as stellarwpChangelog } from "./utils/writing/stellarwp-changelog";
 import { default as stellarwpReadme } from "./utils/writing/stellarwp-readme";
 
+import { default as semverStrategy } from "./utils/versioning/semver";
+import { default as stellarStrategy } from "./utils/versioning/stellarwp";
+
 const writingStrategies = {
-    keepachangelog,
-    stellarwpChangelog,
-    stellarwpReadme,
+  keepachangelog,
+  stellarwpChangelog,
+  stellarwpReadme,
 };
 
 // Export writing strategies
@@ -20,12 +23,9 @@ export { writingStrategies };
 // Export types
 export * from "./types";
 
-import { default as semverStrategy } from "./utils/versioning/semver";
-import { default as stellarStrategy } from "./utils/versioning/stellarwp";
-
 const versioningStrategies = {
-    semverStrategy,
-    stellarStrategy,
+  semverStrategy,
+  stellarStrategy,
 };
 
 // Export versioning strategies

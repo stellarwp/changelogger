@@ -11,6 +11,7 @@ export interface AddCommandOptions {
     type?: string;
     entry?: string;
     filename?: string;
+    autoFilename?: boolean;
 }
 export interface WriteCommandOptions {
     overwriteVersion?: string;
@@ -20,6 +21,11 @@ export interface WriteCommandOptions {
      */
     dryRun?: boolean;
     rotateVersions?: number;
+    /**
+     * Custom date to use for the changelog entry
+     * Should be in ISO format (YYYY-MM-DD)
+     */
+    date?: string;
 }
 export interface Config {
     changelogFile: string;

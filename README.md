@@ -11,6 +11,8 @@ A TypeScript-based changelog management tool that works both as a GitHub Action 
 - Supports semantic versioning
 - Validates change files format and content
 - Automatically generates well-formatted changelog entries
+- Multiple writing strategies (Keep a Changelog, StellarWP formats)
+- Multiple versioning strategies (SemVer, StellarWP)
 
 ## Installation
 
@@ -66,6 +68,7 @@ The command will:
 - Validate all inputs before creating the file
 
 When using `--auto-filename`:
+
 - The filename will be automatically generated from the current git branch name (if available)
 - If no branch name is available, a timestamp-based filename will be used
 - The filename prompt will be skipped
@@ -88,7 +91,7 @@ This command performs the following checks:
 
 #### `write` Command
 
-Writes changelog entries to the main changelog file.
+Writes changelog entries to the configured files.
 
 ```bash
 # Automatic versioning
@@ -99,38 +102,91 @@ npm run changelog write -- --overwrite-version 1.2.3
 
 # Dry run - show what would be written without making changes
 npm run changelog write -- --dry-run
+
+# Specify a custom date (supports PHP strtotime format)
+npm run changelog write -- --date "2024-03-20"
+npm run changelog write -- --date "yesterday"
+npm run changelog write -- --date "last monday"
 ```
 
 Options:
 
 - `--overwrite-version`: Optional version number to use instead of auto-determining
 - `--dry-run`: If true, only show what would be written without making changes
+- `--date`: Custom date to use for the changelog entry (supports PHP strtotime format)
 
 The command will:
 
 - Read all YAML change files from the changes directory
-- Determine the next version number based on change significance
-- Write the changes to the main changelog file using the configured writing strategy
+- Determine the next version number based on change significance (if not specified)
+- Write the changes to each configured file using its specific writing strategy
 - Clean up processed change files
 
-You can also specify a version directly:
+When using `--dry-run`:
 
-```bash
-npx changelogger write -- --overwrite-version 1.0.0
+- Shows what would be written to each configured file
+- Displays the formatted changelog entries
+- No changes are actually made to any files
+
+When using `--overwrite-version`:
+
+- Uses the specified version instead of auto-determining
+- If the version exists in the changelog, new changes are appended to that version
+- If the version doesn't exist, a new version entry is created
+
+When using `--date`:
+
+- Uses the specified date for the changelog entry
+- Supports PHP strtotime format for flexible date specification
+- Examples:
+  - `--date "2024-03-20"` - Specific date
+  - `--date "yesterday"` - Relative date
+  - `--date "last monday"` - Relative date
+  - `--date "next friday"` - Relative date
+- If not specified, uses the current date
+
+The command supports multiple output files with different writing strategies:
+
+- Keep a Changelog format
+- StellarWP changelog format
+- StellarWP readme format
+- Custom writing strategies
+
+Each file is processed according to its configured strategy and the changes are written in the appropriate format.
+
+### As a Module
+
+```typescript
+import {
+  addCommand,
+  validateCommand,
+  writeCommand,
+  writingStrategies,
+  versioningStrategies,
+  loadConfig,
+  loadWritingStrategy,
+  loadVersioningStrategy,
+  WritingStrategy,
+  VersioningStrategy,
+} from "@stellarwp/changelogger";
+
+// Use built-in writing strategies
+const keepachangelog = writingStrategies.keepachangelog;
+const stellarwpChangelog = writingStrategies.stellarwpChangelog;
+const stellarwpReadme = writingStrategies.stellarwpReadme;
+
+// Use built-in versioning strategies
+const semver = versioningStrategies.semverStrategy;
+const stellarwp = versioningStrategies.stellarStrategy;
+
+// Load custom strategies
+const customWritingStrategy = await loadWritingStrategy(
+  "./path/to/custom-writing.ts",
+);
+const customVersioningStrategy = await loadVersioningStrategy(
+  "./path/to/custom-versioning.ts",
+);
 ```
-
-When you specify a version:
-
-- If the version doesn't exist in the changelog, it will create a new version entry
-- If the version already exists, it will append the new changes to that version's entry
-
-This is useful when you need to:
-
-- Add more changes to an existing version
-- Fix typos or add missing information to a version
-- Keep all related changes together under the same version
-
-The command will use your configured writing strategy to format the changes appropriately.
 
 ### As a GitHub Action
 

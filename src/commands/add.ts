@@ -137,9 +137,9 @@ export async function run(options: AddCommandOptions): Promise<string> {
   await fs.mkdir(config.changesDir, { recursive: true });
 
   // Use provided filename, auto-generated filename, or the one from prompt
-  const baseFilename = options.autoFilename 
-    ? defaultFilename 
-    : (options.filename || answers.filename || defaultFilename);
+  const baseFilename = options.autoFilename
+    ? defaultFilename
+    : options.filename || answers.filename || defaultFilename;
   const filename = `${cleanupFilename(baseFilename)}`;
   const filePath = path.join(config.changesDir, `${filename}.yaml`);
 

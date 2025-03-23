@@ -1,14 +1,20 @@
 import { run as addCommand } from "./commands/add";
 import { run as validateCommand } from "./commands/validate";
 import { run as writeCommand } from "./commands/write";
-export * from "./types";
+declare const writingStrategies: {
+    keepachangelog: import("./utils/writing").WritingStrategy;
+    stellarwpChangelog: import("./utils/writing").WritingStrategy;
+    stellarwpReadme: import("./utils/writing").WritingStrategy;
+};
 export { WritingStrategy } from "./utils/writing";
-export { default as keepachangelog } from "./utils/writing/keepachangelog";
-export { default as stellarwpChangelog } from "./utils/writing/stellarwp-changelog";
-export { default as stellarwpReadme } from "./utils/writing/stellarwp-readme";
+export { writingStrategies };
+export * from "./types";
+declare const versioningStrategies: {
+    semverStrategy: import("./utils/versioning").VersioningStrategy;
+    stellarStrategy: import("./utils/versioning").VersioningStrategy;
+};
 export { VersioningStrategy } from "./utils/versioning";
-export { default as semverStrategy } from "./utils/versioning/semver";
-export { default as stellarStrategy } from "./utils/versioning/stellarwp";
+export { versioningStrategies };
 export { loadConfig } from "./utils/config";
 export { loadWritingStrategy } from "./utils/writing";
 export { loadVersioningStrategy } from "./utils/versioning";

@@ -71,9 +71,10 @@ function cleanupFilename(name) {
  * Adds a new changelog entry to the project.
  *
  * This command is part of the CLI tool and handles the creation of new changelog entries.
- * It can be used in two ways:
+ * It can be used in three ways:
  * 1. Interactive mode: When no options are provided, it will prompt the user for all required information
- * 2. Non-interactive mode: When options are provided, it will use those values directly
+ * 2. Non-interactive mode with manual filename: When options are provided, it will use those values directly
+ * 3. Non-interactive mode with auto-generated filename: When --auto-filename is provided, it will generate the filename automatically
  *
  * The command will:
  * - Create a new YAML file in the configured changes directory
@@ -86,8 +87,11 @@ function cleanupFilename(name) {
  * # Interactive mode
  * changelogger add
  *
- * # Non-interactive mode
+ * # Non-interactive mode with manual filename
  * changelogger add --significance minor --type feature --entry "Added new feature X"
+ *
+ * # Non-interactive mode with auto-generated filename
+ * changelogger add --significance minor --type feature --entry "Added new feature X" --auto-filename
  * ```
  *
  * @param options - Command options that can be provided to skip interactive prompts
@@ -95,6 +99,7 @@ function cleanupFilename(name) {
  * @param options.type - The type of change (e.g., feature, fix, enhancement)
  * @param options.entry - The changelog entry text
  * @param options.filename - The desired filename for the changelog entry
+ * @param options.autoFilename - If true, automatically generates the filename based on branch name or timestamp
  *
  * @returns A promise that resolves to a string message indicating the result
  * @throws {Error} If there are issues with file operations or invalid inputs
@@ -140,7 +145,7 @@ async function run(options) {
             name: "filename",
             message: "Enter the filename for the change (without extension):",
             default: defaultFilename.replace(/\.yaml$/, ""),
-            when: !options.filename,
+            when: !options.filename && !options.autoFilename,
             validate: (input) => {
                 if (!input.trim()) {
                     return "Filename cannot be empty";
@@ -159,8 +164,10 @@ async function run(options) {
     };
     // Create changes directory if it doesn't exist
     await fs.mkdir(config.changesDir, { recursive: true });
-    // Use provided filename or the one from prompt, with a fallback to timestamp
-    const baseFilename = options.filename || answers.filename || defaultFilename;
+    // Use provided filename, auto-generated filename, or the one from prompt
+    const baseFilename = options.autoFilename
+        ? defaultFilename
+        : options.filename || answers.filename || defaultFilename;
     const filename = `${cleanupFilename(baseFilename)}`;
     const filePath = path.join(config.changesDir, `${filename}.yaml`);
     // Check if file exists
@@ -340,17 +347,51 @@ const yaml = __importStar(__nccwpck_require__(38815));
 const config_1 = __nccwpck_require__(55042);
 const writing_1 = __nccwpck_require__(59306);
 /**
+ * Ensures a directory exists, creating it if it doesn't.
+ *
+ * @param dirPath - Path to the directory
+ */
+async function ensureDirectoryExists(dirPath) {
+    // Skip if the path is '.' or empty (root directory)
+    if (dirPath === "." || !dirPath)
+        return;
+    try {
+        await fs.access(dirPath);
+    }
+    catch {
+        await fs.mkdir(dirPath, { recursive: true });
+    }
+}
+/**
+ * Ensures a file exists with default content if it doesn't.
+ *
+ * @param filePath - Path to the file
+ * @param defaultContent - Default content to write if file doesn't exist
+ */
+async function ensureFileExists(filePath, defaultContent) {
+    try {
+        await fs.access(filePath);
+    }
+    catch {
+        // Ensure the directory exists before creating the file
+        const dirPath = path.dirname(filePath);
+        await ensureDirectoryExists(dirPath);
+        await fs.writeFile(filePath, defaultContent, "utf8");
+    }
+}
+/**
  * Writes changelog entries to the configured files.
  *
  * This command is part of the CLI tool and handles the process of:
  * 1. Reading all YAML change files from the changes directory
- * 2. Determining the next version number based on change significance
+ * 2. Determining the next version number based on change significance (if not specified)
  * 3. Writing the changes to each configured file using its specific writing strategy
  * 4. Cleaning up processed change files
  *
- * The command can be used in two ways:
+ * The command can be used in three ways:
  * 1. Automatic versioning: When no version is specified, it will determine the next version
- * 2. Manual versioning: When a version is specified, it will use that version
+ * 2. Manual versioning: When a version is specified with --overwrite-version
+ * 3. Dry run: When --dry-run is specified, it will show what would be written without making changes
  *
  * @example
  * ```bash
@@ -358,7 +399,10 @@ const writing_1 = __nccwpck_require__(59306);
  * changelogger write
  *
  * # Manual versioning
- * changelogger write --version 1.2.3
+ * changelogger write --overwrite-version 1.2.3
+ *
+ * # Dry run - show what would be written without making changes
+ * changelogger write --dry-run
  * ```
  *
  * @param options - Command options for controlling the write process
@@ -371,99 +415,103 @@ const writing_1 = __nccwpck_require__(59306);
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
     const changes = [];
+    let processedFiles = [];
+    // Ensure changes directory exists
+    await ensureDirectoryExists(config.changesDir);
     // Read all change files
     try {
         const files = await fs.readdir(config.changesDir);
+        processedFiles = files;
         for (const file of files) {
-            if (file.startsWith(".") || !file.endsWith(".yaml")) {
+            if (!file.endsWith(".yaml"))
                 continue;
-            }
-            const filePath = path.join(config.changesDir, file);
-            const content = await fs.readFile(filePath, "utf8");
+            const content = await fs.readFile(path.join(config.changesDir, file), "utf8");
             const change = yaml.parse(content);
             changes.push(change);
         }
     }
     catch (error) {
-        if (error.code === "ENOENT") {
-            return "No changes directory found";
-        }
-        throw error;
+        throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
-    if (changes.length === 0) {
-        return "No changes to write";
-    }
-    // Determine version bump
+    // Sort changes by significance
+    changes.sort((a, b) => {
+        const significanceOrder = { major: 0, minor: 1, patch: 2 };
+        return (significanceOrder[a.significance] - significanceOrder[b.significance]);
+    });
+    // Determine version and date
+    const date = options.date || new Date().toISOString().split("T")[0];
     let version = options.overwriteVersion;
     if (!version) {
-        const currentVersion = await getCurrentVersion(config.files[0].path);
+        // Get current version from the first file
+        const firstFile = config.files[0];
+        const currentVersion = await getCurrentVersion(firstFile.path);
         const significance = determineSignificance(changes);
         version = getNextVersion(currentVersion, significance);
     }
-    // Generate changelog entry
-    const date = new Date().toISOString().split("T")[0];
+    // Validate version format
+    if (!semver.valid(version)) {
+        throw new Error(`Invalid version format: ${version}`);
+    }
+    // Load writing strategy
+    const strategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
     // If dry run, show what would be written and exit
     if (options.dryRun) {
-        console.log("[DRY RUN] Would write the following changes:");
-        console.log("=== Changelog Entries ===");
+        console.log("\n[DRY RUN] Would write the following changes:");
+        console.log("==========================================");
         // Show what would be written for each file
         for (const file of config.files) {
-            const strategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
-            const changelogEntryFormatted = strategy.formatChanges(version, changes);
-            const versionHeader = strategy.formatVersionHeader(version, date);
-            const versionLink = strategy.formatVersionLink?.(version, await getCurrentVersion(file.path), config.linkTemplate) || "";
-            const entry = `${versionHeader}${changelogEntryFormatted}\n${versionLink}`;
             console.log(`\nFile: ${file.path}`);
+            console.log("------------------------------------------");
+            // Load the specific writing strategy for this file
+            const fileStrategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
+            const content = await fs
+                .readFile(file.path, "utf8")
+                .catch(() => "# Changelog\n\n");
+            const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
+            // Format the new changelog entry
+            const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
+            const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
+            const link = previousVersion && fileStrategy.formatVersionLink
+                ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate)
+                : "";
+            const entry = `${header}${link}${changesText}`;
             console.log(entry);
         }
-        console.log("=====================");
+        console.log("\n==========================================");
         return "Dry run completed - no changes were made";
     }
     // Process each file
-    const results = [];
     for (const file of config.files) {
-        const strategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
-        const changelogEntryFormatted = strategy.formatChanges(version, changes);
-        const versionHeader = strategy.formatVersionHeader(version, date);
-        const versionLink = strategy.formatVersionLink?.(version, await getCurrentVersion(file.path), config.linkTemplate) || "";
-        const entry = `${versionHeader}${changelogEntryFormatted}\n${versionLink}`;
-        try {
-            const content = await fs.readFile(file.path, "utf8");
-            // Check if version already exists
-            const existingDate = strategy.versionHeaderMatcher(content, version);
-            if (existingDate) {
-                // If version exists, append to it
-                const updatedContent = content.replace(versionHeader.trim(), `${versionHeader.trim()}\n${changelogEntryFormatted}`);
-                await fs.writeFile(file.path, updatedContent);
-                results.push(`Updated existing version ${version} in ${file.path}`);
-            }
-            else {
-                // Find where to insert the new entry
-                const insertIndex = strategy.changelogHeaderMatcher(content);
-                const updatedContent = content.slice(0, insertIndex) + entry + content.slice(insertIndex);
-                await fs.writeFile(file.path, updatedContent);
-                results.push(`Updated ${file.path} to version ${version}`);
-            }
-        }
-        catch (error) {
-            if (error.code === "ENOENT") {
-                // File doesn't exist, create it with header
-                const header = "# Changelog\n\n";
-                await fs.writeFile(file.path, header + entry);
-                results.push(`Created ${file.path} with version ${version}`);
-            }
-            else {
-                throw error;
-            }
+        // Ensure the file exists with default content
+        const defaultContent = "# Changelog\n\n";
+        await ensureFileExists(file.path, defaultContent);
+        const content = await fs.readFile(file.path, "utf8");
+        const previousVersion = strategy.versionHeaderMatcher(content, version);
+        // Format the new changelog entry
+        const header = strategy.formatVersionHeader(version, date, previousVersion);
+        const changesText = strategy.formatChanges(version, changes, previousVersion);
+        const link = previousVersion && strategy.formatVersionLink
+            ? strategy.formatVersionLink(version, previousVersion, config.linkTemplate)
+            : "";
+        const newEntry = `${header}\n${link}\n${changesText}\n`;
+        // Find where to insert the new entry
+        const insertIndex = strategy.changelogHeaderMatcher(content);
+        // Insert the new entry
+        const newContent = content.slice(0, insertIndex) + newEntry + content.slice(insertIndex);
+        await fs.writeFile(file.path, newContent, "utf8");
+        // Handle any additional files
+        if (strategy.handleAdditionalFiles) {
+            const additionalPromises = strategy.handleAdditionalFiles(version, date, changes, config, options);
+            await Promise.all(additionalPromises);
         }
     }
-    // Clean up change files
-    for (const file of await fs.readdir(config.changesDir)) {
-        if (!file.startsWith(".") && file.endsWith(".yaml")) {
+    // Clean up processed files
+    for (const file of processedFiles) {
+        if (file.endsWith(".yaml")) {
             await fs.unlink(path.join(config.changesDir, file));
         }
     }
-    return results.join("\n");
+    return `Successfully wrote changelog for version ${version}`;
 }
 /**
  * Gets the current version from a file.
@@ -540,7 +588,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.loadConfig = exports.stellarStrategy = exports.semverStrategy = exports.stellarwpReadme = exports.stellarwpChangelog = exports.keepachangelog = void 0;
+exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
 const add_1 = __nccwpck_require__(996);
 Object.defineProperty(exports, "addCommand", ({ enumerable: true, get: function () { return add_1.run; } }));
@@ -548,18 +596,24 @@ const validate_1 = __nccwpck_require__(21613);
 Object.defineProperty(exports, "validateCommand", ({ enumerable: true, get: function () { return validate_1.run; } }));
 const write_1 = __nccwpck_require__(56440);
 Object.defineProperty(exports, "writeCommand", ({ enumerable: true, get: function () { return write_1.run; } }));
+const keepachangelog_1 = __importDefault(__nccwpck_require__(28411));
+const stellarwp_changelog_1 = __importDefault(__nccwpck_require__(73524));
+const stellarwp_readme_1 = __importDefault(__nccwpck_require__(36818));
+const semver_1 = __importDefault(__nccwpck_require__(56151));
+const stellarwp_1 = __importDefault(__nccwpck_require__(58185));
+const writingStrategies = {
+    keepachangelog: keepachangelog_1.default,
+    stellarwpChangelog: stellarwp_changelog_1.default,
+    stellarwpReadme: stellarwp_readme_1.default,
+};
+exports.writingStrategies = writingStrategies;
 // Export types
 __exportStar(__nccwpck_require__(96141), exports);
-var keepachangelog_1 = __nccwpck_require__(28411);
-Object.defineProperty(exports, "keepachangelog", ({ enumerable: true, get: function () { return __importDefault(keepachangelog_1).default; } }));
-var stellarwp_changelog_1 = __nccwpck_require__(73524);
-Object.defineProperty(exports, "stellarwpChangelog", ({ enumerable: true, get: function () { return __importDefault(stellarwp_changelog_1).default; } }));
-var stellarwp_readme_1 = __nccwpck_require__(36818);
-Object.defineProperty(exports, "stellarwpReadme", ({ enumerable: true, get: function () { return __importDefault(stellarwp_readme_1).default; } }));
-var semver_1 = __nccwpck_require__(56151);
-Object.defineProperty(exports, "semverStrategy", ({ enumerable: true, get: function () { return __importDefault(semver_1).default; } }));
-var stellarwp_1 = __nccwpck_require__(58185);
-Object.defineProperty(exports, "stellarStrategy", ({ enumerable: true, get: function () { return __importDefault(stellarwp_1).default; } }));
+const versioningStrategies = {
+    semverStrategy: semver_1.default,
+    stellarStrategy: stellarwp_1.default,
+};
+exports.versioningStrategies = versioningStrategies;
 // Export utility functions
 var config_1 = __nccwpck_require__(55042);
 Object.defineProperty(exports, "loadConfig", ({ enumerable: true, get: function () { return config_1.loadConfig; } }));

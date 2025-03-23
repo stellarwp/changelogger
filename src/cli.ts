@@ -6,6 +6,7 @@ import { run as validateCommand } from "./commands/validate";
 import { run as writeCommand } from "./commands/write";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { php } from "locutus";
 
 const program = new Command();
 
@@ -34,6 +35,10 @@ program
     "The type of change (added, changed, deprecated, removed, fixed, security)",
   )
   .option("-e, --entry <text>", "The changelog entry text")
+  .option(
+    "--auto-filename",
+    "Automatically generate the filename based on the branch name",
+  )
   .action(async (options) => {
     try {
       const result = await addCommand(options);
@@ -72,8 +77,20 @@ program
     "--rotate-versions <number>",
     "Number of versions to keep in additional files (e.g. readme.txt). Does not affect changelog.md",
   )
+  .option(
+    "--date <date>",
+    "Custom date to use for the changelog entry (supports PHP strtotime format)",
+  )
   .action(async (options) => {
     try {
+      // Parse the date using strtotime if provided
+      if (options.date) {
+        const timestamp = php.datetime.strtotime(options.date);
+        if (timestamp === false) {
+          throw new Error(`Invalid date format: ${options.date}`);
+        }
+        options.date = new Date(timestamp * 1000).toISOString().split("T")[0];
+      }
       const result = await writeCommand(options);
       console.log(result);
     } catch (error) {
