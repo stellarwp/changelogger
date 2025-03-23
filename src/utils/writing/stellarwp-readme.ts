@@ -52,7 +52,7 @@ const stellarwpReadme: WritingStrategy = {
 
   versionHeaderMatcher(content: string, version: string): string | undefined {
     // Match StellarWP version headers
-    const versionRegex = new RegExp(`^= \\[${version}\\] ([^=]+) =$`, "m");
+    const versionRegex = new RegExp(`^(= \\[${version}\\] (?:[^=])+ =)$`, "m");
     const match = content.match(versionRegex);
     return match ? match[1].trim() : undefined;
   },

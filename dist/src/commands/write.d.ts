@@ -23,11 +23,18 @@ import { WriteCommandOptions } from "../types";
  *
  * # Dry run - show what would be written without making changes
  * changelogger write --dry-run
+ *
+ * # Specify a custom date
+ * changelogger write --date "2024-03-20"
+ * changelogger write --date "yesterday"
+ * changelogger write --date "last monday"
  * ```
  *
  * @param options - Command options for controlling the write process
  * @param options.overwriteVersion - Optional version number to use instead of auto-determining
  * @param options.dryRun - If true, only show what would be written without making changes
+ * @param options.date - Optional date to use for the changelog entry. If not provided, the current date will be used.
+ *                      The date should be in a format that PHP's strtotime() function can parse.
  *
  * @returns A promise that resolves to a string message indicating the result
  * @throws {Error} If there are issues with file operations or invalid inputs

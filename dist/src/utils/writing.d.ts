@@ -1,4 +1,4 @@
-import { ChangeFile, Config, WriteCommandOptions } from "../types";
+import { ChangeFile } from "../types";
 export interface WritingStrategy {
     /**
      * Format the changes into a changelog entry
@@ -22,10 +22,5 @@ export interface WritingStrategy {
      * Returns the index where new entries should be inserted
      */
     changelogHeaderMatcher: (content: string) => number;
-    /**
-     * Handle additional files that need to be updated with the changelog
-     * Returns an array of promises for each file operation
-     */
-    handleAdditionalFiles?: (version: string, date: string, changes: ChangeFile[], config: Config, options?: WriteCommandOptions) => Promise<void>[];
 }
 export declare function loadWritingStrategy(formatter: string): Promise<WritingStrategy>;

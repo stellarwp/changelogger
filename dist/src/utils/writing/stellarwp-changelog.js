@@ -31,7 +31,7 @@ const stellarwpChangelog = {
     },
     versionHeaderMatcher(content, version) {
         // Match StellarWP version headers
-        const versionRegex = new RegExp(`^### \\[${version}\\] ([^=]+)$`, "m");
+        const versionRegex = new RegExp(`^(### \\[${version}\\] (?:[^=]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1].trim() : undefined;
     },

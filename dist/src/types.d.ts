@@ -13,17 +13,29 @@ export interface AddCommandOptions {
     filename?: string;
     autoFilename?: boolean;
 }
+/**
+ * Options for the write command.
+ */
 export interface WriteCommandOptions {
+    /**
+     * Optional version number to use instead of auto-determining.
+     * If not provided, the next version will be determined based on change significance.
+     */
     overwriteVersion?: string;
     /**
-     * If true, only show what would be written without making changes
-     * @default false
+     * If true, only show what would be written without making changes.
+     * This is useful for previewing changes before applying them.
      */
     dryRun?: boolean;
-    rotateVersions?: number;
     /**
-     * Custom date to use for the changelog entry
-     * Should be in ISO format (YYYY-MM-DD)
+     * Optional date to use for the changelog entry.
+     * If not provided, the current date will be used.
+     * The date should be in a format that PHP's strtotime() function can parse.
+     * Examples:
+     * - "2024-03-20"
+     * - "yesterday"
+     * - "last monday"
+     * - "2 days ago"
      */
     date?: string;
 }

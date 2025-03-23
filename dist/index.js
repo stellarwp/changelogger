@@ -403,11 +403,18 @@ async function ensureFileExists(filePath, defaultContent) {
  *
  * # Dry run - show what would be written without making changes
  * changelogger write --dry-run
+ *
+ * # Specify a custom date
+ * changelogger write --date "2024-03-20"
+ * changelogger write --date "yesterday"
+ * changelogger write --date "last monday"
  * ```
  *
  * @param options - Command options for controlling the write process
  * @param options.overwriteVersion - Optional version number to use instead of auto-determining
  * @param options.dryRun - If true, only show what would be written without making changes
+ * @param options.date - Optional date to use for the changelog entry. If not provided, the current date will be used.
+ *                      The date should be in a format that PHP's strtotime() function can parse.
  *
  * @returns A promise that resolves to a string message indicating the result
  * @throws {Error} If there are issues with file operations or invalid inputs
@@ -452,60 +459,76 @@ async function run(options) {
     if (!semver.valid(version)) {
         throw new Error(`Invalid version format: ${version}`);
     }
-    // Load writing strategy
-    const strategy = await (0, writing_1.loadWritingStrategy)(config.formatter);
-    // If dry run, show what would be written and exit
+    // If dry run, show header
     if (options.dryRun) {
         console.log("\n[DRY RUN] Would write the following changes:");
         console.log("==========================================");
-        // Show what would be written for each file
-        for (const file of config.files) {
-            console.log(`\nFile: ${file.path}`);
-            console.log("------------------------------------------");
-            // Load the specific writing strategy for this file
-            const fileStrategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
-            const content = await fs
-                .readFile(file.path, "utf8")
-                .catch(() => "# Changelog\n\n");
-            const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
-            // Format the new changelog entry
-            const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
-            const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
-            const link = previousVersion && fileStrategy.formatVersionLink
-                ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate)
-                : "";
-            const entry = `${header}${link}${changesText}`;
-            console.log(entry);
-        }
-        console.log("\n==========================================");
-        return "Dry run completed - no changes were made";
     }
     // Process each file
     for (const file of config.files) {
-        // Ensure the file exists with default content
-        const defaultContent = "# Changelog\n\n";
-        await ensureFileExists(file.path, defaultContent);
-        const content = await fs.readFile(file.path, "utf8");
-        const previousVersion = strategy.versionHeaderMatcher(content, version);
+        // Load the specific writing strategy for this file
+        const fileStrategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
+        // Show file header in dry run
+        if (options.dryRun) {
+            console.log(`\nFile: ${file.path}`);
+            console.log("------------------------------------------");
+        }
+        // Ensure the file exists with default content (only in actual run)
+        if (!options.dryRun) {
+            const defaultContent = "# Changelog\n\n";
+            await ensureFileExists(file.path, defaultContent);
+        }
+        const content = await fs
+            .readFile(file.path, "utf8")
+            .catch(() => "# Changelog\n\n");
+        const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
         // Format the new changelog entry
-        const header = strategy.formatVersionHeader(version, date, previousVersion);
-        const changesText = strategy.formatChanges(version, changes, previousVersion);
-        const link = previousVersion && strategy.formatVersionLink
-            ? strategy.formatVersionLink(version, previousVersion, config.linkTemplate)
+        const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
+        const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
+        const link = previousVersion && fileStrategy.formatVersionLink
+            ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate)
             : "";
-        const newEntry = `${header}\n${link}\n${changesText}\n`;
+        const newEntry = `${header}${link}${changesText}`.trim();
         // Find where to insert the new entry
-        const insertIndex = strategy.changelogHeaderMatcher(content);
-        // Insert the new entry
-        const newContent = content.slice(0, insertIndex) + newEntry + content.slice(insertIndex);
-        await fs.writeFile(file.path, newContent, "utf8");
-        // Handle any additional files
-        if (strategy.handleAdditionalFiles) {
-            const additionalPromises = strategy.handleAdditionalFiles(version, date, changes, config, options);
-            await Promise.all(additionalPromises);
+        const insertIndex = fileStrategy.changelogHeaderMatcher(content);
+        // If we found a previous version, we need to replace that section
+        let newContent;
+        if (previousVersion) {
+            // Find the start of the version section
+            const versionStart = content.indexOf(previousVersion);
+            // Find the next version header
+            const nextVersionMatch = fileStrategy.versionHeaderMatcher(content.slice(versionStart + 1), version);
+            // Determine where the current section ends
+            const sectionEnd = (() => {
+                if (typeof nextVersionMatch === "number") {
+                    return versionStart + nextVersionMatch + 1;
+                }
+                const nextEmptyLine = content.indexOf("\n\n", versionStart);
+                if (nextEmptyLine !== -1) {
+                    return nextEmptyLine + 2;
+                }
+                return content.length;
+            })();
+            // Replace the version section while preserving the rest of the content
+            newContent = `${content.slice(0, versionStart)}${newEntry}\n${content.slice(sectionEnd)}`;
+        }
+        else {
+            // No previous version found, insert at the header position
+            newContent = `${content.slice(0, insertIndex)}${newEntry}\n\n${content.slice(insertIndex)}`;
+        }
+        if (options.dryRun) {
+            console.log(newEntry);
+        }
+        else {
+            await fs.writeFile(file.path, newContent, "utf8");
         }
     }
-    // Clean up processed files
+    // Show dry run footer
+    if (options.dryRun) {
+        console.log("\n==========================================");
+        return "Dry run completed - no changes were made";
+    }
+    // Clean up processed files (only in actual run)
     for (const file of processedFiles) {
         if (file.endsWith(".yaml")) {
             await fs.unlink(path.join(config.changesDir, file));
@@ -1198,7 +1221,7 @@ const stellarwpChangelog = {
     },
     versionHeaderMatcher(content, version) {
         // Match StellarWP version headers
-        const versionRegex = new RegExp(`^### \\[${version}\\] ([^=]+)$`, "m");
+        const versionRegex = new RegExp(`^(### \\[${version}\\] (?:[^=]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1].trim() : undefined;
     },
@@ -1257,7 +1280,7 @@ const stellarwpReadme = {
     },
     versionHeaderMatcher(content, version) {
         // Match StellarWP version headers
-        const versionRegex = new RegExp(`^= \\[${version}\\] ([^=]+) =$`, "m");
+        const versionRegex = new RegExp(`^(= \\[${version}\\] (?:[^=])+ =)$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1].trim() : undefined;
     },
