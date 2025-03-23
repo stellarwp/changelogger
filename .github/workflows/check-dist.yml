@@ -31,9 +31,17 @@ jobs:
 
       - name: Compare the expected and actual dist/ directories
         run: |
-          if [ "$(git diff --text -G. dist/ | wc -l)" -gt "0" ]; then
-            echo "Detected uncommitted changes after build.  See status below:"
-            git diff
+          # First check if there are any uncommitted changes
+          if [ "$(git status --porcelain dist/ | wc -l)" -gt "0" ]; then
+            echo "Error: There are uncommitted changes in the dist/ directory. Please commit your changes."
+            git status dist/
+            exit 1
+          fi
+          
+          # Then check if the last commit modified dist/ files
+          if [ "$(git log -1 --name-only --pretty=format: | grep '^dist/' | wc -l)" -eq "0" ]; then
+            echo "Error: The latest commit does not include any changes to the dist/ directory."
+            echo "Please rebuild and commit the dist/ directory before submitting this PR."
             exit 1
           fi
         id: diff
