@@ -19,6 +19,8 @@ jest.mock("../../src/utils/writing/keepachangelog", () => ({
     formatChanges: jest.fn(),
     formatVersionHeader: jest.fn(),
     formatVersionLink: jest.fn(),
+    versionHeaderMatcher: jest.fn(),
+    changelogHeaderMatcher: jest.fn(),
   },
 }));
 
@@ -29,6 +31,8 @@ jest.doMock(
     formatChanges: jest.fn(),
     formatVersionHeader: jest.fn(),
     formatVersionLink: jest.fn(),
+    versionHeaderMatcher: jest.fn(),
+    changelogHeaderMatcher: jest.fn(),
   }),
   { virtual: true },
 );
@@ -38,7 +42,7 @@ jest.doMock(
   INVALID_STRATEGY_PATH,
   () => ({
     formatChanges: jest.fn(),
-    // Missing formatVersionHeader
+    // Missing required methods
   }),
   { virtual: true },
 );
@@ -48,6 +52,8 @@ describe("Writing Strategy Loader", () => {
     formatChanges: jest.fn(),
     formatVersionHeader: jest.fn(),
     formatVersionLink: jest.fn(),
+    versionHeaderMatcher: jest.fn(),
+    changelogHeaderMatcher: jest.fn(),
   };
 
   beforeEach(() => {

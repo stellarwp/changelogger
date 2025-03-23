@@ -1,4 +1,4 @@
-import stellarwp from "../../../src/utils/writing/stellarwp-changelog";
+import stellarwpReadme from "../../../src/utils/writing/stellarwp-readme";
 import { ChangeFile, Config } from "../../../src/types";
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -7,7 +7,7 @@ import * as path from "path";
 jest.mock("fs/promises");
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
-describe("stellarwp", () => {
+describe("stellarwp-readme", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -36,7 +36,7 @@ describe("stellarwp", () => {
         "* Compatibility - Added compatibility with WordPress 6.0",
       ].join("\n");
 
-      expect(stellarwp.formatChanges("1.0.0", changes)).toBe(expected);
+      expect(stellarwpReadme.formatChanges("1.0.0", changes)).toBe(expected);
     });
 
     it("should maintain type order and skip empty types", () => {
@@ -45,7 +45,7 @@ describe("stellarwp", () => {
         { type: "feature", entry: "Added something", significance: "minor" },
       ];
 
-      const result = stellarwp.formatChanges("1.0.0", changes);
+      const result = stellarwpReadme.formatChanges("1.0.0", changes);
 
       // Verify each line is present without enforcing order
       expect(result).toContain("* Feature - Added something");
@@ -56,8 +56,8 @@ describe("stellarwp", () => {
 
   describe("formatVersionHeader", () => {
     it("should format version header according to StellarWP style", () => {
-      const expected = "\n### [1.0.0] 2024-03-04\n\n";
-      expect(stellarwp.formatVersionHeader("1.0.0", "2024-03-04")).toBe(
+      const expected = "\n= [1.0.0] 2024-03-04 =\n\n";
+      expect(stellarwpReadme.formatVersionHeader("1.0.0", "2024-03-04")).toBe(
         expected,
       );
     });
@@ -65,8 +65,8 @@ describe("stellarwp", () => {
 
   describe("formatVersionLink", () => {
     it("should return empty string as StellarWP format does not use version links", () => {
-      if (stellarwp.formatVersionLink) {
-        const result = stellarwp.formatVersionLink(
+      if (stellarwpReadme.formatVersionLink) {
+        const result = stellarwpReadme.formatVersionLink(
           "1.0.0",
           "0.9.0",
           "https://example.com",
@@ -75,4 +75,38 @@ describe("stellarwp", () => {
       }
     });
   });
-});
+
+  describe("versionHeaderMatcher", () => {
+    it("should match StellarWP version headers", () => {
+      const content = "= [1.0.0] 2024-03-04 =\n";
+      const result = stellarwpReadme.versionHeaderMatcher(content, "1.0.0");
+      expect(result).toBe("= [1.0.0] 2024-03-04 =");
+    });
+
+    it("should return undefined for non-matching version", () => {
+      const content = "= [1.0.0] 2024-03-04 =\n";
+      const result = stellarwpReadme.versionHeaderMatcher(content, "2.0.0");
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("changelogHeaderMatcher", () => {
+    it("should find position after first version header", () => {
+      const content = "= [1.0.0] 2024-03-04 =\n";
+      const result = stellarwpReadme.changelogHeaderMatcher(content);
+      expect(result).toBe(0);
+    });
+
+    it("should find position after main header when no version header exists", () => {
+      const content = "== Changelog ==\n";
+      const result = stellarwpReadme.changelogHeaderMatcher(content);
+      expect(result).toBe(16); // Length of "== Changelog ==\n"
+    });
+
+    it("should return 0 when no headers are found", () => {
+      const content = "Some content without headers\n";
+      const result = stellarwpReadme.changelogHeaderMatcher(content);
+      expect(result).toBe(0);
+    });
+  });
+}); 

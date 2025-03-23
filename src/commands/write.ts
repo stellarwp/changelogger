@@ -95,6 +95,11 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     const files = await fs.readdir(config.changesDir);
     processedFiles = files;
 
+    // If no YAML files are found, return early
+    if (!files.some(file => file.endsWith(".yaml"))) {
+      return "No changes to write";
+    }
+
     for (const file of files) {
       if (!file.endsWith(".yaml")) continue;
 
@@ -105,7 +110,15 @@ export async function run(options: WriteCommandOptions): Promise<string> {
       const change = yaml.parse(content) as ChangeFile;
       changes.push(change);
     }
+
+    // If no valid changes were found, return early
+    if (changes.length === 0) {
+      return "No changes to write";
+    }
   } catch (error) {
+    if ((error as { code: string }).code === "ENOENT") {
+      return "No changes directory found";
+    }
     throw new Error(
       `Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -155,13 +168,13 @@ export async function run(options: WriteCommandOptions): Promise<string> {
 
     // Ensure the file exists with default content (only in actual run)
     if (!options.dryRun) {
-      const defaultContent = "# Changelog\n\n";
+      const defaultContent = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
       await ensureFileExists(file.path, defaultContent);
     }
 
     const content = await fs
       .readFile(file.path, "utf8")
-      .catch(() => "# Changelog\n\n");
+      .catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
     const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
 
     // Format the new changelog entry
@@ -242,7 +255,7 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     }
   }
 
-  return `Successfully wrote changelog for version ${version}`;
+  return `Updated changelog.md to version ${version}`;
 }
 
 /**
