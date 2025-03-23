@@ -88,7 +88,7 @@ This command performs the following checks:
 
 #### `write` Command
 
-Writes changelog entries to the configured files.
+Writes changelog entries to the main changelog file.
 
 ```bash
 # Automatic versioning
@@ -109,27 +109,28 @@ Options:
 The command will:
 
 - Read all YAML change files from the changes directory
-- Determine the next version number based on change significance (if not specified)
-- Write the changes to each configured file using its specific writing strategy
+- Determine the next version number based on change significance
+- Write the changes to the main changelog file using the configured writing strategy
 - Clean up processed change files
 
-When using `--dry-run`:
-- Shows what would be written to each configured file
-- Displays the formatted changelog entries
-- No changes are actually made to any files
+You can also specify a version directly:
 
-When using `--overwrite-version`:
-- Uses the specified version instead of auto-determining
-- If the version exists in the changelog, new changes are appended to that version
-- If the version doesn't exist, a new version entry is created
+```bash
+npx changelogger write -- --overwrite-version 1.0.0
+```
 
-The command supports multiple output files with different writing strategies:
-- Keep a Changelog format
-- StellarWP changelog format
-- StellarWP readme format
-- Custom writing strategies
+When you specify a version:
 
-Each file is processed according to its configured strategy and the changes are written in the appropriate format.
+- If the version doesn't exist in the changelog, it will create a new version entry
+- If the version already exists, it will append the new changes to that version's entry
+
+This is useful when you need to:
+
+- Add more changes to an existing version
+- Fix typos or add missing information to a version
+- Keep all related changes together under the same version
+
+The command will use your configured writing strategy to format the changes appropriately.
 
 ### As a GitHub Action
 
