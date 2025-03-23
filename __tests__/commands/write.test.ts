@@ -25,31 +25,29 @@ describe("write command", () => {
 
     // Mock reading change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changeFile);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Change Log\n= [1.1.0] 2024-03-22 =\n* Added - Added new feature\n";
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "stellarwp",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Feature",
-              fix: "Fix",
-              tweak: "Tweak",
-            },
-          });
-        }
-        throw new Error(`Unexpected file path: ${filePath}`);
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Change Log\n= [1.1.0] 2024-03-22 =\n* Added - Added new feature\n";
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      throw new Error(`Unexpected file path: ${filePath}`);
+    });
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.1.0",
@@ -79,12 +77,7 @@ describe("write command", () => {
     mockedFs.readFile.mockImplementation(
       async (
         path: PathLike | FileHandle,
-        options?:
-          | BufferEncoding
-          | (ObjectEncodingOptions &
-              Abortable & { flag?: OpenMode | undefined })
-          | null
-          | undefined,
+        options?: BufferEncoding | (ObjectEncodingOptions & Abortable & { flag?: OpenMode | undefined }) | null | undefined
       ) => {
         const filePath = path.toString();
         if (filePath.endsWith("change1.yaml")) {
@@ -92,7 +85,7 @@ describe("write command", () => {
         }
         if (filePath.endsWith("changelog.md")) {
           return Promise.resolve(
-            "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n## [1.0.0] - 2024-03-21\n\n### Added\n- Initial feature\n",
+            "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n## [1.0.0] - 2024-03-21\n\n### Added\n- Initial feature\n"
           );
         }
         if (filePath.endsWith("changelogger.config.json")) {
@@ -107,11 +100,11 @@ describe("write command", () => {
                 fix: "Fix",
                 tweak: "Tweak",
               },
-            }),
+            })
           );
         }
         throw new Error(`Unexpected file: ${filePath}`);
-      },
+      }
     );
 
     const options: WriteCommandOptions = {
@@ -140,31 +133,29 @@ describe("write command", () => {
 
     // Mock reading change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changeFile);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n= [1.1.0] 2024-03-22 =\n\n* Added - Added new feature\n";
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "stellarwp",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Feature",
-              fix: "Fix",
-              tweak: "Tweak",
-            },
-          });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n= [1.1.0] 2024-03-22 =\n\n* Added - Added new feature\n";
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      return "";
+    });
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.1.0",
@@ -184,15 +175,13 @@ describe("write command", () => {
 
   it("should handle empty changes directory", async () => {
     mockedFs.readdir.mockResolvedValue([]);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({ formatter: "stellarwp" });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({ formatter: "stellarwp" });
+      }
+      return "";
+    });
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.1.0",
@@ -205,15 +194,13 @@ describe("write command", () => {
 
   it("should handle non-existent changes directory", async () => {
     mockedFs.readdir.mockRejectedValue({ code: "ENOENT" });
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({ formatter: "stellarwp" });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({ formatter: "stellarwp" });
+      }
+      return "";
+    });
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.1.0",
@@ -233,31 +220,29 @@ describe("write command", () => {
 
     // Mock reading change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changeFile);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          throw { code: "ENOENT" };
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "keepachangelog",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Feature",
-              fix: "Fix",
-              tweak: "Tweak",
-            },
-          });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        throw { code: "ENOENT" };
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "keepachangelog",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      return "";
+    });
 
     // Mock writing the changelog file
     mockedFs.writeFile.mockResolvedValue(undefined);
@@ -275,9 +260,7 @@ describe("write command", () => {
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall[1] as string;
     expect(writtenContent).toContain("# Changelog");
-    expect(writtenContent).toContain(
-      "All notable changes to this project will be documented in this file.",
-    );
+    expect(writtenContent).toContain("All notable changes to this project will be documented in this file.");
     expect(writtenContent).toContain("## [1.1.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added new feature");
@@ -292,31 +275,29 @@ describe("write command", () => {
 
     // Mock reading change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changeFile);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          throw { code: "ENOENT" };
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "stellarwp",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Feature",
-              fix: "Fix",
-              tweak: "Tweak",
-            },
-          });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        throw { code: "ENOENT" };
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      return "";
+    });
 
     // Mock writing the changelog file
     mockedFs.writeFile.mockResolvedValue(undefined);
@@ -334,9 +315,7 @@ describe("write command", () => {
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall[1] as string;
     expect(writtenContent).toContain("# Changelog");
-    expect(writtenContent).toContain(
-      "All notable changes to this project will be documented in this file.",
-    );
+    expect(writtenContent).toContain("All notable changes to this project will be documented in this file.");
     expect(writtenContent).toContain("## [1.1.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added new feature");
@@ -350,18 +329,16 @@ describe("write command", () => {
     };
 
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changeFile);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Change Log\n";
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Change Log\n";
+      }
+      return "";
+    });
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.1.0",
@@ -392,12 +369,7 @@ describe("write command", () => {
     mockedFs.readFile.mockImplementation(
       async (
         path: PathLike | FileHandle,
-        options?:
-          | BufferEncoding
-          | (ObjectEncodingOptions &
-              Abortable & { flag?: OpenMode | undefined })
-          | null
-          | undefined,
+        options?: BufferEncoding | (ObjectEncodingOptions & Abortable & { flag?: OpenMode | undefined }) | null | undefined
       ) => {
         const filePath = path.toString();
         if (filePath.endsWith("change1.yaml")) {
@@ -407,9 +379,7 @@ describe("write command", () => {
           return Promise.resolve(yaml.stringify(changes[1]));
         }
         if (filePath.endsWith("changelog.md")) {
-          return Promise.resolve(
-            "# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n",
-          );
+          return Promise.resolve("# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n");
         }
         if (filePath.endsWith("changelogger.config.json")) {
           return Promise.resolve(
@@ -423,11 +393,11 @@ describe("write command", () => {
                 fix: "Fixed",
                 tweak: "Changed",
               },
-            }),
+            })
           );
         }
         throw new Error(`Unexpected file: ${filePath}`);
-      },
+      }
     );
 
     const result = await run({});
@@ -454,20 +424,11 @@ describe("write command", () => {
       },
     ];
 
-    mockedFs.readdir.mockResolvedValue([
-      "change1.yaml",
-      "change2.yaml",
-      "change3.yaml",
-    ] as any);
+    mockedFs.readdir.mockResolvedValue(["change1.yaml", "change2.yaml", "change3.yaml"] as any);
     mockedFs.readFile.mockImplementation(
       async (
         path: PathLike | FileHandle,
-        options?:
-          | BufferEncoding
-          | (ObjectEncodingOptions &
-              Abortable & { flag?: OpenMode | undefined })
-          | null
-          | undefined,
+        options?: BufferEncoding | (ObjectEncodingOptions & Abortable & { flag?: OpenMode | undefined }) | null | undefined
       ) => {
         const filePath = path.toString();
         if (filePath.endsWith("change1.yaml")) {
@@ -480,9 +441,7 @@ describe("write command", () => {
           return Promise.resolve(yaml.stringify(changes[2]));
         }
         if (filePath.endsWith("changelog.md")) {
-          return Promise.resolve(
-            "# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n",
-          );
+          return Promise.resolve("# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n");
         }
         if (filePath.endsWith("changelogger.config.json")) {
           return Promise.resolve(
@@ -496,11 +455,11 @@ describe("write command", () => {
                 fix: "Fixed",
                 tweak: "Changed",
               },
-            }),
+            })
           );
         }
         throw new Error(`Unexpected file: ${filePath}`);
-      },
+      }
     );
 
     const result = await run({ overwriteVersion: "2.0.0" });
@@ -536,12 +495,7 @@ describe("write command", () => {
     mockedFs.readFile.mockImplementation(
       async (
         path: PathLike | FileHandle,
-        options?:
-          | BufferEncoding
-          | (ObjectEncodingOptions &
-              Abortable & { flag?: OpenMode | undefined })
-          | null
-          | undefined,
+        options?: BufferEncoding | (ObjectEncodingOptions & Abortable & { flag?: OpenMode | undefined }) | null | undefined
       ) => {
         const filePath = path.toString();
         if (filePath.endsWith("change1.yaml")) {
@@ -551,9 +505,7 @@ describe("write command", () => {
           return Promise.resolve(yaml.stringify(changes[1]));
         }
         if (filePath.endsWith("changelog.md")) {
-          return Promise.resolve(
-            "# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n",
-          );
+          return Promise.resolve("# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n");
         }
         if (filePath.endsWith("changelogger.config.json")) {
           return Promise.resolve(
@@ -567,11 +519,11 @@ describe("write command", () => {
                 fix: "Fixed",
                 tweak: "Changed",
               },
-            }),
+            })
           );
         }
         throw new Error(`Unexpected file: ${filePath}`);
-      },
+      }
     );
 
     const result = await run({ overwriteVersion: "1.0.1" });
@@ -590,12 +542,7 @@ describe("write command", () => {
     mockedFs.readFile.mockImplementation(
       async (
         path: PathLike | FileHandle,
-        options?:
-          | BufferEncoding
-          | (ObjectEncodingOptions &
-              Abortable & { flag?: OpenMode | undefined })
-          | null
-          | undefined,
+        options?: BufferEncoding | (ObjectEncodingOptions & Abortable & { flag?: OpenMode | undefined }) | null | undefined
       ) => {
         const filePath = path.toString();
         if (filePath.endsWith("change1.yaml")) {
@@ -605,7 +552,7 @@ describe("write command", () => {
           return "# Change Log\n";
         }
         return "";
-      },
+      }
     );
 
     await expect(run({ overwriteVersion: "1.0.0" })).rejects.toThrow();
@@ -621,31 +568,29 @@ describe("write command", () => {
     ];
 
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changes[0]);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Change Log\n= [1.0.0] 2024-03-21 =\n* Added - Initial feature\n";
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "stellarwp",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Added",
-              fix: "Fixed",
-              tweak: "Changed",
-            },
-          });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changes[0]);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Change Log\n= [1.0.0] 2024-03-21 =\n* Added - Initial feature\n";
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Added",
+            fix: "Fixed",
+            tweak: "Changed",
+          },
+        });
+      }
+      return "";
+    });
 
     const result = await run({});
 
@@ -668,18 +613,16 @@ describe("write command", () => {
     ];
 
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changes[0]);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Change Log\n## [invalid] - 2024-03-21\n";
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changes[0]);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Change Log\n## [invalid] - 2024-03-21\n";
+      }
+      return "";
+    });
 
     const result = await run({});
 
@@ -705,42 +648,36 @@ describe("write command", () => {
       },
     ];
 
-    mockedFs.readdir.mockResolvedValue([
-      "change1.yaml",
-      "change2.yaml",
-      "change3.yaml",
-    ] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changes[0]);
-        }
-        if (filePath.endsWith("change2.yaml")) {
-          return yaml.stringify(changes[1]);
-        }
-        if (filePath.endsWith("change3.yaml")) {
-          return yaml.stringify(changes[2]);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n";
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "stellarwp",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Feature",
-              fix: "Fix",
-              tweak: "Tweak",
-            },
-          });
-        }
-        throw new Error(`Unexpected file path: ${filePath}`);
-      },
-    );
+    mockedFs.readdir.mockResolvedValue(["change1.yaml", "change2.yaml", "change3.yaml"] as any);
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changes[0]);
+      }
+      if (filePath.endsWith("change2.yaml")) {
+        return yaml.stringify(changes[1]);
+      }
+      if (filePath.endsWith("change3.yaml")) {
+        return yaml.stringify(changes[2]);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Change Log\n= [1.0.0] 2024-03-22 =\n* Added - Initial feature\n";
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      throw new Error(`Unexpected file path: ${filePath}`);
+    });
 
     const result = await run({});
 
@@ -775,21 +712,19 @@ describe("write command", () => {
     ];
 
     // Mock reading existing changelog
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("changelog.md")) {
-          return `# Changelog\n\n## [1.0.0] - 2024-03-21 =\n\n* Added - Initial feature\n`;
-        }
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(newChanges[0]);
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({ formatter: "keepachangelog" });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("changelog.md")) {
+        return `# Changelog\n\n## [1.0.0] - 2024-03-21 =\n\n* Added - Initial feature\n`;
+      }
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(newChanges[0]);
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({ formatter: "keepachangelog" });
+      }
+      return "";
+    });
 
     // Mock reading new change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
@@ -828,31 +763,29 @@ describe("write command", () => {
     ];
 
     // Mock reading existing changelog
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("changelog.md")) {
-          return "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n= [1.0.0] 2024-03-21 =\n\n* Added - Initial feature\n";
-        }
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(newChanges[0]);
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({
-            formatter: "stellarwp",
-            types: {
-              added: "Added",
-              fixed: "Fixed",
-              changed: "Changed",
-              feature: "Feature",
-              fix: "Fix",
-              tweak: "Tweak",
-            },
-          });
-        }
-        return "";
-      },
-    );
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("changelog.md")) {
+        return "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n= [1.0.0] 2024-03-21 =\n\n* Added - Initial feature\n";
+      }
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(newChanges[0]);
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      return "";
+    });
 
     // Mock reading new change files
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
@@ -892,32 +825,26 @@ describe("write command", () => {
       },
     ];
 
-    mockedFs.readdir.mockResolvedValue([
-      "change1.yaml",
-      "change2.yaml",
-      "change3.yaml",
-    ] as any);
-    mockedFs.readFile.mockImplementation(
-      async (path: PathLike | FileHandle) => {
-        const filePath = path.toString();
-        if (filePath.endsWith("change1.yaml")) {
-          return yaml.stringify(changes[0]);
-        }
-        if (filePath.endsWith("change2.yaml")) {
-          return yaml.stringify(changes[1]);
-        }
-        if (filePath.endsWith("change3.yaml")) {
-          return yaml.stringify(changes[2]);
-        }
-        if (filePath.endsWith("changelog.md")) {
-          return "# Changelog\n## [1.0.0] - 2024-03-21\n";
-        }
-        if (filePath.endsWith("changelogger.config.json")) {
-          return JSON.stringify({ formatter: "stellarwp" });
-        }
-        return "";
-      },
-    );
+    mockedFs.readdir.mockResolvedValue(["change1.yaml", "change2.yaml", "change3.yaml"] as any);
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changes[0]);
+      }
+      if (filePath.endsWith("change2.yaml")) {
+        return yaml.stringify(changes[1]);
+      }
+      if (filePath.endsWith("change3.yaml")) {
+        return yaml.stringify(changes[2]);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "# Changelog\n## [1.0.0] - 2024-03-21\n";
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({ formatter: "stellarwp" });
+      }
+      return "";
+    });
 
     const result = await run({});
 

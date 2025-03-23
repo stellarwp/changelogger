@@ -16,9 +16,7 @@ describe("Keep a Changelog Writing Strategy", () => {
     });
 
     it("should capitalize type names", () => {
-      const changes: ChangeFile[] = [
-        { type: "added", entry: "Feature A", significance: "minor" },
-      ];
+      const changes: ChangeFile[] = [{ type: "added", entry: "Feature A", significance: "minor" }];
 
       const result = keepachangelog.formatChanges("1.0.0", changes);
       expect(result).toContain("### Added");
@@ -69,19 +67,12 @@ describe("Keep a Changelog Writing Strategy", () => {
     });
 
     it("should handle versions with hotfixes", () => {
-      const result = keepachangelog.formatVersionHeader(
-        "1.0.0.1",
-        "2024-03-20",
-      );
+      const result = keepachangelog.formatVersionHeader("1.0.0.1", "2024-03-20");
       expect(result).toBe("## [1.0.0.1] - 2024-03-20");
     });
 
     it("should handle previous version parameter", () => {
-      const result = keepachangelog.formatVersionHeader(
-        "2.0.0",
-        "2024-03-20",
-        "1.0.0",
-      );
+      const result = keepachangelog.formatVersionHeader("2.0.0", "2024-03-20", "1.0.0");
       expect(result).toBe("## [2.0.0] - 2024-03-20");
     });
   });
@@ -89,11 +80,8 @@ describe("Keep a Changelog Writing Strategy", () => {
   describe("formatVersionLink", () => {
     it("should format version link with template", () => {
       const template = "https://github.com/org/repo/compare/${old}...${new}";
-      const result =
-        keepachangelog.formatVersionLink?.("1.2.3", "1.2.2", template) ?? "";
-      expect(result).toBe(
-        "[1.2.3]: https://github.com/org/repo/compare/1.2.2...1.2.3",
-      );
+      const result = keepachangelog.formatVersionLink?.("1.2.3", "1.2.2", template) ?? "";
+      expect(result).toBe("[1.2.3]: https://github.com/org/repo/compare/1.2.2...1.2.3");
     });
 
     it("should return empty string when no template is provided", () => {
@@ -103,12 +91,8 @@ describe("Keep a Changelog Writing Strategy", () => {
 
     it("should handle versions with hotfixes", () => {
       const template = "https://github.com/org/repo/compare/${old}...${new}";
-      const result =
-        keepachangelog.formatVersionLink?.("1.2.3.4", "1.2.3.3", template) ??
-        "";
-      expect(result).toBe(
-        "[1.2.3.4]: https://github.com/org/repo/compare/1.2.3.3...1.2.3.4",
-      );
+      const result = keepachangelog.formatVersionLink?.("1.2.3.4", "1.2.3.3", template) ?? "";
+      expect(result).toBe("[1.2.3.4]: https://github.com/org/repo/compare/1.2.3.3...1.2.3.4");
     });
   });
 });

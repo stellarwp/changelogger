@@ -1,8 +1,4 @@
-import {
-  getBranchName,
-  getCurrentSha,
-  getRemoteUrl,
-} from "../../src/utils/git";
+import { getBranchName, getCurrentSha, getRemoteUrl } from "../../src/utils/git";
 import { exec } from "child_process";
 
 // Mock child_process.exec

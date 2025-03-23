@@ -123,6 +123,10 @@ async function run(options) {
     try {
         const files = await fs.readdir(config.changesDir);
         processedFiles = files;
+        // If no YAML files are found, return early
+        if (!files.some(file => file.endsWith(".yaml"))) {
+            return "No changes to write";
+        }
         for (const file of files) {
             if (!file.endsWith(".yaml"))
                 continue;
@@ -130,14 +134,21 @@ async function run(options) {
             const change = yaml.parse(content);
             changes.push(change);
         }
+        // If no valid changes were found, return early
+        if (changes.length === 0) {
+            return "No changes to write";
+        }
     }
     catch (error) {
+        if (error.code === "ENOENT") {
+            return "No changes directory found";
+        }
         throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
     // Sort changes by significance
     changes.sort((a, b) => {
         const significanceOrder = { major: 0, minor: 1, patch: 2 };
-        return (significanceOrder[a.significance] - significanceOrder[b.significance]);
+        return significanceOrder[a.significance] - significanceOrder[b.significance];
     });
     // Determine version and date
     const date = options.date || new Date().toISOString().split("T")[0];
@@ -169,19 +180,15 @@ async function run(options) {
         }
         // Ensure the file exists with default content (only in actual run)
         if (!options.dryRun) {
-            const defaultContent = "# Changelog\n\n";
+            const defaultContent = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
             await ensureFileExists(file.path, defaultContent);
         }
-        const content = await fs
-            .readFile(file.path, "utf8")
-            .catch(() => "# Changelog\n\n");
+        const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
         const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
         // Format the new changelog entry
         const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
         const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
-        const link = previousVersion && fileStrategy.formatVersionLink
-            ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate)
-            : "";
+        const link = previousVersion && fileStrategy.formatVersionLink ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate) : "";
         const newEntry = `${header}${link}${changesText}`.trim();
         // Find where to insert the new entry
         const insertIndex = fileStrategy.changelogHeaderMatcher(content);
@@ -228,7 +235,7 @@ async function run(options) {
             await fs.unlink(path.join(config.changesDir, file));
         }
     }
-    return `Successfully wrote changelog for version ${version}`;
+    return `Updated changelog.md to version ${version}`;
 }
 /**
  * Gets the current version from a file.
@@ -261,9 +268,9 @@ async function getCurrentVersion(filePath) {
  * @returns The highest significance level among the changes
  */
 function determineSignificance(changes) {
-    if (changes.some((c) => c.significance === "major"))
+    if (changes.some(c => c.significance === "major"))
         return "major";
-    if (changes.some((c) => c.significance === "minor"))
+    if (changes.some(c => c.significance === "minor"))
         return "minor";
     return "patch";
 }

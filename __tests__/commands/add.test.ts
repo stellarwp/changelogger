@@ -36,9 +36,7 @@ const mockedInquirer = inquirer as jest.Mocked<typeof inquirer>;
 
 // Mock getBranchName
 jest.mock("../../src/utils/git");
-const mockedGetBranchName = getBranchName as jest.MockedFunction<
-  typeof getBranchName
->;
+const mockedGetBranchName = getBranchName as jest.MockedFunction<typeof getBranchName>;
 
 describe("add command", () => {
   beforeEach(() => {
@@ -186,14 +184,10 @@ describe("add command", () => {
       name: string;
       validate?: (input: string) => string | boolean;
     }>;
-    const entryQuestion = promptConfig.find((q) => q.name === "entry");
+    const entryQuestion = promptConfig.find(q => q.name === "entry");
 
-    expect(entryQuestion?.validate?.("")).toBe(
-      "Changelog entry cannot be empty",
-    );
-    expect(entryQuestion?.validate?.("  ")).toBe(
-      "Changelog entry cannot be empty",
-    );
+    expect(entryQuestion?.validate?.("")).toBe("Changelog entry cannot be empty");
+    expect(entryQuestion?.validate?.("  ")).toBe("Changelog entry cannot be empty");
     expect(entryQuestion?.validate?.("Valid entry")).toBe(true);
   });
 
@@ -203,7 +197,7 @@ describe("add command", () => {
       name: string;
       validate?: (input: string) => string | boolean;
     }>;
-    const filenameQuestion = promptConfig.find((q) => q.name === "filename");
+    const filenameQuestion = promptConfig.find(q => q.name === "filename");
 
     expect(filenameQuestion?.validate?.("")).toBe("Filename cannot be empty");
     expect(filenameQuestion?.validate?.("  ")).toBe("Filename cannot be empty");

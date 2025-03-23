@@ -2,11 +2,7 @@ import { ChangeFile } from "../../types";
 import { WritingStrategy } from "../writing";
 
 const stellarwpChangelog: WritingStrategy = {
-  formatChanges(
-    version: string,
-    changes: ChangeFile[],
-    previousVersion?: string,
-  ): string {
+  formatChanges(version: string, changes: ChangeFile[], previousVersion?: string): string {
     // Group changes by type
     const groupedChanges = changes.reduce(
       (acc, change) => {
@@ -16,7 +12,7 @@ const stellarwpChangelog: WritingStrategy = {
         acc[change.type].push(change.entry);
         return acc;
       },
-      {} as Record<string, string[]>,
+      {} as Record<string, string[]>
     );
 
     // Format each type's changes using the original types from the changes
@@ -24,28 +20,18 @@ const stellarwpChangelog: WritingStrategy = {
       .map(([type, entries]) => {
         // Capitalize the first letter of the type
         const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
-        return entries
-          .map((entry) => `* ${formattedType} - ${entry}`)
-          .join("\n");
+        return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
       })
-      .filter((section) => section.length > 0);
+      .filter(section => section.length > 0);
 
     return sections.join("\n");
   },
 
-  formatVersionHeader(
-    version: string,
-    date: string,
-    previousVersion?: string,
-  ): string {
+  formatVersionHeader(version: string, date: string, previousVersion?: string): string {
     return `\n### [${version}] ${date}\n\n`;
   },
 
-  formatVersionLink(
-    version: string,
-    previousVersion: string,
-    template?: string,
-  ): string {
+  formatVersionLink(version: string, previousVersion: string, template?: string): string {
     // StellarWP format doesn't use version links
     return "";
   },
@@ -63,9 +49,7 @@ const stellarwpChangelog: WritingStrategy = {
     if (!firstVersionMatch) {
       // If no version header found, find the position after the main header
       const mainHeaderMatch = content.match(/^== Changelog ==$/m);
-      return mainHeaderMatch
-        ? mainHeaderMatch.index! + mainHeaderMatch[0].length + 1
-        : 0;
+      return mainHeaderMatch ? mainHeaderMatch.index! + mainHeaderMatch[0].length + 1 : 0;
     }
     return firstVersionMatch.index!;
   },

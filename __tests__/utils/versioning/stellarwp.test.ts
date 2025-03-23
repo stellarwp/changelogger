@@ -31,9 +31,7 @@ describe("StellarWP versioning strategy", () => {
       });
 
       it("should increment major and reset others from 4-part version", () => {
-        expect(stellarStrategy.getNextVersion("1.2.3.4", "major")).toBe(
-          "2.0.0",
-        );
+        expect(stellarStrategy.getNextVersion("1.2.3.4", "major")).toBe("2.0.0");
       });
     });
 
@@ -43,9 +41,7 @@ describe("StellarWP versioning strategy", () => {
       });
 
       it("should increment minor and reset patch and hotfix from 4-part version", () => {
-        expect(stellarStrategy.getNextVersion("1.2.3.4", "minor")).toBe(
-          "1.3.0",
-        );
+        expect(stellarStrategy.getNextVersion("1.2.3.4", "minor")).toBe("1.3.0");
       });
     });
 
@@ -55,58 +51,40 @@ describe("StellarWP versioning strategy", () => {
       });
 
       it("should increment hotfix when present", () => {
-        expect(stellarStrategy.getNextVersion("1.2.3.4", "patch")).toBe(
-          "1.2.3.5",
-        );
+        expect(stellarStrategy.getNextVersion("1.2.3.4", "patch")).toBe("1.2.3.5");
       });
 
       it("should increment patch and not show hotfix when hotfix is 0", () => {
-        expect(stellarStrategy.getNextVersion("1.2.3.0", "patch")).toBe(
-          "1.2.4",
-        );
+        expect(stellarStrategy.getNextVersion("1.2.3.0", "patch")).toBe("1.2.4");
       });
     });
   });
 
   describe("compareVersions", () => {
     it("should compare major versions correctly", () => {
-      expect(stellarStrategy.compareVersions("2.0.0", "1.0.0")).toBeGreaterThan(
-        0,
-      );
+      expect(stellarStrategy.compareVersions("2.0.0", "1.0.0")).toBeGreaterThan(0);
       expect(stellarStrategy.compareVersions("1.0.0", "2.0.0")).toBeLessThan(0);
     });
 
     it("should compare minor versions correctly", () => {
-      expect(stellarStrategy.compareVersions("1.2.0", "1.1.0")).toBeGreaterThan(
-        0,
-      );
+      expect(stellarStrategy.compareVersions("1.2.0", "1.1.0")).toBeGreaterThan(0);
       expect(stellarStrategy.compareVersions("1.1.0", "1.2.0")).toBeLessThan(0);
     });
 
     it("should compare patch versions correctly", () => {
-      expect(stellarStrategy.compareVersions("1.1.2", "1.1.1")).toBeGreaterThan(
-        0,
-      );
+      expect(stellarStrategy.compareVersions("1.1.2", "1.1.1")).toBeGreaterThan(0);
       expect(stellarStrategy.compareVersions("1.1.1", "1.1.2")).toBeLessThan(0);
     });
 
     it("should compare hotfix versions correctly", () => {
-      expect(
-        stellarStrategy.compareVersions("1.1.1.2", "1.1.1.1"),
-      ).toBeGreaterThan(0);
-      expect(
-        stellarStrategy.compareVersions("1.1.1.1", "1.1.1.2"),
-      ).toBeLessThan(0);
+      expect(stellarStrategy.compareVersions("1.1.1.2", "1.1.1.1")).toBeGreaterThan(0);
+      expect(stellarStrategy.compareVersions("1.1.1.1", "1.1.1.2")).toBeLessThan(0);
     });
 
     it("should handle comparing 3-part and 4-part versions", () => {
       expect(stellarStrategy.compareVersions("1.1.1", "1.1.1.0")).toBe(0);
-      expect(stellarStrategy.compareVersions("1.1.1", "1.1.1.1")).toBeLessThan(
-        0,
-      );
-      expect(
-        stellarStrategy.compareVersions("1.1.2", "1.1.1.1"),
-      ).toBeGreaterThan(0);
+      expect(stellarStrategy.compareVersions("1.1.1", "1.1.1.1")).toBeLessThan(0);
+      expect(stellarStrategy.compareVersions("1.1.2", "1.1.1.1")).toBeGreaterThan(0);
     });
 
     it("should consider versions equal when they are the same", () => {
@@ -128,9 +106,7 @@ describe("StellarWP versioning strategy", () => {
     });
 
     it("should preserve hotfix number when incrementing hotfix", () => {
-      expect(stellarStrategy.getNextVersion("1.2.3.1", "patch")).toBe(
-        "1.2.3.2",
-      );
+      expect(stellarStrategy.getNextVersion("1.2.3.1", "patch")).toBe("1.2.3.2");
     });
 
     it("should handle version with all zeros", () => {

@@ -108,9 +108,7 @@ async function run(options) {
     const config = await (0, config_1.loadConfig)();
     // Get the default filename from the branch name
     const branchName = await (0, git_1.getBranchName)();
-    const defaultFilename = branchName
-        ? cleanupFilename(branchName.replace(/\//g, "-"))
-        : `change-${Date.now()}`;
+    const defaultFilename = branchName ? cleanupFilename(branchName.replace(/\//g, "-")) : `change-${Date.now()}`;
     // If not all options are provided, prompt for them
     const answers = await inquirer_1.default.prompt([
         {
@@ -156,8 +154,7 @@ async function run(options) {
         },
     ]);
     const changeFile = {
-        significance: (options.significance ||
-            answers.significance),
+        significance: (options.significance || answers.significance),
         type: (options.type || answers.type),
         entry: options.entry || answers.entry || "",
         timestamp: new Date().toISOString(),
@@ -165,9 +162,7 @@ async function run(options) {
     // Create changes directory if it doesn't exist
     await fs.mkdir(config.changesDir, { recursive: true });
     // Use provided filename, auto-generated filename, or the one from prompt
-    const baseFilename = options.autoFilename
-        ? defaultFilename
-        : options.filename || answers.filename || defaultFilename;
+    const baseFilename = options.autoFilename ? defaultFilename : options.filename || answers.filename || defaultFilename;
     const filename = `${cleanupFilename(baseFilename)}`;
     const filePath = path.join(config.changesDir, `${filename}.yaml`);
     // Check if file exists
@@ -429,6 +424,10 @@ async function run(options) {
     try {
         const files = await fs.readdir(config.changesDir);
         processedFiles = files;
+        // If no YAML files are found, return early
+        if (!files.some(file => file.endsWith(".yaml"))) {
+            return "No changes to write";
+        }
         for (const file of files) {
             if (!file.endsWith(".yaml"))
                 continue;
@@ -436,14 +435,21 @@ async function run(options) {
             const change = yaml.parse(content);
             changes.push(change);
         }
+        // If no valid changes were found, return early
+        if (changes.length === 0) {
+            return "No changes to write";
+        }
     }
     catch (error) {
+        if (error.code === "ENOENT") {
+            return "No changes directory found";
+        }
         throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
     // Sort changes by significance
     changes.sort((a, b) => {
         const significanceOrder = { major: 0, minor: 1, patch: 2 };
-        return (significanceOrder[a.significance] - significanceOrder[b.significance]);
+        return significanceOrder[a.significance] - significanceOrder[b.significance];
     });
     // Determine version and date
     const date = options.date || new Date().toISOString().split("T")[0];
@@ -475,19 +481,15 @@ async function run(options) {
         }
         // Ensure the file exists with default content (only in actual run)
         if (!options.dryRun) {
-            const defaultContent = "# Changelog\n\n";
+            const defaultContent = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
             await ensureFileExists(file.path, defaultContent);
         }
-        const content = await fs
-            .readFile(file.path, "utf8")
-            .catch(() => "# Changelog\n\n");
+        const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
         const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
         // Format the new changelog entry
         const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
         const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
-        const link = previousVersion && fileStrategy.formatVersionLink
-            ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate)
-            : "";
+        const link = previousVersion && fileStrategy.formatVersionLink ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate) : "";
         const newEntry = `${header}${link}${changesText}`.trim();
         // Find where to insert the new entry
         const insertIndex = fileStrategy.changelogHeaderMatcher(content);
@@ -534,7 +536,7 @@ async function run(options) {
             await fs.unlink(path.join(config.changesDir, file));
         }
     }
-    return `Successfully wrote changelog for version ${version}`;
+    return `Updated changelog.md to version ${version}`;
 }
 /**
  * Gets the current version from a file.
@@ -567,9 +569,9 @@ async function getCurrentVersion(filePath) {
  * @returns The highest significance level among the changes
  */
 function determineSignificance(changes) {
-    if (changes.some((c) => c.significance === "major"))
+    if (changes.some(c => c.significance === "major"))
         return "major";
-    if (changes.some((c) => c.significance === "minor"))
+    if (changes.some(c => c.significance === "minor"))
         return "minor";
     return "patch";
 }
@@ -851,9 +853,7 @@ async function loadVersioningStrategy(versioning) {
             const absolutePath = path.resolve(process.cwd(), versioning);
             const module = await Promise.resolve(`${absolutePath}`).then(s => __importStar(require(s)));
             // Validate that the module exports the required methods
-            if (typeof module.getNextVersion !== "function" ||
-                typeof module.isValidVersion !== "function" ||
-                typeof module.compareVersions !== "function") {
+            if (typeof module.getNextVersion !== "function" || typeof module.isValidVersion !== "function" || typeof module.compareVersions !== "function") {
                 throw new Error(`Versioning file ${versioning} does not export required methods`);
             }
             return module;
@@ -974,9 +974,7 @@ exports["default"] = semverStrategy;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 function parseVersion(version) {
-    const [major = 0, minor = 0, patch = 0, hotfix = 0] = version
-        .split(".")
-        .map(Number);
+    const [major = 0, minor = 0, patch = 0, hotfix = 0] = version.split(".").map(Number);
     return { major, minor, patch, hotfix };
 }
 function formatVersion(version) {
@@ -1024,7 +1022,7 @@ const stellarStrategy = {
         // Accept both 3-part and 4-part versions
         if (parts.length < 3 || parts.length > 4)
             return false;
-        return parts.every((part) => {
+        return parts.every(part => {
             const num = Number(part);
             return Number.isInteger(num) && num >= 0;
         });
@@ -1033,14 +1031,9 @@ const stellarStrategy = {
         const version1 = parseVersion(v1);
         const version2 = parseVersion(v2);
         // Compare each part in order of significance
-        const comparisons = [
-            version1.major - version2.major,
-            version1.minor - version2.minor,
-            version1.patch - version2.patch,
-            version1.hotfix - version2.hotfix,
-        ];
+        const comparisons = [version1.major - version2.major, version1.minor - version2.minor, version1.patch - version2.patch, version1.hotfix - version2.hotfix];
         // Return the first non-zero comparison
-        return comparisons.find((c) => c !== 0) || 0;
+        return comparisons.find(c => c !== 0) || 0;
     },
 };
 exports["default"] = stellarStrategy;
@@ -1144,7 +1137,7 @@ const keepachangelog = {
         // Format each type's changes
         const sections = Object.entries(groupedChanges).map(([type, entries]) => {
             const title = type.charAt(0).toUpperCase() + type.slice(1);
-            const items = entries.map((entry) => `- ${entry}`).join("\n");
+            const items = entries.map(entry => `- ${entry}`).join("\n");
             return `### ${title}\n${items}`;
         });
         return sections.join("\n\n");
@@ -1155,9 +1148,7 @@ const keepachangelog = {
     formatVersionLink(version, previousVersion, template) {
         if (!template)
             return "";
-        const link = template
-            .replace("${old}", previousVersion)
-            .replace("${new}", version);
+        const link = template.replace("${old}", previousVersion).replace("${new}", version);
         return `[${version}]: ${link}`;
     },
     versionHeaderMatcher(content, version) {
@@ -1172,9 +1163,7 @@ const keepachangelog = {
         if (!firstVersionMatch) {
             // If no version header found, find the position after the main header
             const mainHeaderMatch = content.match(/^# Changelog$/m);
-            return mainHeaderMatch
-                ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1
-                : 0;
+            return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
     },
@@ -1205,11 +1194,9 @@ const stellarwpChangelog = {
             .map(([type, entries]) => {
             // Capitalize the first letter of the type
             const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
-            return entries
-                .map((entry) => `* ${formattedType} - ${entry}`)
-                .join("\n");
+            return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
         })
-            .filter((section) => section.length > 0);
+            .filter(section => section.length > 0);
         return sections.join("\n");
     },
     formatVersionHeader(version, date, previousVersion) {
@@ -1231,9 +1218,7 @@ const stellarwpChangelog = {
         if (!firstVersionMatch) {
             // If no version header found, find the position after the main header
             const mainHeaderMatch = content.match(/^== Changelog ==$/m);
-            return mainHeaderMatch
-                ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1
-                : 0;
+            return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
     },
@@ -1264,11 +1249,9 @@ const stellarwpReadme = {
             .map(([type, entries]) => {
             // Capitalize the first letter of the type
             const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
-            return entries
-                .map((entry) => `* ${formattedType} - ${entry}`)
-                .join("\n");
+            return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
         })
-            .filter((section) => section.length > 0);
+            .filter(section => section.length > 0);
         return sections.join("\n");
     },
     formatVersionHeader(version, date, previousVersion) {
@@ -1290,9 +1273,7 @@ const stellarwpReadme = {
         if (!firstVersionMatch) {
             // If no version header found, find the position after the main header
             const mainHeaderMatch = content.match(/^== Changelog ==$/m);
-            return mainHeaderMatch
-                ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1
-                : 0;
+            return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
     },

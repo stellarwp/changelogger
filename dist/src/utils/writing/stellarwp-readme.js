@@ -15,11 +15,9 @@ const stellarwpReadme = {
             .map(([type, entries]) => {
             // Capitalize the first letter of the type
             const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
-            return entries
-                .map((entry) => `* ${formattedType} - ${entry}`)
-                .join("\n");
+            return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
         })
-            .filter((section) => section.length > 0);
+            .filter(section => section.length > 0);
         return sections.join("\n");
     },
     formatVersionHeader(version, date, previousVersion) {
@@ -41,9 +39,7 @@ const stellarwpReadme = {
         if (!firstVersionMatch) {
             // If no version header found, find the position after the main header
             const mainHeaderMatch = content.match(/^== Changelog ==$/m);
-            return mainHeaderMatch
-                ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1
-                : 0;
+            return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
     },

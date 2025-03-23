@@ -180,12 +180,8 @@ const semver = versioningStrategies.semverStrategy;
 const stellarwp = versioningStrategies.stellarStrategy;
 
 // Load custom strategies
-const customWritingStrategy = await loadWritingStrategy(
-  "./path/to/custom-writing.ts",
-);
-const customVersioningStrategy = await loadVersioningStrategy(
-  "./path/to/custom-versioning.ts",
-);
+const customWritingStrategy = await loadWritingStrategy("./path/to/custom-writing.ts");
+const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-versioning.ts");
 ```
 
 ### As a GitHub Action
@@ -299,10 +295,7 @@ The changelogger supports multiple versioning strategies:
    The custom versioning file must export these functions:
 
    ```typescript
-   export function getNextVersion(
-     currentVersion: string,
-     significance: "major" | "minor" | "patch",
-   ): string;
+   export function getNextVersion(currentVersion: string, significance: "major" | "minor" | "patch"): string;
    export function isValidVersion(version: string): boolean;
    export function compareVersions(v1: string, v2: string): number;
    ```
@@ -394,29 +387,17 @@ Available built-in strategies:
      /**
       * Format the changes into a changelog entry
       */
-     formatChanges(
-       version: string,
-       changes: Array<{ type: string; entry: string }>,
-       previousVersion?: string,
-     ): string;
+     formatChanges(version: string, changes: Array<{ type: string; entry: string }>, previousVersion?: string): string;
 
      /**
       * Format the header for a new version
       */
-     formatVersionHeader(
-       version: string,
-       date: string,
-       previousVersion?: string,
-     ): string;
+     formatVersionHeader(version: string, date: string, previousVersion?: string): string;
 
      /**
       * Optional: Format version comparison links
       */
-     formatVersionLink?(
-       version: string,
-       previousVersion: string,
-       template?: string,
-     ): string;
+     formatVersionLink?(version: string, previousVersion: string, template?: string): string;
    }
    ```
 
@@ -430,9 +411,7 @@ Available built-in strategies:
 
    const customStrategy: WritingStrategy = {
      formatChanges(version, changes) {
-       return changes
-         .map((change) => `- [${change.type.toUpperCase()}] ${change.entry}`)
-         .join("\n");
+       return changes.map(change => `- [${change.type.toUpperCase()}] ${change.entry}`).join("\n");
      },
 
      formatVersionHeader(version, date) {
@@ -441,9 +420,7 @@ Available built-in strategies:
 
      formatVersionLink(version, previousVersion, template) {
        if (!template) return "";
-       return `Compare: ${template
-         .replace("${old}", previousVersion)
-         .replace("${new}", version)}`;
+       return `Compare: ${template.replace("${old}", previousVersion).replace("${new}", version)}`;
      },
    };
 

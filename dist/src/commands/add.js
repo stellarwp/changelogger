@@ -101,9 +101,7 @@ async function run(options) {
     const config = await (0, config_1.loadConfig)();
     // Get the default filename from the branch name
     const branchName = await (0, git_1.getBranchName)();
-    const defaultFilename = branchName
-        ? cleanupFilename(branchName.replace(/\//g, "-"))
-        : `change-${Date.now()}`;
+    const defaultFilename = branchName ? cleanupFilename(branchName.replace(/\//g, "-")) : `change-${Date.now()}`;
     // If not all options are provided, prompt for them
     const answers = await inquirer_1.default.prompt([
         {
@@ -149,8 +147,7 @@ async function run(options) {
         },
     ]);
     const changeFile = {
-        significance: (options.significance ||
-            answers.significance),
+        significance: (options.significance || answers.significance),
         type: (options.type || answers.type),
         entry: options.entry || answers.entry || "",
         timestamp: new Date().toISOString(),
@@ -158,9 +155,7 @@ async function run(options) {
     // Create changes directory if it doesn't exist
     await fs.mkdir(config.changesDir, { recursive: true });
     // Use provided filename, auto-generated filename, or the one from prompt
-    const baseFilename = options.autoFilename
-        ? defaultFilename
-        : options.filename || answers.filename || defaultFilename;
+    const baseFilename = options.autoFilename ? defaultFilename : options.filename || answers.filename || defaultFilename;
     const filename = `${cleanupFilename(baseFilename)}`;
     const filePath = path.join(config.changesDir, `${filename}.yaml`);
     // Check if file exists

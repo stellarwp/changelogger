@@ -5,10 +5,7 @@ export interface VersioningStrategy {
   /**
    * Get the next version based on the current version and significance
    */
-  getNextVersion: (
-    currentVersion: string,
-    significance: Significance,
-  ) => string;
+  getNextVersion: (currentVersion: string, significance: Significance) => string;
 
   /**
    * Validate if a version string is valid
@@ -25,9 +22,7 @@ export interface VersioningStrategy {
   compareVersions: (v1: string, v2: string) => number;
 }
 
-export async function loadVersioningStrategy(
-  versioning: string,
-): Promise<VersioningStrategy> {
+export async function loadVersioningStrategy(versioning: string): Promise<VersioningStrategy> {
   // If it's a file path, try to load it
   if (versioning.endsWith(".js") || versioning.endsWith(".ts")) {
     try {
@@ -35,14 +30,8 @@ export async function loadVersioningStrategy(
       const module = await import(absolutePath);
 
       // Validate that the module exports the required methods
-      if (
-        typeof module.getNextVersion !== "function" ||
-        typeof module.isValidVersion !== "function" ||
-        typeof module.compareVersions !== "function"
-      ) {
-        throw new Error(
-          `Versioning file ${versioning} does not export required methods`,
-        );
+      if (typeof module.getNextVersion !== "function" || typeof module.isValidVersion !== "function" || typeof module.compareVersions !== "function") {
+        throw new Error(`Versioning file ${versioning} does not export required methods`);
       }
 
       return module as VersioningStrategy;
@@ -71,13 +60,11 @@ export async function loadVersioningStrategy(
             return version;
         }
       },
-      isValidVersion: (version: string) =>
-        Boolean(semver.valid(semver.coerce(version))),
+      isValidVersion: (version: string) => Boolean(semver.valid(semver.coerce(version))),
       compareVersions: (v1: string, v2: string) => {
         const version1 = semver.valid(semver.coerce(v1));
         const version2 = semver.valid(semver.coerce(v2));
-        if (!version1 || !version2)
-          throw new Error("Invalid version comparison");
+        if (!version1 || !version2) throw new Error("Invalid version comparison");
         return semver.compare(version1, version2);
       },
     };

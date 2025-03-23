@@ -10,9 +10,7 @@
  * @returns {string} The formatted changes
  */
 export function formatChanges(version, changes) {
-  return changes
-    .map((change) => `* [${change.type.toUpperCase()}] ${change.entry}`)
-    .join("\n");
+  return changes.map(change => `* [${change.type.toUpperCase()}] ${change.entry}`).join("\n");
 }
 
 /**
@@ -36,9 +34,7 @@ export function formatVersionHeader(version, date) {
 export function formatVersionLink(version, previousVersion, template) {
   if (!template) return "";
 
-  const link = template
-    .replace("${old}", previousVersion)
-    .replace("${new}", version);
+  const link = template.replace("${old}", previousVersion).replace("${new}", version);
 
   return `Compare ${previousVersion}...${version}: ${link}`;
 }

@@ -28,10 +28,7 @@ async function ensureDirectoryExists(dirPath: string): Promise<void> {
  * @param filePath - Path to the file
  * @param defaultContent - Default content to write if file doesn't exist
  */
-async function ensureFileExists(
-  filePath: string,
-  defaultContent: string,
-): Promise<void> {
+async function ensureFileExists(filePath: string, defaultContent: string): Promise<void> {
   try {
     await fs.access(filePath);
   } catch {
@@ -103,10 +100,7 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     for (const file of files) {
       if (!file.endsWith(".yaml")) continue;
 
-      const content = await fs.readFile(
-        path.join(config.changesDir, file),
-        "utf8",
-      );
+      const content = await fs.readFile(path.join(config.changesDir, file), "utf8");
       const change = yaml.parse(content) as ChangeFile;
       changes.push(change);
     }
@@ -119,17 +113,13 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     if ((error as { code: string }).code === "ENOENT") {
       return "No changes directory found";
     }
-    throw new Error(
-      `Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+    throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 
   // Sort changes by significance
   changes.sort((a, b) => {
     const significanceOrder = { major: 0, minor: 1, patch: 2 };
-    return (
-      significanceOrder[a.significance] - significanceOrder[b.significance]
-    );
+    return significanceOrder[a.significance] - significanceOrder[b.significance];
   });
 
   // Determine version and date
@@ -172,30 +162,13 @@ export async function run(options: WriteCommandOptions): Promise<string> {
       await ensureFileExists(file.path, defaultContent);
     }
 
-    const content = await fs
-      .readFile(file.path, "utf8")
-      .catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
+    const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
     const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
 
     // Format the new changelog entry
-    const header = fileStrategy.formatVersionHeader(
-      version,
-      date,
-      previousVersion,
-    );
-    const changesText = fileStrategy.formatChanges(
-      version,
-      changes,
-      previousVersion,
-    );
-    const link =
-      previousVersion && fileStrategy.formatVersionLink
-        ? fileStrategy.formatVersionLink(
-            version,
-            previousVersion,
-            config.linkTemplate,
-          )
-        : "";
+    const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
+    const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
+    const link = previousVersion && fileStrategy.formatVersionLink ? fileStrategy.formatVersionLink(version, previousVersion, config.linkTemplate) : "";
 
     const newEntry = `${header}${link}${changesText}`.trim();
 
@@ -209,10 +182,7 @@ export async function run(options: WriteCommandOptions): Promise<string> {
       const versionStart = content.indexOf(previousVersion);
 
       // Find the next version header
-      const nextVersionMatch = fileStrategy.versionHeaderMatcher(
-        content.slice(versionStart + 1),
-        version,
-      );
+      const nextVersionMatch = fileStrategy.versionHeaderMatcher(content.slice(versionStart + 1), version);
 
       // Determine where the current section ends
       const sectionEnd = (() => {
@@ -288,11 +258,9 @@ async function getCurrentVersion(filePath: string): Promise<string> {
  * @param changes - Array of change files
  * @returns The highest significance level among the changes
  */
-function determineSignificance(
-  changes: ChangeFile[],
-): "major" | "minor" | "patch" {
-  if (changes.some((c) => c.significance === "major")) return "major";
-  if (changes.some((c) => c.significance === "minor")) return "minor";
+function determineSignificance(changes: ChangeFile[]): "major" | "minor" | "patch" {
+  if (changes.some(c => c.significance === "major")) return "major";
+  if (changes.some(c => c.significance === "minor")) return "minor";
   return "patch";
 }
 
@@ -303,10 +271,7 @@ function determineSignificance(
  * @param significance - The significance of the changes
  * @returns The next version string
  */
-function getNextVersion(
-  currentVersion: string,
-  significance: "major" | "minor" | "patch",
-): string {
+function getNextVersion(currentVersion: string, significance: "major" | "minor" | "patch"): string {
   const version = semver.valid(currentVersion) || "0.1.0";
   return semver.inc(version, significance) || "0.1.0";
 }

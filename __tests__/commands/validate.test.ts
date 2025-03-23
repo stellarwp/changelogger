@@ -63,9 +63,7 @@ describe("validate command", () => {
     mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
     mockedFs.readFile.mockResolvedValue(yaml.stringify(invalidChange));
 
-    await expect(run()).rejects.toThrow(
-      "Entry is required for non-patch changes",
-    );
+    await expect(run()).rejects.toThrow("Entry is required for non-patch changes");
   });
 
   it("should handle empty directory", async () => {
@@ -83,17 +81,13 @@ describe("validate command", () => {
   });
 
   it("should ignore non-yaml files", async () => {
-    mockedFs.readdir.mockResolvedValue([
-      "change1.txt",
-      ".change2.yaml",
-      "change3.yaml",
-    ] as any);
+    mockedFs.readdir.mockResolvedValue(["change1.txt", ".change2.yaml", "change3.yaml"] as any);
     mockedFs.readFile.mockResolvedValue(
       yaml.stringify({
         type: "added",
         significance: "patch",
         entry: "Valid change",
-      }),
+      })
     );
 
     const result = await run();

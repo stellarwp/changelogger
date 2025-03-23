@@ -32,7 +32,7 @@ export function isValidVersion(version) {
   const parts = version.split(".");
   if (parts.length !== 3) return false;
 
-  return parts.every((part) => {
+  return parts.every(part => {
     const num = Number(part);
     return Number.isInteger(num) && num >= 0;
   });

@@ -57,20 +57,14 @@ describe("stellarwp-readme", () => {
   describe("formatVersionHeader", () => {
     it("should format version header according to StellarWP style", () => {
       const expected = "\n= [1.0.0] 2024-03-04 =\n\n";
-      expect(stellarwpReadme.formatVersionHeader("1.0.0", "2024-03-04")).toBe(
-        expected,
-      );
+      expect(stellarwpReadme.formatVersionHeader("1.0.0", "2024-03-04")).toBe(expected);
     });
   });
 
   describe("formatVersionLink", () => {
     it("should return empty string as StellarWP format does not use version links", () => {
       if (stellarwpReadme.formatVersionLink) {
-        const result = stellarwpReadme.formatVersionLink(
-          "1.0.0",
-          "0.9.0",
-          "https://example.com",
-        );
+        const result = stellarwpReadme.formatVersionLink("1.0.0", "0.9.0", "https://example.com");
         expect(result).toBe("");
       }
     });
@@ -109,4 +103,4 @@ describe("stellarwp-readme", () => {
       expect(result).toBe(0);
     });
   });
-}); 
+});

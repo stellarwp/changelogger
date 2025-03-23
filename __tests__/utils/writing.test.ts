@@ -3,14 +3,8 @@ import * as path from "path";
 import { WritingStrategy } from "../../src/utils/writing";
 
 // Define paths before jest.mock calls
-const CUSTOM_STRATEGY_PATH = path.join(
-  __dirname,
-  "../../examples/custom-writing.js",
-);
-const INVALID_STRATEGY_PATH = path.join(
-  __dirname,
-  "../../examples/invalid-strategy.js",
-);
+const CUSTOM_STRATEGY_PATH = path.join(__dirname, "../../examples/custom-writing.js");
+const INVALID_STRATEGY_PATH = path.join(__dirname, "../../examples/invalid-strategy.js");
 
 // Mock the keepachangelog strategy
 jest.mock("../../src/utils/writing/keepachangelog", () => ({
@@ -34,7 +28,7 @@ jest.doMock(
     versionHeaderMatcher: jest.fn(),
     changelogHeaderMatcher: jest.fn(),
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 // Mock the invalid strategy
@@ -44,7 +38,7 @@ jest.doMock(
     formatChanges: jest.fn(),
     // Missing required methods
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 describe("Writing Strategy Loader", () => {
@@ -71,9 +65,7 @@ describe("Writing Strategy Loader", () => {
     });
 
     it("should throw error for unknown strategy", async () => {
-      await expect(loadWritingStrategy("unknown")).rejects.toThrow(
-        "Unknown writing strategy: unknown",
-      );
+      await expect(loadWritingStrategy("unknown")).rejects.toThrow("Unknown writing strategy: unknown");
     });
 
     it("should load custom strategy from file", async () => {
@@ -85,15 +77,11 @@ describe("Writing Strategy Loader", () => {
     });
 
     it("should throw error if custom strategy is missing required methods", async () => {
-      await expect(loadWritingStrategy(INVALID_STRATEGY_PATH)).rejects.toThrow(
-        /Writing strategy file .* does not export required methods/,
-      );
+      await expect(loadWritingStrategy(INVALID_STRATEGY_PATH)).rejects.toThrow(/Writing strategy file .* does not export required methods/);
     });
 
     it("should throw error if custom strategy file does not exist", async () => {
-      await expect(
-        loadWritingStrategy("./non-existent-strategy.js"),
-      ).rejects.toThrow(/Failed to load writing strategy file/);
+      await expect(loadWritingStrategy("./non-existent-strategy.js")).rejects.toThrow(/Failed to load writing strategy file/);
     });
   });
 });

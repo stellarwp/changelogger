@@ -2,12 +2,7 @@ import inquirer from "inquirer";
 import * as fs from "fs/promises";
 import * as path from "path";
 import * as yaml from "yaml";
-import {
-  AddCommandOptions,
-  ChangeFile,
-  ChangeType,
-  Significance,
-} from "../types";
+import { AddCommandOptions, ChangeFile, ChangeType, Significance } from "../types";
 import { loadConfig } from "../utils/config";
 import { getBranchName } from "../utils/git";
 
@@ -71,9 +66,7 @@ export async function run(options: AddCommandOptions): Promise<string> {
 
   // Get the default filename from the branch name
   const branchName = await getBranchName();
-  const defaultFilename = branchName
-    ? cleanupFilename(branchName.replace(/\//g, "-"))
-    : `change-${Date.now()}`;
+  const defaultFilename = branchName ? cleanupFilename(branchName.replace(/\//g, "-")) : `change-${Date.now()}`;
 
   // If not all options are provided, prompt for them
   const answers = await inquirer.prompt<{
@@ -126,8 +119,7 @@ export async function run(options: AddCommandOptions): Promise<string> {
   ]);
 
   const changeFile: ChangeFile = {
-    significance: (options.significance ||
-      answers.significance) as Significance,
+    significance: (options.significance || answers.significance) as Significance,
     type: (options.type || answers.type) as ChangeType,
     entry: options.entry || answers.entry || "",
     timestamp: new Date().toISOString(),
@@ -137,9 +129,7 @@ export async function run(options: AddCommandOptions): Promise<string> {
   await fs.mkdir(config.changesDir, { recursive: true });
 
   // Use provided filename, auto-generated filename, or the one from prompt
-  const baseFilename = options.autoFilename
-    ? defaultFilename
-    : options.filename || answers.filename || defaultFilename;
+  const baseFilename = options.autoFilename ? defaultFilename : options.filename || answers.filename || defaultFilename;
   const filename = `${cleanupFilename(baseFilename)}`;
   const filePath = path.join(config.changesDir, `${filename}.yaml`);
 

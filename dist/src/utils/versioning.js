@@ -42,9 +42,7 @@ async function loadVersioningStrategy(versioning) {
             const absolutePath = path.resolve(process.cwd(), versioning);
             const module = await Promise.resolve(`${absolutePath}`).then(s => __importStar(require(s)));
             // Validate that the module exports the required methods
-            if (typeof module.getNextVersion !== "function" ||
-                typeof module.isValidVersion !== "function" ||
-                typeof module.compareVersions !== "function") {
+            if (typeof module.getNextVersion !== "function" || typeof module.isValidVersion !== "function" || typeof module.compareVersions !== "function") {
                 throw new Error(`Versioning file ${versioning} does not export required methods`);
             }
             return module;

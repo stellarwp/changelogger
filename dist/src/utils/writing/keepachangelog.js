@@ -13,7 +13,7 @@ const keepachangelog = {
         // Format each type's changes
         const sections = Object.entries(groupedChanges).map(([type, entries]) => {
             const title = type.charAt(0).toUpperCase() + type.slice(1);
-            const items = entries.map((entry) => `- ${entry}`).join("\n");
+            const items = entries.map(entry => `- ${entry}`).join("\n");
             return `### ${title}\n${items}`;
         });
         return sections.join("\n\n");
@@ -24,9 +24,7 @@ const keepachangelog = {
     formatVersionLink(version, previousVersion, template) {
         if (!template)
             return "";
-        const link = template
-            .replace("${old}", previousVersion)
-            .replace("${new}", version);
+        const link = template.replace("${old}", previousVersion).replace("${new}", version);
         return `[${version}]: ${link}`;
     },
     versionHeaderMatcher(content, version) {
@@ -41,9 +39,7 @@ const keepachangelog = {
         if (!firstVersionMatch) {
             // If no version header found, find the position after the main header
             const mainHeaderMatch = content.match(/^# Changelog$/m);
-            return mainHeaderMatch
-                ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1
-                : 0;
+            return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
     },

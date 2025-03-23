@@ -47,9 +47,7 @@ export async function loadConfig(): Promise<Config> {
   }
 }
 
-async function findPackageJson(
-  startDir: string = process.cwd(),
-): Promise<string | null> {
+async function findPackageJson(startDir: string = process.cwd()): Promise<string | null> {
   const packageJsonPath = path.join(startDir, "package.json");
 
   try {

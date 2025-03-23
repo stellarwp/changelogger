@@ -44,9 +44,7 @@ export async function run(): Promise<string> {
 
         // Validate significance
         if (!["patch", "minor", "major"].includes(changeFile.significance)) {
-          errors.push(
-            `${file}: Invalid significance "${changeFile.significance}"`,
-          );
+          errors.push(`${file}: Invalid significance "${changeFile.significance}"`);
         }
 
         // Validate type

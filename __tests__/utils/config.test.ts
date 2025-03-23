@@ -41,23 +41,9 @@ describe("config", () => {
     expect(defaultConfig.files[0].strategy).toBe("keepachangelog");
 
     // Validate required type keys exist
-    const requiredTypes = [
-      "added",
-      "changed",
-      "deprecated",
-      "removed",
-      "fixed",
-      "security",
-      "feature",
-      "tweak",
-      "fix",
-      "compatibility",
-      "language",
-    ];
-    requiredTypes.forEach((type) => {
-      expect(
-        defaultConfig.types[type as keyof typeof defaultConfig.types],
-      ).toBeDefined();
+    const requiredTypes = ["added", "changed", "deprecated", "removed", "fixed", "security", "feature", "tweak", "fix", "compatibility", "language"];
+    requiredTypes.forEach(type => {
+      expect(defaultConfig.types[type as keyof typeof defaultConfig.types]).toBeDefined();
     });
   });
 });

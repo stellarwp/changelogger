@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function parseVersion(version) {
-    const [major = 0, minor = 0, patch = 0, hotfix = 0] = version
-        .split(".")
-        .map(Number);
+    const [major = 0, minor = 0, patch = 0, hotfix = 0] = version.split(".").map(Number);
     return { major, minor, patch, hotfix };
 }
 function formatVersion(version) {
@@ -51,7 +49,7 @@ const stellarStrategy = {
         // Accept both 3-part and 4-part versions
         if (parts.length < 3 || parts.length > 4)
             return false;
-        return parts.every((part) => {
+        return parts.every(part => {
             const num = Number(part);
             return Number.isInteger(num) && num >= 0;
         });
@@ -60,14 +58,9 @@ const stellarStrategy = {
         const version1 = parseVersion(v1);
         const version2 = parseVersion(v2);
         // Compare each part in order of significance
-        const comparisons = [
-            version1.major - version2.major,
-            version1.minor - version2.minor,
-            version1.patch - version2.patch,
-            version1.hotfix - version2.hotfix,
-        ];
+        const comparisons = [version1.major - version2.major, version1.minor - version2.minor, version1.patch - version2.patch, version1.hotfix - version2.hotfix];
         // Return the first non-zero comparison
-        return comparisons.find((c) => c !== 0) || 0;
+        return comparisons.find(c => c !== 0) || 0;
     },
 };
 exports.default = stellarStrategy;
