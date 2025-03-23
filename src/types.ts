@@ -25,6 +25,7 @@ export interface AddCommandOptions {
   type?: string;
   entry?: string;
   filename?: string;
+  autoFilename?: boolean;
 }
 
 export interface WriteCommandOptions {

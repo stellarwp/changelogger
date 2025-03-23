@@ -45,6 +45,9 @@ npm run changelog add
 
 # Non-interactive mode - provide all options directly
 npm run changelog add -- --significance minor --type feature --entry "Added new feature X"
+
+# Non-interactive mode with auto-generated filename
+npm run changelog add -- --significance minor --type feature --entry "Added new feature X" --auto-filename
 ```
 
 Options:
@@ -53,6 +56,7 @@ Options:
 - `--type`: The type of change (e.g., feature, fix, enhancement)
 - `--entry`: The changelog entry text
 - `--filename`: The desired filename for the changelog entry (optional)
+- `--auto-filename`: Automatically generate the filename based on branch name or timestamp (optional)
 
 The command will:
 
@@ -60,6 +64,11 @@ The command will:
 - Generate a filename based on the branch name or timestamp
 - Handle duplicate filenames by appending a timestamp
 - Validate all inputs before creating the file
+
+When using `--auto-filename`:
+- The filename will be automatically generated from the current git branch name (if available)
+- If no branch name is available, a timestamp-based filename will be used
+- The filename prompt will be skipped
 
 #### `validate` Command
 
@@ -79,7 +88,7 @@ This command performs the following checks:
 
 #### `write` Command
 
-Writes changelog entries to the main changelog file.
+Writes changelog entries to the configured files.
 
 ```bash
 # Automatic versioning
@@ -100,28 +109,27 @@ Options:
 The command will:
 
 - Read all YAML change files from the changes directory
-- Determine the next version number based on change significance
-- Write the changes to the main changelog file using the configured writing strategy
+- Determine the next version number based on change significance (if not specified)
+- Write the changes to each configured file using its specific writing strategy
 - Clean up processed change files
 
-You can also specify a version directly:
+When using `--dry-run`:
+- Shows what would be written to each configured file
+- Displays the formatted changelog entries
+- No changes are actually made to any files
 
-```bash
-npx changelogger write -- --overwrite-version 1.0.0
-```
+When using `--overwrite-version`:
+- Uses the specified version instead of auto-determining
+- If the version exists in the changelog, new changes are appended to that version
+- If the version doesn't exist, a new version entry is created
 
-When you specify a version:
+The command supports multiple output files with different writing strategies:
+- Keep a Changelog format
+- StellarWP changelog format
+- StellarWP readme format
+- Custom writing strategies
 
-- If the version doesn't exist in the changelog, it will create a new version entry
-- If the version already exists, it will append the new changes to that version's entry
-
-This is useful when you need to:
-
-- Add more changes to an existing version
-- Fix typos or add missing information to a version
-- Keep all related changes together under the same version
-
-The command will use your configured writing strategy to format the changes appropriately.
+Each file is processed according to its configured strategy and the changes are written in the appropriate format.
 
 ### As a GitHub Action
 
@@ -172,7 +180,6 @@ Configure the changelogger through your package.json:
       "fixed": "Fixed",
       "security": "Security"
     },
-    "formatter": "keepachangelog",
     "versioning": "semver",
     "files": [
       {
