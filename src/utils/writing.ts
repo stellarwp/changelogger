@@ -43,18 +43,6 @@ export interface WritingStrategy {
    * Returns the index where new entries should be inserted
    */
   changelogHeaderMatcher: (content: string) => number;
-
-  /**
-   * Handle additional files that need to be updated with the changelog
-   * Returns an array of promises for each file operation
-   */
-  handleAdditionalFiles?: (
-    version: string,
-    date: string,
-    changes: ChangeFile[],
-    config: Config,
-    options?: WriteCommandOptions,
-  ) => Promise<void>[];
 }
 
 export async function loadWritingStrategy(

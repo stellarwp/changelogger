@@ -212,22 +212,9 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     const insertIndex = strategy.changelogHeaderMatcher(content);
 
     // Insert the new entry
-    const newContent =
-      content.slice(0, insertIndex) + newEntry + content.slice(insertIndex);
+    const newContent = content.slice(0, insertIndex) + newEntry + content.slice(insertIndex);
 
     await fs.writeFile(file.path, newContent, "utf8");
-
-    // Handle any additional files
-    if (strategy.handleAdditionalFiles) {
-      const additionalPromises = strategy.handleAdditionalFiles(
-        version,
-        date,
-        changes,
-        config,
-        options,
-      );
-      await Promise.all(additionalPromises);
-    }
   }
 
   // Clean up processed files

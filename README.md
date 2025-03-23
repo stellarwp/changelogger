@@ -417,22 +417,6 @@ Available built-in strategies:
        previousVersion: string,
        template?: string,
      ): string;
-
-     /**
-      * Optional: Handle additional files that need to be updated
-      * with the changelog (e.g., readme.txt, package.json)
-      */
-     handleAdditionalFiles?(
-       version: string,
-       date: string,
-       changes: Array<{ type: string; entry: string }>,
-       config: {
-         changelogFile: string;
-         changesDir: string;
-         types: Record<string, string>;
-         [key: string]: any;
-       },
-     ): Promise<void>[];
    }
    ```
 
@@ -460,28 +444,6 @@ Available built-in strategies:
        return `Compare: ${template
          .replace("${old}", previousVersion)
          .replace("${new}", version)}`;
-     },
-
-     handleAdditionalFiles(version, date, changes, config) {
-       const promises: Promise<void>[] = [];
-
-       // Example: Update package.json version
-       promises.push(
-         (async () => {
-           try {
-             const pkgPath = path.join(process.cwd(), "package.json");
-             const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
-             pkg.version = version;
-             await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2));
-           } catch (error) {
-             if ((error as { code: string }).code !== "ENOENT") {
-               throw error;
-             }
-           }
-         })(),
-       );
-
-       return promises;
      },
    };
 
