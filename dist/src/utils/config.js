@@ -33,10 +33,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.defaultConfig = void 0;
+exports.getTypeLabel = getTypeLabel;
 exports.loadConfig = loadConfig;
 const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
-const DEFAULT_CONFIG = {
+let cachedConfig = null;
+exports.defaultConfig = {
     changelogFile: "changelog.md",
     changesDir: "changelog",
     ordering: ["type", "content"],
@@ -62,33 +64,54 @@ const DEFAULT_CONFIG = {
         },
     ],
 };
-async function loadConfig() {
+/**
+ * Gets the formatted label for a given changelog type
+ * @param type - The type to get the label for
+ * @param config - Optional config to use for type labels. If not provided, uses cached config or default config.
+ * @returns The formatted label for the type
+ */
+function getTypeLabel(type, config) {
+    const activeConfig = config || cachedConfig || exports.defaultConfig;
+    return activeConfig.types[type] || type;
+}
+/**
+ * Loads the changelogger configuration from a JSON file
+ * @param reload - Whether to force reload the config from file
+ * @param filePath - Optional path to the JSON file to load
+ * @returns The merged configuration
+ */
+async function loadConfig(reload = false, filePath) {
+    // Return cached config if available and not reloading
+    if (cachedConfig && !reload) {
+        return cachedConfig;
+    }
     try {
-        const packageJsonPath = await findPackageJson();
-        if (!packageJsonPath) {
-            return DEFAULT_CONFIG;
+        // If no file path provided or file doesn't exist, return default config
+        if (!filePath) {
+            cachedConfig = exports.defaultConfig;
+            return exports.defaultConfig;
         }
-        const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf8"));
-        return {
-            ...DEFAULT_CONFIG,
-            ...(packageJson.changelogger || {}),
+        // Read and parse JSON file
+        const fileContents = await fs.readFile(filePath, "utf-8");
+        const jsonData = JSON.parse(fileContents);
+        const userConfig = jsonData.changelogger || {};
+        // Deep merge user config with default config
+        const mergedConfig = {
+            ...exports.defaultConfig,
+            ...userConfig,
+            types: {
+                ...exports.defaultConfig.types,
+                ...userConfig.types,
+            },
+            files: userConfig.files || exports.defaultConfig.files,
         };
+        // Cache the merged config
+        cachedConfig = mergedConfig;
+        return mergedConfig;
     }
     catch (error) {
-        return DEFAULT_CONFIG;
-    }
-}
-async function findPackageJson(startDir = process.cwd()) {
-    const packageJsonPath = path.join(startDir, "package.json");
-    try {
-        await fs.access(packageJsonPath);
-        return packageJsonPath;
-    }
-    catch {
-        const parentDir = path.dirname(startDir);
-        if (parentDir === startDir) {
-            return null;
-        }
-        return findPackageJson(parentDir);
+        // If there's an error reading or parsing the file, return default config
+        cachedConfig = exports.defaultConfig;
+        return exports.defaultConfig;
     }
 }

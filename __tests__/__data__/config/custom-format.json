@@ -1,0 +1,21 @@
+{
+  "name": "custom-format-config",
+  "version": "1.0.0",
+  "changelogger": {
+    "changelogFile": "format-changelog.md",
+    "changesDir": "format-changes",
+    "ordering": ["timestamp", "type", "content"],
+    "formatter": "custom-format",
+    "versioning": "custom-version",
+    "files": [
+      {
+        "path": "format-changelog.md",
+        "strategy": "custom-strategy"
+      },
+      {
+        "path": "format-changelog.json",
+        "strategy": "json"
+      }
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const config_1 = require("../config");
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -12,7 +13,7 @@ const keepachangelog = {
         }, {});
         // Format each type's changes
         const sections = Object.entries(groupedChanges).map(([type, entries]) => {
-            const title = type.charAt(0).toUpperCase() + type.slice(1);
+            const title = (0, config_1.getTypeLabel)(type);
             const items = entries.map(entry => `- ${entry}`).join("\n");
             return `### ${title}\n${items}`;
         });
@@ -22,14 +23,15 @@ const keepachangelog = {
         return `## [${version}] - ${date}`;
     },
     formatVersionLink(version, previousVersion, template) {
-        if (!template)
+        if (!template) {
             return "";
+        }
         const link = template.replace("${old}", previousVersion).replace("${new}", version);
         return `[${version}]: ${link}`;
     },
     versionHeaderMatcher(content, version) {
         // Match Keep a Changelog version headers
-        const versionRegex = new RegExp(`^## \\[${version}\\] - ([^\n]+)$`, "m");
+        const versionRegex = new RegExp(`^(## \\[${version}\\] - (?:[^\n]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1] : undefined;
     },

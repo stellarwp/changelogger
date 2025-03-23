@@ -1,4 +1,5 @@
 import { ChangeFile } from "../../types";
+import { getTypeLabel } from "../config";
 import { WritingStrategy } from "../writing";
 
 const keepachangelog: WritingStrategy = {
@@ -17,7 +18,7 @@ const keepachangelog: WritingStrategy = {
 
     // Format each type's changes
     const sections = Object.entries(groupedChanges).map(([type, entries]) => {
-      const title = type.charAt(0).toUpperCase() + type.slice(1);
+      const title = getTypeLabel(type);
       const items = entries.map(entry => `- ${entry}`).join("\n");
       return `### ${title}\n${items}`;
     });
@@ -30,7 +31,9 @@ const keepachangelog: WritingStrategy = {
   },
 
   formatVersionLink(version: string, previousVersion: string, template?: string): string {
-    if (!template) return "";
+    if (!template) {
+      return "";
+    }
 
     const link = template.replace("${old}", previousVersion).replace("${new}", version);
 
@@ -39,7 +42,7 @@ const keepachangelog: WritingStrategy = {
 
   versionHeaderMatcher(content: string, version: string): string | undefined {
     // Match Keep a Changelog version headers
-    const versionRegex = new RegExp(`^## \\[${version}\\] - ([^\n]+)$`, "m");
+    const versionRegex = new RegExp(`^(## \\[${version}\\] - (?:[^\n]+))$`, "m");
     const match = content.match(versionRegex);
     return match ? match[1] : undefined;
   },

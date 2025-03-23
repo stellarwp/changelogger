@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const config_1 = require("../config");
 const stellarwpChangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -14,7 +15,7 @@ const stellarwpChangelog = {
         const sections = Object.entries(groupedChanges)
             .map(([type, entries]) => {
             // Capitalize the first letter of the type
-            const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+            const formattedType = (0, config_1.getTypeLabel)(type);
             return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
         })
             .filter(section => section.length > 0);

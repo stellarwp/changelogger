@@ -1,0 +1,16 @@
+{
+  "name": "custom-types-config",
+  "version": "1.0.0",
+  "changelogger": {
+    "changelogFile": "types-changelog.md",
+    "changesDir": "types-changes",
+    "types": {
+      "added": "New Feature",
+      "changed": "Enhancement",
+      "deprecated": "Soon Removing",
+      "removed": "Deleted",
+      "fixed": "Bug Fix",
+      "security": "Security Patch"
+    }
+  }
+}
