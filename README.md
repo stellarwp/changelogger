@@ -44,7 +44,7 @@ Adds a new changelog entry to the project. Can be used in interactive or non-int
 npm run changelog add
 
 # Non-interactive mode - provide all options directly
-npm run changelog add --significance minor --type feature --entry "Added new feature X"
+npm run changelog add -- --significance minor --type feature --entry "Added new feature X"
 ```
 
 Options:
@@ -86,10 +86,10 @@ Writes changelog entries to the main changelog file.
 npm run changelog write
 
 # Manual versioning
-npm run changelog write --overwrite-version 1.2.3
+npm run changelog write -- --overwrite-version 1.2.3
 
 # Dry run - show what would be written without making changes
-npm run changelog write --dry-run
+npm run changelog write -- --dry-run
 ```
 
 Options:
@@ -107,7 +107,7 @@ The command will:
 You can also specify a version directly:
 
 ```bash
-npx changelogger write --overwrite-version 1.0.0
+npx changelogger write -- --overwrite-version 1.0.0
 ```
 
 When you specify a version:
@@ -173,7 +173,17 @@ Configure the changelogger through your package.json:
       "security": "Security"
     },
     "formatter": "keepachangelog",
-    "versioning": "semver"
+    "versioning": "semver",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "strategy": "keepachangelog"
+      },
+      {
+        "path": "readme.txt",
+        "strategy": "stellarwp-readme"
+      }
+    ]
   }
 }
 ```
@@ -235,17 +245,28 @@ The changelogger supports multiple versioning strategies:
 
 ### Writing Strategies
 
-The changelogger supports multiple writing strategies for formatting the changelog:
+The changelogger supports multiple writing strategies that can be configured per file in your package.json:
 
-1. **keepachangelog** (default): Follows the [Keep a Changelog](https://keepachangelog.com/) format
+```json
+{
+  "changelogger": {
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "strategy": "keepachangelog"
+      },
+      {
+        "path": "readme.txt",
+        "strategy": "stellarwp-readme"
+      }
+    ]
+  }
+}
+```
 
-   ```json
-   {
-     "changelogger": {
-       "formatter": "keepachangelog"
-     }
-   }
-   ```
+Available built-in strategies:
+
+1. **keepachangelog**: Follows the [Keep a Changelog](https://keepachangelog.com/) format
 
    Example output:
 
@@ -263,17 +284,9 @@ The changelogger supports multiple writing strategies for formatting the changel
    [1.2.3]: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
 
-2. **stellarwp**: A WordPress-style changelog format that also updates readme.txt
+2. **stellarwp-changelog**: A WordPress-style changelog format
 
-   ```json
-   {
-     "changelogger": {
-       "formatter": "stellarwp"
-     }
-   }
-   ```
-
-   Example output in changelog.md:
+   Example output:
 
    ```markdown
    ### [1.2.3] 2024-03-22
@@ -282,7 +295,9 @@ The changelogger supports multiple writing strategies for formatting the changel
    - Fix - Fixed a bug
    ```
 
-   And automatically updates readme.txt if present:
+3. **stellarwp-readme**: Updates readme.txt in WordPress plugin format
+
+   Example output:
 
    ```text
    == Changelog ==
@@ -293,12 +308,17 @@ The changelogger supports multiple writing strategies for formatting the changel
    * Fix - Fixed a bug
    ```
 
-3. **Custom Writing**: You can provide a path to a JavaScript file that implements the writing strategy:
+4. **Custom Writing**: You can provide a path to a JavaScript file that implements the writing strategy:
 
    ```json
    {
      "changelogger": {
-       "formatter": "./path/to/custom-writing.js"
+       "files": [
+         {
+           "path": "CHANGELOG.md",
+           "strategy": "./path/to/custom-writing.js"
+         }
+       ]
      }
    }
    ```
