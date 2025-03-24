@@ -60427,6 +60427,7 @@ async function run(options = {}) {
         try {
             const changes = (0, child_process_1.execSync)(`git diff --name-only ${options.from} ${options.to}`).toString().split("\n");
             const changelogFiles = changes.filter(file => file.startsWith(config.changesDir) && file.endsWith(".yaml"));
+            console.log(changes);
             if (changelogFiles.length === 0) {
                 throw new Error(`No changelog entries found between ${options.from} and ${options.to}`);
             }
