@@ -47,5 +47,5 @@ outputs:
   result:
     description: The result of the command execution
 runs:
-  using: "node18"
+  using: "node20"
   main: "dist/src/github.js"
