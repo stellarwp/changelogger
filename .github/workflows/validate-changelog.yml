@@ -1,0 +1,19 @@
+name: Validate Changelog
+
+on:
+  pull_request:
+
+jobs:
+  validate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for git diff operations
+
+      - name: Validate changelog changes
+        uses: stellarwp/changelogger@v1
+        with:
+          command: validate
+          validate-from: ${{ github.event.pull_request.base.sha }}
+          validate-to: ${{ github.event.pull_request.head.sha }} 
