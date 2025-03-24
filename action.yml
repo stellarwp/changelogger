@@ -48,4 +48,4 @@ outputs:
     description: The result of the command execution
 runs:
   using: "node20"
-  main: "dist/src/github.js"
+  main: "dist/gha/index.js"
