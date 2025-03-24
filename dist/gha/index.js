@@ -60378,6 +60378,20 @@ const config_1 = __nccwpck_require__(67799);
 const yaml = __importStar(__nccwpck_require__(38815));
 const child_process_1 = __nccwpck_require__(35317);
 /**
+ * Checks if the current directory is a Git repository.
+ *
+ * @returns boolean indicating if we're in a Git repository
+ */
+function isGitRepository() {
+    try {
+        (0, child_process_1.execSync)("git rev-parse --is-inside-work-tree", { stdio: "ignore" });
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+/**
  * Validates changelog entries.
  *
  * This command can be used in two ways:
@@ -60424,6 +60438,9 @@ async function run(options = {}) {
     }
     // If from and to are specified, validate git changes
     else if (options.from && options.to) {
+        if (!isGitRepository()) {
+            throw new Error("This command must be run from within a Git repository");
+        }
         try {
             const changes = (0, child_process_1.execSync)(`git diff --name-only ${options.from} ${options.to}`).toString().split("\n");
             const changelogFiles = changes.filter(file => file.startsWith(config.changesDir) && file.endsWith(".yaml"));

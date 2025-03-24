@@ -12,6 +12,20 @@ interface ValidateOptions {
 }
 
 /**
+ * Checks if the current directory is a Git repository.
+ *
+ * @returns boolean indicating if we're in a Git repository
+ */
+function isGitRepository(): boolean {
+  try {
+    execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Validates changelog entries.
  *
  * This command can be used in two ways:
@@ -58,6 +72,9 @@ export async function run(options: ValidateOptions = {}): Promise<string> {
   }
   // If from and to are specified, validate git changes
   else if (options.from && options.to) {
+    if (!isGitRepository()) {
+      throw new Error("This command must be run from within a Git repository");
+    }
     try {
       const changes = execSync(`git diff --name-only ${options.from} ${options.to}`).toString().split("\n");
       const changelogFiles = changes.filter(file => file.startsWith(config.changesDir) && file.endsWith(".yaml"));
