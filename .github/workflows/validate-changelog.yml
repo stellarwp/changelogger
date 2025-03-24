@@ -9,11 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for git diff operations
+          fetch-depth: 0 # Required for git diff operations
 
       - name: Validate changelog changes
         uses: stellarwp/changelogger@main
         with:
           command: validate
           validate-from: ${{ github.event.pull_request.base.sha }}
-          validate-to: ${{ github.event.pull_request.head.sha }} 
+          validate-to: ${{ github.event.pull_request.head.sha }}
