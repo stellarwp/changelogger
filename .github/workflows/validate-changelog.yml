@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 0  # Required for git diff operations
 
       - name: Validate changelog changes
-        uses: stellarwp/changelogger@v1
+        uses: stellarwp/changelogger@main
         with:
           command: validate
           validate-from: ${{ github.event.pull_request.base.sha }}
