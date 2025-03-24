@@ -229,67 +229,125 @@ const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const config_1 = __nccwpck_require__(55042);
 const yaml = __importStar(__nccwpck_require__(38815));
+const child_process_1 = __nccwpck_require__(35317);
 /**
- * Validates all changelog entries in the changes directory.
+ * Validates changelog entries.
  *
- * This command is part of the CLI tool and performs validation checks on all YAML files
- * in the changes directory. It ensures that:
- * 1. All files are valid YAML
- * 2. Each change file has the required fields
- * 3. The significance value is valid (patch, minor, or major)
- * 4. The type value is valid according to the configuration
- * 5. Non-patch changes have an entry description
+ * This command can be used in two ways:
+ * 1. Validate all changelog entries in the changes directory
+ * 2. Validate a specific changelog file
+ * 3. Validate that at least one changelog was added between two git commits
  *
  * @example
  * ```bash
  * # Validate all change files
  * changelogger validate
+ *
+ * # Validate a specific file
+ * changelogger validate --file changelog/feature-123.yaml
+ *
+ * # Validate changes between commits
+ * changelogger validate --from main --to feature-branch
  * ```
+ *
+ * @param options - Command options for validation
+ * @param options.file - Optional specific file to validate
+ * @param options.from - Optional git commit/tag/branch to compare from
+ * @param options.to - Optional git commit/tag/branch to compare to
  *
  * @returns A promise that resolves to a string message indicating the validation result
  * @throws {Error} If validation fails, with details about the validation errors
  */
-async function run() {
+async function run(options = {}) {
     const config = await (0, config_1.loadConfig)();
     const errors = [];
-    try {
-        const files = await fs.readdir(config.changesDir);
-        for (const file of files) {
-            if (file.startsWith(".") || !file.endsWith(".yaml")) {
-                continue;
+    // If file is specified, validate only that file
+    if (options.file) {
+        try {
+            const content = await fs.readFile(options.file, "utf8");
+            const changeFile = yaml.parse(content);
+            validateChangeFile(changeFile, options.file, config, errors);
+        }
+        catch (error) {
+            if (error.code === "ENOENT") {
+                throw new Error(`File not found: ${options.file}`);
             }
-            const filePath = path.join(config.changesDir, file);
-            const content = await fs.readFile(filePath, "utf8");
-            try {
-                const changeFile = yaml.parse(content);
-                // Validate significance
-                if (!["patch", "minor", "major"].includes(changeFile.significance)) {
-                    errors.push(`${file}: Invalid significance "${changeFile.significance}"`);
-                }
-                // Validate type
-                if (!Object.keys(config.types).includes(changeFile.type)) {
-                    errors.push(`${file}: Invalid type "${changeFile.type}"`);
-                }
-                // Validate entry
-                if (!changeFile.entry && changeFile.significance !== "patch") {
-                    errors.push(`${file}: Entry is required for non-patch changes`);
-                }
-            }
-            catch (error) {
-                errors.push(`${file}: Invalid YAML format`);
-            }
+            errors.push(`${options.file}: Invalid YAML format`);
         }
     }
-    catch (error) {
-        if (error.code === "ENOENT") {
-            return "No changes directory found";
+    // If from and to are specified, validate git changes
+    else if (options.from && options.to) {
+        try {
+            const changes = (0, child_process_1.execSync)(`git diff --name-only ${options.from} ${options.to}`).toString().split("\n");
+            const changelogFiles = changes.filter(file => file.startsWith(config.changesDir) && file.endsWith(".yaml"));
+            if (changelogFiles.length === 0) {
+                throw new Error(`No changelog entries found between ${options.from} and ${options.to}`);
+            }
+            for (const file of changelogFiles) {
+                const content = await fs.readFile(file, "utf8");
+                const changeFile = yaml.parse(content);
+                validateChangeFile(changeFile, file, config, errors);
+            }
         }
-        throw error;
+        catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Git validation failed: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+    // Validate all files in the changes directory
+    else {
+        try {
+            const files = await fs.readdir(config.changesDir);
+            for (const file of files) {
+                if (file.startsWith(".") || !file.endsWith(".yaml")) {
+                    continue;
+                }
+                const filePath = path.join(config.changesDir, file);
+                const content = await fs.readFile(filePath, "utf8");
+                try {
+                    const changeFile = yaml.parse(content);
+                    validateChangeFile(changeFile, file, config, errors);
+                }
+                catch (error) {
+                    errors.push(`${file}: Invalid YAML format`);
+                }
+            }
+        }
+        catch (error) {
+            if (error.code === "ENOENT") {
+                return "No changes directory found";
+            }
+            throw error;
+        }
     }
     if (errors.length > 0) {
         throw new Error(`Validation failed:\n${errors.join("\n")}`);
     }
     return "All change files are valid";
+}
+/**
+ * Validates a single change file.
+ *
+ * @param changeFile - The change file to validate
+ * @param filename - The name of the file being validated
+ * @param config - The configuration object
+ * @param errors - Array to collect validation errors
+ */
+function validateChangeFile(changeFile, filename, config, errors) {
+    // Validate significance
+    if (!["patch", "minor", "major"].includes(changeFile.significance)) {
+        errors.push(`${filename}: Invalid significance "${changeFile.significance}"`);
+    }
+    // Validate type
+    if (!Object.keys(config.types).includes(changeFile.type)) {
+        errors.push(`${filename}: Invalid type "${changeFile.type}"`);
+    }
+    // Validate entry
+    if (!changeFile.entry && changeFile.significance !== "patch") {
+        errors.push(`${filename}: Entry is required for non-patch changes`);
+    }
 }
 
 

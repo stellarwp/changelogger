@@ -52,6 +52,9 @@ async function run() {
         const version = core.getInput("version");
         const date = core.getInput("date");
         const filename = core.getInput("filename");
+        const validateFile = core.getInput("validate-file");
+        const validateFrom = core.getInput("validate-from");
+        const validateTo = core.getInput("validate-to");
         // Load configuration
         await (0, config_1.loadConfig)();
         // Execute the appropriate command based on input
@@ -68,7 +71,10 @@ async function run() {
                 });
                 break;
             case "validate":
-                await (0, main_1.validateCommand)();
+                await (0, main_1.validateCommand)({
+                    ...(validateFile && { file: validateFile }),
+                    ...(validateFrom && validateTo && { from: validateFrom, to: validateTo }),
+                });
                 break;
             case "write":
                 if (!version) {

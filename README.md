@@ -187,7 +187,7 @@ const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-
 ### As a GitHub Action
 
 ```yaml
-name: Update Changelog
+name: Verify changelog Entry.
 
 on:
   pull_request:
@@ -198,20 +198,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: stellarwp/changelogger@v1
+      - uses: stellarwp/changelogger@main
         with:
           command: validate
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-  write:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: stellarwp/changelogger@v1
-        with:
-          command: write
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Configuration

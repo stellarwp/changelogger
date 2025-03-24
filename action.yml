@@ -9,6 +9,19 @@ inputs:
     required: true
     description: The changelogger command to run (add, validate, write)
     default: "validate"
+
+  # Validate command inputs
+  from:
+    required: false
+    description: The git commit/tag/branch to compare from
+  to:
+    required: false
+    description: The git commit/tag/branch to compare to
+  file:
+    required: false
+    description: The file to validate
+
+  # Add command inputs
   significance:
     required: false
     description: The significance of the change (patch, minor, major)
@@ -21,12 +34,15 @@ inputs:
   filename:
     required: false
     description: The filename to use when adding a changelog entry
+
+  # Write command inputs
   version:
     required: false
     description: The version to use when writing the changelog
   date:
     required: false
     description: The date to use when writing the changelog
+
 outputs:
   result:
     description: The result of the command execution

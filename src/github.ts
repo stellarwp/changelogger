@@ -18,6 +18,9 @@ export async function run(): Promise<void> {
     const version = core.getInput("version");
     const date = core.getInput("date");
     const filename = core.getInput("filename");
+    const validateFile = core.getInput("validate-file");
+    const validateFrom = core.getInput("validate-from");
+    const validateTo = core.getInput("validate-to");
 
     // Load configuration
     await loadConfig();
@@ -37,7 +40,10 @@ export async function run(): Promise<void> {
         break;
 
       case "validate":
-        await validateCommand();
+        await validateCommand({
+          ...(validateFile && { file: validateFile }),
+          ...(validateFrom && validateTo && { from: validateFrom, to: validateTo }),
+        });
         break;
 
       case "write":

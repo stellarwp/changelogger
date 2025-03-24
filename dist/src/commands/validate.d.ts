@@ -1,21 +1,35 @@
+interface ValidateOptions {
+    file?: string;
+    from?: string;
+    to?: string;
+}
 /**
- * Validates all changelog entries in the changes directory.
+ * Validates changelog entries.
  *
- * This command is part of the CLI tool and performs validation checks on all YAML files
- * in the changes directory. It ensures that:
- * 1. All files are valid YAML
- * 2. Each change file has the required fields
- * 3. The significance value is valid (patch, minor, or major)
- * 4. The type value is valid according to the configuration
- * 5. Non-patch changes have an entry description
+ * This command can be used in two ways:
+ * 1. Validate all changelog entries in the changes directory
+ * 2. Validate a specific changelog file
+ * 3. Validate that at least one changelog was added between two git commits
  *
  * @example
  * ```bash
  * # Validate all change files
  * changelogger validate
+ *
+ * # Validate a specific file
+ * changelogger validate --file changelog/feature-123.yaml
+ *
+ * # Validate changes between commits
+ * changelogger validate --from main --to feature-branch
  * ```
+ *
+ * @param options - Command options for validation
+ * @param options.file - Optional specific file to validate
+ * @param options.from - Optional git commit/tag/branch to compare from
+ * @param options.to - Optional git commit/tag/branch to compare to
  *
  * @returns A promise that resolves to a string message indicating the validation result
  * @throws {Error} If validation fails, with details about the validation errors
  */
-export declare function run(): Promise<string>;
+export declare function run(options?: ValidateOptions): Promise<string>;
+export {};
