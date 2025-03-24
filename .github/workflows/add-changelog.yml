@@ -56,7 +56,7 @@ jobs:
             --type "${{ github.event.inputs.type }}" \
             --entry "${{ github.event.inputs.entry }}" \
             --significance "${{ github.event.inputs.significance }}" \
-            --no-prompt
+            --auto-filename
 
       # Commit directly to the branch if create_pr is false
       - name: Commit changes

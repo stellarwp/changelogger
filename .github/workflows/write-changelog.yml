@@ -16,7 +16,7 @@ on:
         description: "Release date (YYYY-MM-DD)"
         required: false
         type: string
-        default: ${{ fromJSON('{"date":"' + github.event.repository.updated_at + '"}').date }}
+        default: 'today'
 
 jobs:
   write-changelog:
@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "18"
           cache: "npm"
 
       - name: Install dependencies
@@ -38,7 +38,7 @@ jobs:
       - name: Write changelog
         run: |
           npx changelogger write \
-            --version "${{ github.event.inputs.version }}" \
+            --override-version "${{ github.event.inputs.version }}" \
             --date "${{ github.event.inputs.date || github.event.repository.updated_at }}"
 
       - name: Create Pull Request
