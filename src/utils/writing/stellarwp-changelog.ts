@@ -1,4 +1,5 @@
 import { ChangeFile } from "../../types";
+import { getTypeLabel } from "../config";
 import { WritingStrategy } from "../writing";
 
 const stellarwpChangelog: WritingStrategy = {
@@ -19,7 +20,7 @@ const stellarwpChangelog: WritingStrategy = {
     const sections = Object.entries(groupedChanges)
       .map(([type, entries]) => {
         // Capitalize the first letter of the type
-        const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+        const formattedType = getTypeLabel(type);
         return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
       })
       .filter(section => section.length > 0);

@@ -1,0 +1,8 @@
+{
+  "name": "minimal-config",
+  "version": "1.0.0",
+  "changelogger": {
+    "changelogFile": "minimal-changelog.md",
+    "changesDir": "minimal-changes"
+  }
+}

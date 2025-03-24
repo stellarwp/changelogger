@@ -1,0 +1,38 @@
+{
+  "name": "full-config",
+  "version": "1.0.0",
+  "changelogger": {
+    "changelogFile": "full-changelog.md",
+    "changesDir": "full-changes",
+    "ordering": ["timestamp", "type", "content", "author"],
+    "types": {
+      "added": "New Feature ✨",
+      "changed": "Enhancement 🚀",
+      "deprecated": "Deprecated ⚠️",
+      "removed": "Removed 🗑️",
+      "fixed": "Bug Fix 🐛",
+      "security": "Security 🔒",
+      "feature": "Feature 🎯",
+      "tweak": "Tweak 🔧",
+      "fix": "Fix 🩹",
+      "compatibility": "Compatibility 🤝",
+      "language": "Language 🌐"
+    },
+    "formatter": "custom-full",
+    "versioning": "custom-semver",
+    "files": [
+      {
+        "path": "full-changelog.md",
+        "strategy": "custom-full"
+      },
+      {
+        "path": "full-changelog.json",
+        "strategy": "json"
+      },
+      {
+        "path": "full-changelog.html",
+        "strategy": "html"
+      }
+    ]
+  }
+}
