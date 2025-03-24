@@ -3,37 +3,33 @@ name: Add Changelog Entry
 on:
   workflow_dispatch:
     inputs:
-      type:
-        description: "Type of change (feature, fix, tweak, etc.)"
-        required: true
-        type: choice
-        options:
-          - feature
-          - fix
-          - tweak
-          - compatibility
-          - language
-          - security
-          - deprecated
-          - removed
-      entry:
-        description: "Changelog entry description"
-        required: true
-        type: string
       significance:
-        description: "Change significance"
+        description: "Significance of the change (patch, minor, major)"
         required: true
         type: choice
         options:
           - patch
           - minor
           - major
-          - hotfix
-      create_pr:
-        description: "Create Pull Request"
+      type:
+        description: "Type of change"
         required: true
-        type: boolean
-        default: true
+        type: choice
+        options:
+          - added
+          - changed
+          - deprecated
+          - removed
+          - fixed
+          - security
+      entry:
+        description: "Changelog entry text"
+        required: true
+        type: string
+      filename:
+        description: "Custom filename (optional, will use branch name if not provided)"
+        required: false
+        type: string
 
 jobs:
   add-changelog:
@@ -41,46 +37,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Add changelog entry
-        run: |
-          npx changelogger add \
-            --type "${{ github.event.inputs.type }}" \
-            --entry "${{ github.event.inputs.entry }}" \
-            --significance "${{ github.event.inputs.significance }}" \
-            --auto-filename
+        uses: stellarwp/changelogger@main
+        with:
+          command: add
+          significance: ${{ github.event.inputs.significance }}
+          type: ${{ github.event.inputs.type }}
+          entry: ${{ github.event.inputs.entry }}
+          filename: ${{ github.event.inputs.filename }}
 
-      # Commit directly to the branch if create_pr is false
-      - name: Commit changes
-        if: ${{ !github.event.inputs.create_pr }}
-        run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
-          git add .
-          git commit -m "docs: add changelog entry for ${{ github.event.inputs.type }}"
-          git push
-
-      # Create PR if create_pr is true
       - name: Create Pull Request
-        if: ${{ github.event.inputs.create_pr }}
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "docs: add changelog entry for ${{ github.event.inputs.type }}"
-          title: "docs: add changelog entry for ${{ github.event.inputs.type }}"
+          commit-message: "chore: add changelog entry"
+          title: "chore: add changelog entry"
           body: |
             Adds a new changelog entry:
 
+            - Significance: ${{ github.event.inputs.significance }}
             - Type: ${{ github.event.inputs.type }}
             - Entry: ${{ github.event.inputs.entry }}
-            - Significance: ${{ github.event.inputs.significance }}
-          branch: changelog/add-${{ github.event.inputs.type }}-entry
+            ${{ github.event.inputs.filename && format(' - Filename: {0}', github.event.inputs.filename) || '' }}
+          branch: changelog/add-${{ github.sha }}
           base: ${{ github.ref_name }}
           delete-branch: true

@@ -7,39 +7,24 @@ on:
         description: "Version to write (e.g., 1.0.0)"
         required: true
         type: string
-      branch:
-        description: "Target branch"
-        required: true
-        default: "main"
-        type: string
       date:
         description: "Release date (YYYY-MM-DD)"
         required: false
         type: string
-        default: 'today'
+        default: "today"
 
 jobs:
   write-changelog:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Write changelog
-        run: |
-          npx changelogger write \
-            --override-version "${{ github.event.inputs.version }}" \
-            --date "${{ github.event.inputs.date || github.event.repository.updated_at }}"
+        uses: stellarwp/changelogger@main
+        with:
+          command: write
+          version: ${{ github.event.inputs.version }}
+          date: ${{ github.event.inputs.date || github.event.repository.updated_at }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
@@ -51,5 +36,5 @@ jobs:
 
             Release Date: ${{ github.event.inputs.date || github.event.repository.updated_at }}
           branch: changelog/write-${{ github.event.inputs.version }}
-          base: ${{ github.event.inputs.branch }}
+          base: ${{ github.ref_name }}
           delete-branch: true

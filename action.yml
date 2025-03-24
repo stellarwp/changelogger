@@ -18,15 +18,18 @@ inputs:
   entry:
     required: false
     description: The changelog entry text
+  filename:
+    required: false
+    description: The filename to use when adding a changelog entry
   version:
     required: false
     description: The version to use when writing the changelog
-  github-token:
+  date:
     required: false
-    description: GitHub token for creating PRs or accessing private repos
+    description: The date to use when writing the changelog
 outputs:
   result:
     description: The result of the command execution
 runs:
-  using: "node20"
-  main: "dist/src/main.js"
+  using: "node18"
+  main: "dist/src/github.js"
