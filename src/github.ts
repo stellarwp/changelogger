@@ -17,9 +17,9 @@ export async function run(): Promise<void> {
     const version = core.getInput("version");
     const date = core.getInput("date");
     const filename = core.getInput("filename");
-    const validateFile = core.getInput("validate-file");
-    const validateFrom = core.getInput("validate-from");
-    const validateTo = core.getInput("validate-to");
+    const validateFile = core.getInput("file");
+    const validateFrom = core.getInput("from");
+    const validateTo = core.getInput("to");
 
     // Load configuration
     await loadConfig();
@@ -56,18 +56,23 @@ export async function run(): Promise<void> {
         throw new Error(`Unknown command: ${command}`);
     }
 
-    const debug = {
-      command,
-      significance,
-      type,
-      entry,
-      filename,
-    };
+    if (core.isDebug()) {
+      const debug = {
+        command,
+        significance,
+        type,
+        entry,
+        filename,
+        validateFile,
+        validateFrom,
+        validateTo,
+      };
 
-    await core.summary
-      .addHeading("Debug Serialize")
-      .addCodeBlock(JSON.stringify(debug, null, 2), "json")
-      .write();
+      await core.summary
+        .addHeading("Debug Serialize")
+        .addCodeBlock(JSON.stringify(debug, null, 2), "json")
+        .write();
+    }
 
     // Set output for GitHub Actions
     core.setOutput("result", "success");
