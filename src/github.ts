@@ -56,6 +56,19 @@ export async function run(): Promise<void> {
         throw new Error(`Unknown command: ${command}`);
     }
 
+    const debug = {
+      command,
+      significance,
+      type,
+      entry,
+      filename,
+    };
+
+    await core.summary
+      .addHeading("Debug Serialize")
+      .addCodeBlock(JSON.stringify(debug, null, 2), "json")
+      .write();
+
     // Set output for GitHub Actions
     core.setOutput("result", "success");
   } catch (error) {
