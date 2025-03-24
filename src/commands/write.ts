@@ -123,12 +123,15 @@ export async function run(options: WriteCommandOptions): Promise<string> {
   });
 
   // Determine version and date
-  const date = options.date || new Date().toISOString().split("T")[0];
+  const date = (options.date ?? new Date().toISOString().split("T")[0]) as string;
   let version = options.overwriteVersion;
 
   if (!version) {
     // Get current version from the first file
     const firstFile = config.files[0];
+    if (!firstFile) {
+      throw new Error("No files configured for changelog");
+    }
     const currentVersion = await getCurrentVersion(firstFile.path);
     const significance = determineSignificance(changes);
     version = getNextVersion(currentVersion, significance);
@@ -163,7 +166,7 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     }
 
     const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
-    const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
+    const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "0.0.0";
 
     // Format the new changelog entry
     const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
@@ -243,7 +246,7 @@ async function getCurrentVersion(filePath: string): Promise<string> {
       // Try Keep a Changelog format
       match = content.match(/## \[([^\]]+)\]/);
     }
-    return match ? match[1] : "0.1.0";
+    return match?.[1] ?? "0.1.0";
   } catch (error) {
     if ((error as { code: string }).code === "ENOENT") {
       return "0.1.0";

@@ -10,7 +10,7 @@ const keepachangelog: WritingStrategy = {
         if (!acc[change.type]) {
           acc[change.type] = [];
         }
-        acc[change.type].push(change.entry);
+        acc[change.type]?.push(change.entry);
         return acc;
       },
       {} as Record<string, string[]>

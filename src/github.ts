@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 import { addCommand, validateCommand, writeCommand } from "./main";
 import { loadConfig } from "./utils/config";
 
