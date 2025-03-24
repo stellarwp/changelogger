@@ -1,4 +1,4 @@
-name: Add Changelog Entry
+name: "Changelog: Add Entry"
 
 on:
   workflow_dispatch:
@@ -16,12 +16,11 @@ on:
         required: true
         type: choice
         options:
-          - added
-          - changed
-          - deprecated
-          - removed
-          - fixed
-          - security
+          - version
+          - feat
+          - tweak
+          - fix
+          - performance
       entry:
         description: "Changelog entry text"
         required: true
@@ -30,6 +29,18 @@ on:
         description: "Custom filename (optional, will use branch name if not provided)"
         required: false
         type: string
+      pr_number:
+        description: "PR number this changelog entry is for"
+        required: true
+        type: string
+      commit_type:
+        description: "How to commit the changes"
+        required: true
+        type: choice
+        default: direct_commit
+        options:
+          - pull_request
+          - direct_commit
 
 jobs:
   add-changelog:
@@ -47,12 +58,13 @@ jobs:
           filename: ${{ github.event.inputs.filename }}
 
       - name: Create Pull Request
+        if: github.event.inputs.commit_type == 'pull_request'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "chore: add changelog entry"
-          title: "chore: add changelog entry"
+          commit-message: "chore: add changelog entry for PR #${{ github.event.inputs.pr_number }}"
+          title: "chore: add changelog entry for PR #${{ github.event.inputs.pr_number }}"
           body: |
-            Adds a new changelog entry:
+            Adds a new changelog entry for PR #${{ github.event.inputs.pr_number }}:
 
             - Significance: ${{ github.event.inputs.significance }}
             - Type: ${{ github.event.inputs.type }}
@@ -61,3 +73,15 @@ jobs:
           branch: changelog/add-${{ github.sha }}
           base: ${{ github.ref_name }}
           delete-branch: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Direct Commit
+        if: github.event.inputs.commit_type == 'direct_commit'
+        uses: EndBug/add-and-commit@v9
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          message: "chore: add changelog entry"
+          author_name: "GitHub Action"
+          author_email: "action@github.com"
+          default_author: github_actions
+  
