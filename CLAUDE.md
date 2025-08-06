@@ -75,18 +75,15 @@ npm run changelog write
 ### Key Concepts
 
 1. **Change Files**: Individual YAML files in `changelog/` directory containing:
-
    - `significance`: patch, minor, or major
    - `type`: added, changed, deprecated, removed, fixed, security
    - `entry`: Description of the change
 
 2. **Versioning Strategies** (`src/utils/versioning/`):
-
    - **semver**: Standard semantic versioning
    - **stellarwp**: StellarWP versioning with hotfix support (major.minor.patch[.hotfix])
 
 3. **Writing Strategies** (`src/utils/writing/`):
-
    - **keepachangelog**: Keep a Changelog format
    - **stellarwp-changelog**: WordPress-style changelog
    - **stellarwp-readme**: WordPress plugin readme format
@@ -154,7 +151,7 @@ The project is itself a GitHub Action (defined in `action.yml`) that can be used
 ```typescript
 // Correct pattern for accessing mock calls
 const writeCall = mockedFs.writeFile.mock.calls[0];
-const writtenContent = writeCall?.[1] as string;  // Use optional chaining
+const writtenContent = writeCall?.[1] as string; // Use optional chaining
 
 // For assertions with potentially undefined values
 expect(writeCall?.[0]?.toString()).toContain("expected");

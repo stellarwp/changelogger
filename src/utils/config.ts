@@ -1,4 +1,5 @@
 import * as fs from "fs/promises";
+import * as path from "path";
 import { Config } from "../types";
 
 let cachedConfig: Config | null = null;
@@ -54,9 +55,9 @@ export async function loadConfig(reload = false, filePath?: string): Promise<Con
   }
 
   try {
-    // If no file path provided, try to load package.json from current directory
+    // If no file path provided, try to load package.json from current working directory
     if (!filePath) {
-      filePath = "package.json";
+      filePath = path.join(process.cwd(), "package.json");
     }
 
     // Read and parse JSON file
