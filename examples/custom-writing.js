@@ -1,6 +1,9 @@
 /**
  * Example custom writing strategy that uses a simple flat format
  * This file demonstrates how to create a custom writing strategy for @stellarwp/changelogger
+ * 
+ * Note: When using this strategy with changelogger, you can also import utilities:
+ * const { getTypeLabel, defaultConfig } = require('@stellarwp/changelogger');
  */
 
 module.exports = {

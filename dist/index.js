@@ -699,7 +699,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
+exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.getTypeLabel = exports.defaultConfig = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
 const add_1 = __nccwpck_require__(77811);
 Object.defineProperty(exports, "addCommand", ({ enumerable: true, get: function () { return add_1.run; } }));
@@ -728,6 +728,8 @@ exports.versioningStrategies = versioningStrategies;
 // Export utility functions
 var config_1 = __nccwpck_require__(3705);
 Object.defineProperty(exports, "loadConfig", ({ enumerable: true, get: function () { return config_1.loadConfig; } }));
+Object.defineProperty(exports, "defaultConfig", ({ enumerable: true, get: function () { return config_1.defaultConfig; } }));
+Object.defineProperty(exports, "getTypeLabel", ({ enumerable: true, get: function () { return config_1.getTypeLabel; } }));
 var writing_1 = __nccwpck_require__(7999);
 Object.defineProperty(exports, "loadWritingStrategy", ({ enumerable: true, get: function () { return writing_1.loadWritingStrategy; } }));
 var versioning_1 = __nccwpck_require__(75443);

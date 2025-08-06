@@ -15,7 +15,7 @@ declare const versioningStrategies: {
 };
 export { VersioningStrategy } from "./utils/versioning";
 export { versioningStrategies };
-export { loadConfig } from "./utils/config";
+export { loadConfig, defaultConfig, getTypeLabel } from "./utils/config";
 export { loadWritingStrategy } from "./utils/writing";
 export { loadVersioningStrategy } from "./utils/versioning";
 export { addCommand, validateCommand, writeCommand };

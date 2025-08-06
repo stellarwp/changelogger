@@ -428,6 +428,11 @@ Available built-in strategies:
 
    ```javascript
    // custom-writing.js
+   
+   // You can import utilities from the main package to help with formatting
+   // Note: These are only available when using the writing strategy through changelogger
+   const { getTypeLabel, defaultConfig } = require('@stellarwp/changelogger');
+   
    module.exports = {
      /**
       * Format the changes into a changelog entry
@@ -449,7 +454,11 @@ Available built-in strategies:
        // Format each group
        let output = '';
        for (const [type, entries] of Object.entries(grouped)) {
-         output += `\n### ${type.charAt(0).toUpperCase() + type.slice(1)}\n\n`;
+         // Use getTypeLabel for consistent type formatting
+         // Falls back to capitalized type if not in config
+         const label = getTypeLabel ? getTypeLabel(type) : 
+                       type.charAt(0).toUpperCase() + type.slice(1);
+         output += `\n### ${label}\n\n`;
          for (const entry of entries) {
            output += `- ${entry}\n`;
          }
@@ -630,6 +639,27 @@ const {
 })();
 ```
 
+### Utility Functions
+
+```typescript
+// TypeScript / ES6 with bundler
+import {
+  defaultConfig,
+  getTypeLabel
+} from '@stellarwp/changelogger';
+
+// Use default configuration as a base
+const myConfig = {
+  ...defaultConfig,
+  changesDir: 'my-changes'
+};
+
+// Get formatted labels for change types
+console.log(getTypeLabel('added')); // "Added"
+console.log(getTypeLabel('fix')); // "Fix"
+console.log(getTypeLabel('custom-type')); // Falls back to "custom-type" if not defined
+```
+
 ### Custom Strategies
 
 ```typescript
@@ -638,7 +668,9 @@ import {
   loadVersioningStrategy,
   loadWritingStrategy,
   versioningStrategies,
-  writingStrategies
+  writingStrategies,
+  getTypeLabel,
+  defaultConfig
 } from '@stellarwp/changelogger';
 
 // Load built-in strategies
