@@ -576,13 +576,18 @@ The changelogger can also be used as a library in your Node.js applications:
 
 ### Basic Usage
 
-```javascript
-const { 
+#### TypeScript / ES6 Modules (with bundler)
+
+```typescript
+import { 
   loadConfig,
   addCommand,
   validateCommand, 
-  writeCommand 
-} = require('@stellarwp/changelogger');
+  writeCommand,
+  Config,
+  WritingStrategy,
+  VersioningStrategy
+} from '@stellarwp/changelogger';
 
 // Load configuration from package.json
 const config = await loadConfig();
@@ -608,15 +613,33 @@ const writeResult = await writeCommand({
 console.log(writeResult);
 ```
 
-### Custom Strategies
+#### CommonJS
 
 ```javascript
-const {
+const { 
+  loadConfig,
+  addCommand,
+  validateCommand, 
+  writeCommand 
+} = require('@stellarwp/changelogger');
+
+// Same usage as above
+(async () => {
+  const config = await loadConfig();
+  console.log('Config loaded:', config.changelogFile);
+})();
+```
+
+### Custom Strategies
+
+```typescript
+// TypeScript / ES6 with bundler
+import {
   loadVersioningStrategy,
   loadWritingStrategy,
   versioningStrategies,
   writingStrategies
-} = require('@stellarwp/changelogger');
+} from '@stellarwp/changelogger';
 
 // Load built-in strategies
 const semverStrategy = versioningStrategies.semverStrategy;

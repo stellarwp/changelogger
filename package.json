@@ -51,6 +51,12 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/lib/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/main.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "bin": {
     "changelogger": "./dist/cli.js"
   },
