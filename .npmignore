@@ -1,6 +1,5 @@
 # Source files
 src/
-dist/lib/
 __tests__/
 examples/
 debug/
