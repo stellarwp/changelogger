@@ -63,9 +63,9 @@ describe("add command", () => {
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toContain("test-change.yaml");
+    expect(writeCall?.[0]?.toString()).toContain("test-change.yaml");
 
-    const content = yaml.parse(writeCall[1] as string);
+    const content = yaml.parse(writeCall?.[1] as string);
     expect(content).toMatchObject({
       type: "added",
       significance: "minor",
@@ -87,7 +87,7 @@ describe("add command", () => {
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toContain("feature-test-branch.yaml");
+    expect(writeCall?.[0]?.toString()).toContain("feature-test-branch.yaml");
   });
 
   it("should handle special characters in filename", async () => {
@@ -102,7 +102,7 @@ describe("add command", () => {
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toContain("test-file-name.yaml");
+    expect(writeCall?.[0]?.toString()).toContain("test-file-name.yaml");
   });
 
   it("should handle existing files by adding timestamp", async () => {
@@ -120,7 +120,7 @@ describe("add command", () => {
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toMatch(/existing-file-\d+\.yaml$/);
+    expect(writeCall?.[0]?.toString()).toMatch(/existing-file-\d+\.yaml$/);
     expect(result).toContain("File already exists");
   });
 
@@ -137,7 +137,7 @@ describe("add command", () => {
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toMatch(/change-\d+\.yaml$/);
+    expect(writeCall?.[0]?.toString()).toMatch(/change-\d+\.yaml$/);
   });
 
   it("should prompt for missing options", async () => {
@@ -153,9 +153,9 @@ describe("add command", () => {
     expect(mockedInquirer.prompt).toHaveBeenCalled();
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toContain("prompted-file.yaml");
+    expect(writeCall?.[0]?.toString()).toContain("prompted-file.yaml");
 
-    const content = yaml.parse(writeCall[1] as string);
+    const content = yaml.parse(writeCall?.[1] as string);
     expect(content).toMatchObject({
       type: "added",
       significance: "minor",
@@ -180,7 +180,7 @@ describe("add command", () => {
 
   it("should validate entry input", async () => {
     await run({});
-    const promptConfig = mockedInquirer.prompt.mock.calls[0][0] as Array<{
+    const promptConfig = mockedInquirer.prompt.mock.calls[0]?.[0] as Array<{
       name: string;
       validate?: (input: string) => string | boolean;
     }>;
@@ -193,7 +193,7 @@ describe("add command", () => {
 
   it("should validate filename input", async () => {
     await run({});
-    const promptConfig = mockedInquirer.prompt.mock.calls[0][0] as Array<{
+    const promptConfig = mockedInquirer.prompt.mock.calls[0]?.[0] as Array<{
       name: string;
       validate?: (input: string) => string | boolean;
     }>;
@@ -216,7 +216,7 @@ describe("add command", () => {
 
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    expect(writeCall[0].toString()).toContain("complex-file-name.yaml");
+    expect(writeCall?.[0]?.toString()).toContain("complex-file-name.yaml");
   });
 
   it("should handle file system errors", async () => {

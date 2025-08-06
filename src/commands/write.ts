@@ -247,7 +247,13 @@ async function getCurrentVersion(filePath: string): Promise<string> {
       // Try Keep a Changelog format
       match = content.match(/## \[([^\]]+)\]/);
     }
-    return match?.[1] ?? "0.1.0";
+    const extractedVersion = match?.[1];
+    // Only return the extracted version if it looks like a valid semantic version
+    // This regex matches basic semver patterns like 1.0.0, 1.2.3.4, etc.
+    if (extractedVersion && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(extractedVersion)) {
+      return extractedVersion;
+    }
+    return "0.1.0";
   } catch (error) {
     if ((error as { code: string }).code === "ENOENT") {
       return "0.1.0";
@@ -282,10 +288,5 @@ function getNextVersion(
   significance: "major" | "minor" | "patch",
   versioningStrategy: { getNextVersion: (version: string, sig: "major" | "minor" | "patch") => string }
 ): string {
-  try {
-    return versioningStrategy.getNextVersion(currentVersion, significance);
-  } catch {
-    // Fallback to a sensible default if versioning fails
-    return "0.1.0";
-  }
+  return versioningStrategy.getNextVersion(currentVersion, significance);
 }

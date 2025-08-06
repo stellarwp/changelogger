@@ -60,7 +60,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("= [1.1.0]");
     expect(writtenContent).toContain("* Added - Added new feature");
   });
@@ -118,7 +118,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Initial feature");
@@ -168,7 +168,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("= [1.1.0]");
     expect(writtenContent).toContain("* Added - Added new feature");
   });
@@ -258,7 +258,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("# Changelog");
     expect(writtenContent).toContain("All notable changes to this project will be documented in this file.");
     expect(writtenContent).toContain("## [1.1.0]");
@@ -313,7 +313,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("# Changelog");
     expect(writtenContent).toContain("All notable changes to this project will be documented in this file.");
     expect(writtenContent).toContain("## [1.1.0]");
@@ -348,7 +348,7 @@ describe("write command", () => {
 
     expect(mockedFs.unlink).toHaveBeenCalled();
     const unlinkCall = mockedFs.unlink.mock.calls[0];
-    expect(unlinkCall[0].toString()).toContain("change1.yaml");
+    expect(unlinkCall?.[0]?.toString()).toContain("change1.yaml");
   });
 
   it("should determine version bump based on significance", async () => {
@@ -467,7 +467,7 @@ describe("write command", () => {
     expect(result).toContain("Updated changelog.md to version 2.0.0");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added feature 1");
@@ -531,7 +531,7 @@ describe("write command", () => {
     expect(result).toContain("Updated changelog.md to version 1.0.1");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.1]");
     expect(writtenContent).toContain("### Fixed");
     expect(writtenContent).toContain("- Fixed bug 1");
@@ -597,7 +597,7 @@ describe("write command", () => {
     expect(result).toContain("Updated changelog.md to version 2.0.0");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Changed");
     expect(writtenContent).toContain("- Breaking change");
@@ -684,7 +684,7 @@ describe("write command", () => {
     expect(result).toContain("Updated changelog.md to version 2.0.0");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added feature 1");
@@ -738,7 +738,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.0]");
     expect(writtenContent).toContain("* Added - Initial feature");
     expect(writtenContent).toContain("### Fixed");
@@ -799,7 +799,7 @@ describe("write command", () => {
 
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("= [1.0.0] 2024-03-21 =");
     expect(writtenContent).toContain("* Added - Initial feature");
     expect(writtenContent).toContain("### Fixed");
@@ -851,7 +851,7 @@ describe("write command", () => {
     expect(result).toContain("Updated changelog.md to version 2.0.0");
 
     const writeCall = mockedFs.writeFile.mock.calls[0];
-    const writtenContent = writeCall[1] as string;
+    const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("### Changed");
     expect(writtenContent).toContain("- Breaking change");
     expect(writtenContent).toContain("### Added");
