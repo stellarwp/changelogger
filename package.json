@@ -49,7 +49,7 @@
     "cli"
   ],
   "license": "MIT",
-  "main": "dist/src/main.js",
+  "main": "dist/index.js",
   "bin": {
     "changelogger": "./dist/src/cli.js"
   },
