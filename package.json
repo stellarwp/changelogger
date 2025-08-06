@@ -61,7 +61,8 @@
     "changelogger": "./dist/cli.js"
   },
   "scripts": {
-    "build": "npm run fix:format && npm run check && npm run build:compile && npm run build:package && npm run build:cli && npm run build:gha",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && npm run fix:format && npm run check && npm run build:compile && npm run build:package && npm run build:cli && npm run build:gha",
     "build:compile": "tsc",
     "build:package": "ncc build dist/lib/main.js --source-map --license licenses.txt",
     "build:cli": "ncc build dist/lib/cli.js -o dist/cli-bundle --source-map --license licenses-cli.txt && mv dist/cli-bundle/index.js dist/cli.js && mv dist/cli-bundle/index.js.map dist/cli.js.map && rm -rf dist/cli-bundle",
