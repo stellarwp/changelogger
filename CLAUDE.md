@@ -119,8 +119,54 @@ The project is itself a GitHub Action (defined in `action.yml`) that can be used
 
 1. **TypeScript Compilation**: `src/` → `lib/` (CommonJS modules)
 2. **Packaging**: Uses @vercel/ncc to create self-contained bundles:
-   - CLI/Library: → `dist/index.js`
-   - GitHub Action: → `dist/gha/index.js`
+   - CLI/Library: `ncc build lib/main.js` → `dist/index.js`
+   - GitHub Action: `ncc build src/github.ts` → `dist/gha/index.js`
+3. **Important**: Always run `npm run build` before committing to ensure dist files are updated
+
+## Versioning System Architecture
+
+### How Versioning Strategies Work
+- The `write` command loads the versioning strategy from `package.json` config
+- Config loading: `loadConfig()` automatically reads `package.json` from current directory
+- Strategy loading: `loadVersioningStrategy(config.versioning)` loads the appropriate strategy
+- Version extraction: `getCurrentVersion()` validates extracted versions with regex `/^\d+\.\d+\.\d+(?:\.\d+)?$/`
+
+### StellarWP Versioning
+- Supports 3-part versions: `1.2.3`
+- Supports 4-part versions with hotfix: `1.2.3.4`
+- Version incrementing logic:
+  - `major`: Resets all lower parts (1.2.3.4 → 2.0.0)
+  - `minor`: Resets patch/hotfix (1.2.3.4 → 1.3.0)
+  - `patch`: Increments hotfix if present (1.2.3.4 → 1.2.3.5), otherwise patch (1.2.3 → 1.2.4)
+
+## Testing Considerations
+
+### TypeScript Strict Mode
+- Tests inherit `noUncheckedIndexedAccess: true` from main tsconfig
+- Array/object access in tests requires optional chaining: `mockCall?.[0]` instead of `mockCall[0]`
+- This prevents "Object is possibly 'undefined'" errors
+
+### Test File Patterns
+```typescript
+// Correct pattern for accessing mock calls
+const writeCall = mockedFs.writeFile.mock.calls[0];
+const writtenContent = writeCall?.[1] as string;  // Use optional chaining
+
+// For assertions with potentially undefined values
+expect(writeCall?.[0]?.toString()).toContain("expected");
+```
+
+### Running Tests
+```bash
+# Run specific test file
+npm test __tests__/commands/write.test.ts
+
+# Run tests matching pattern
+npm test -- --testNamePattern="should handle invalid version"
+
+# Debug test failures
+npm test 2>&1 | grep -E "(✓|✕)" | head -20
+```
 
 ## Important Notes
 
@@ -130,3 +176,4 @@ The project is itself a GitHub Action (defined in `action.yml`) that can be used
 - The `changelog/` directory contains active change files for this project
 - The `debug/` directory contains test output files for changelog writing
 - Custom versioning and writing strategies can be loaded from JavaScript files
+- The CLI uses `dist/src/cli.js` but the actual bundled code is in `dist/index.js`
