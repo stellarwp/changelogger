@@ -1,0 +1,28 @@
+# Source files
+src/
+dist/lib/
+__tests__/
+examples/
+debug/
+
+# Config files
+.github/
+.eslintrc.json
+.prettierrc
+jest.config.ts
+tsconfig.json
+tsconfig.test.json
+.licensed.yml
+
+# Development files
+*.ts
+!dist/**/*.d.ts
+changelog/
+.DS_Store
+*.log
+node_modules/
+coverage/
+.nyc_output/
+
+# Only include the dist folder and essential files
+# Everything else is excluded

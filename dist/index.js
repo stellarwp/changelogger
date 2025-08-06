@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 58704:
+/***/ 77811:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -48,8 +48,8 @@ const inquirer_1 = __importDefault(__nccwpck_require__(2432));
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const yaml = __importStar(__nccwpck_require__(38815));
-const config_1 = __nccwpck_require__(47230);
-const git_1 = __nccwpck_require__(15454);
+const config_1 = __nccwpck_require__(3705);
+const git_1 = __nccwpck_require__(57591);
 /**
  * Cleans up a string to be used as a filename
  * - Converts to lowercase
@@ -185,7 +185,7 @@ async function run(options) {
 
 /***/ }),
 
-/***/ 77993:
+/***/ 89912:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -227,7 +227,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
-const config_1 = __nccwpck_require__(47230);
+const config_1 = __nccwpck_require__(3705);
 const yaml = __importStar(__nccwpck_require__(38815));
 const child_process_1 = __nccwpck_require__(35317);
 /**
@@ -370,7 +370,7 @@ function validateChangeFile(changeFile, filename, config, errors) {
 
 /***/ }),
 
-/***/ 45676:
+/***/ 47843:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -413,9 +413,9 @@ exports.run = run;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const yaml = __importStar(__nccwpck_require__(38815));
-const config_1 = __nccwpck_require__(47230);
-const versioning_1 = __nccwpck_require__(17948);
-const writing_1 = __nccwpck_require__(14382);
+const config_1 = __nccwpck_require__(3705);
+const versioning_1 = __nccwpck_require__(75443);
+const writing_1 = __nccwpck_require__(7999);
 /**
  * Ensures a directory exists, creating it if it doesn't.
  *
@@ -676,7 +676,7 @@ function getNextVersion(currentVersion, significance, versioningStrategy) {
 
 /***/ }),
 
-/***/ 25915:
+/***/ 61504:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -701,17 +701,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
-const add_1 = __nccwpck_require__(58704);
+const add_1 = __nccwpck_require__(77811);
 Object.defineProperty(exports, "addCommand", ({ enumerable: true, get: function () { return add_1.run; } }));
-const validate_1 = __nccwpck_require__(77993);
+const validate_1 = __nccwpck_require__(89912);
 Object.defineProperty(exports, "validateCommand", ({ enumerable: true, get: function () { return validate_1.run; } }));
-const write_1 = __nccwpck_require__(45676);
+const write_1 = __nccwpck_require__(47843);
 Object.defineProperty(exports, "writeCommand", ({ enumerable: true, get: function () { return write_1.run; } }));
-const keepachangelog_1 = __importDefault(__nccwpck_require__(82239));
-const stellarwp_changelog_1 = __importDefault(__nccwpck_require__(67744));
-const stellarwp_readme_1 = __importDefault(__nccwpck_require__(56678));
-const semver_1 = __importDefault(__nccwpck_require__(75683));
-const stellarwp_1 = __importDefault(__nccwpck_require__(10325));
+const keepachangelog_1 = __importDefault(__nccwpck_require__(28292));
+const stellarwp_changelog_1 = __importDefault(__nccwpck_require__(7621));
+const stellarwp_readme_1 = __importDefault(__nccwpck_require__(58845));
+const semver_1 = __importDefault(__nccwpck_require__(49882));
+const stellarwp_1 = __importDefault(__nccwpck_require__(25762));
 const writingStrategies = {
     keepachangelog: keepachangelog_1.default,
     stellarwpChangelog: stellarwp_changelog_1.default,
@@ -719,24 +719,24 @@ const writingStrategies = {
 };
 exports.writingStrategies = writingStrategies;
 // Export types
-__exportStar(__nccwpck_require__(32433), exports);
+__exportStar(__nccwpck_require__(19744), exports);
 const versioningStrategies = {
     semverStrategy: semver_1.default,
     stellarStrategy: stellarwp_1.default,
 };
 exports.versioningStrategies = versioningStrategies;
 // Export utility functions
-var config_1 = __nccwpck_require__(47230);
+var config_1 = __nccwpck_require__(3705);
 Object.defineProperty(exports, "loadConfig", ({ enumerable: true, get: function () { return config_1.loadConfig; } }));
-var writing_1 = __nccwpck_require__(14382);
+var writing_1 = __nccwpck_require__(7999);
 Object.defineProperty(exports, "loadWritingStrategy", ({ enumerable: true, get: function () { return writing_1.loadWritingStrategy; } }));
-var versioning_1 = __nccwpck_require__(17948);
+var versioning_1 = __nccwpck_require__(75443);
 Object.defineProperty(exports, "loadVersioningStrategy", ({ enumerable: true, get: function () { return versioning_1.loadVersioningStrategy; } }));
 
 
 /***/ }),
 
-/***/ 32433:
+/***/ 19744:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -746,7 +746,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ }),
 
-/***/ 47230:
+/***/ 3705:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -871,7 +871,7 @@ async function loadConfig(reload = false, filePath) {
 
 /***/ }),
 
-/***/ 15454:
+/***/ 57591:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -914,7 +914,7 @@ async function getRemoteUrl() {
 
 /***/ }),
 
-/***/ 17948:
+/***/ 75443:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1002,7 +1002,7 @@ async function loadVersioningStrategy(versioning) {
         };
     }
     if (versioning === "stellarwp") {
-        const stellarStrategy = await Promise.resolve().then(() => __importStar(__nccwpck_require__(10325)));
+        const stellarStrategy = await Promise.resolve().then(() => __importStar(__nccwpck_require__(25762)));
         return stellarStrategy.default;
     }
     throw new Error(`Unknown versioning strategy: ${versioning}`);
@@ -1011,7 +1011,7 @@ async function loadVersioningStrategy(versioning) {
 
 /***/ }),
 
-/***/ 75683:
+/***/ 49882:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1076,7 +1076,7 @@ exports["default"] = semverStrategy;
 
 /***/ }),
 
-/***/ 10325:
+/***/ 25762:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1150,7 +1150,7 @@ exports["default"] = stellarStrategy;
 
 /***/ }),
 
-/***/ 14382:
+/***/ 7999:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1214,11 +1214,11 @@ async function loadWritingStrategy(formatter) {
     // Handle built-in writing strategies
     switch (formatter) {
         case "keepachangelog":
-            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(82239)))).default;
+            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(28292)))).default;
         case "stellarwp-changelog":
-            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(67744)))).default;
+            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(7621)))).default;
         case "stellarwp-readme":
-            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(56678)))).default;
+            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(58845)))).default;
         default:
             throw new Error(`Unknown writing strategy: ${formatter}`);
     }
@@ -1227,13 +1227,13 @@ async function loadWritingStrategy(formatter) {
 
 /***/ }),
 
-/***/ 82239:
+/***/ 28292:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __nccwpck_require__(47230);
+const config_1 = __nccwpck_require__(3705);
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -1284,13 +1284,13 @@ exports["default"] = keepachangelog;
 
 /***/ }),
 
-/***/ 67744:
+/***/ 7621:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __nccwpck_require__(47230);
+const config_1 = __nccwpck_require__(3705);
 const stellarwpChangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -1340,13 +1340,13 @@ exports["default"] = stellarwpChangelog;
 
 /***/ }),
 
-/***/ 56678:
+/***/ 58845:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __nccwpck_require__(47230);
+const config_1 = __nccwpck_require__(3705);
 const stellarwpReadme = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -44878,7 +44878,7 @@ module.exports = /*#__PURE__*/JSON.parse('[["0","\\u0000",128],["a1","｡",62],[
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(25915);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(61504);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
