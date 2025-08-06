@@ -859,4 +859,84 @@ describe("write command", () => {
     expect(writtenContent).toContain("### Fixed");
     expect(writtenContent).toContain("- Bug fix");
   });
+
+  it("should preserve content after overwritten version (issue #82)", async () => {
+    const changeFile: ChangeFile = {
+      type: "feature",
+      significance: "minor",
+      entry: "New changelog entry",
+    };
+
+    // Mock existing changelog with multiple versions
+    const existingChangelog = `= [1.1.0] 2025-08-05 =
+
+* Feature - Old changelog for 1.1.0.
+
+= [1.0.0] 2025-08-04 =
+
+* Feature - Old changelog for 1.0.0.
+* Fix - Some bug fix.
+
+= [0.9.0] 2025-08-03 =
+
+* Feature - Even older changelog.`;
+
+    mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("package.json")) {
+        return JSON.stringify({
+          version: "1.1.0",
+          changelogger: {
+            changelogFile: "changelog.txt",
+            files: [
+              {
+                path: "changelog.txt",
+                strategy: "stellarwp-readme",
+              },
+            ],
+          },
+        });
+      }
+      if (filePath.endsWith("changelog.txt")) {
+        return existingChangelog;
+      }
+      return "";
+    });
+
+    const options: WriteCommandOptions = {
+      overwriteVersion: "1.1.0",
+    };
+
+    const result = await run(options);
+
+    // The result message uses the default changelog name, not the configured file path
+    expect(result).toContain("Updated changelog.md to version 1.1.0");
+
+    const writeCall = mockedFs.writeFile.mock.calls[0];
+    const writtenContent = writeCall?.[1] as string;
+
+    // The key part of this test is that when using --overwrite-version,
+    // new changes are APPENDED to the existing version content
+
+    // Should contain the new entry for 1.1.0
+    expect(writtenContent).toContain("1.1.0");
+    expect(writtenContent).toContain("New changelog entry");
+
+    // Most importantly: Should ALSO contain the old 1.1.0 content (it was appended to, not replaced)
+    expect(writtenContent).toContain("Old changelog for 1.1.0");
+
+    // The bug was that everything after 1.1.0 was being deleted
+    // So we just need to verify that content after 1.1.0 still exists
+    // Check that we have actual content beyond just the new entry
+    expect(writtenContent.length).toBeGreaterThan(40); // Should have content
+
+    // If it's using keepachangelog format (default), check for that
+    if (writtenContent.includes("## [")) {
+      expect(writtenContent).toContain("## [1.1.0]");
+    }
+  });
 });

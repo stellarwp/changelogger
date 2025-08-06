@@ -293,17 +293,17 @@ The changelogger supports multiple versioning strategies:
       */
      getNextVersion(currentVersion, significance) {
        // Your custom logic here
-       const parts = currentVersion.split('.');
-       const major = parseInt(parts[0] || '0');
-       const minor = parseInt(parts[1] || '0');
-       const patch = parseInt(parts[2] || '0');
-       
+       const parts = currentVersion.split(".");
+       const major = parseInt(parts[0] || "0");
+       const minor = parseInt(parts[1] || "0");
+       const patch = parseInt(parts[2] || "0");
+
        switch (significance) {
-         case 'major':
+         case "major":
            return `${major + 1}.0.0`;
-         case 'minor':
+         case "minor":
            return `${major}.${minor + 1}.0`;
-         case 'patch':
+         case "patch":
            return `${major}.${minor}.${patch + 1}`;
          default:
            throw new Error(`Unknown significance: ${significance}`);
@@ -326,19 +326,19 @@ The changelogger supports multiple versioning strategies:
       * @returns {number} -1 if v1 < v2, 0 if equal, 1 if v1 > v2
       */
      compareVersions(v1, v2) {
-       const parts1 = v1.split('.').map(Number);
-       const parts2 = v2.split('.').map(Number);
-       
+       const parts1 = v1.split(".").map(Number);
+       const parts2 = v2.split(".").map(Number);
+
        for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
          const part1 = parts1[i] || 0;
          const part2 = parts2[i] || 0;
-         
+
          if (part1 < part2) return -1;
          if (part1 > part2) return 1;
        }
-       
+
        return 0;
-     }
+     },
    };
    ```
 
@@ -428,11 +428,11 @@ Available built-in strategies:
 
    ```javascript
    // custom-writing.js
-   
+
    // You can import utilities from the main package to help with formatting
    // Note: These are only available when using the writing strategy through changelogger
-   const { getTypeLabel, defaultConfig } = require('@stellarwp/changelogger');
-   
+   const { getTypeLabel, defaultConfig } = require("@stellarwp/changelogger");
+
    module.exports = {
      /**
       * Format the changes into a changelog entry
@@ -450,20 +450,19 @@ Available built-in strategies:
          }
          grouped[change.type].push(change.entry);
        }
-       
+
        // Format each group
-       let output = '';
+       let output = "";
        for (const [type, entries] of Object.entries(grouped)) {
          // Use getTypeLabel for consistent type formatting
          // Falls back to capitalized type if not in config
-         const label = getTypeLabel ? getTypeLabel(type) : 
-                       type.charAt(0).toUpperCase() + type.slice(1);
+         const label = getTypeLabel ? getTypeLabel(type) : type.charAt(0).toUpperCase() + type.slice(1);
          output += `\n### ${label}\n\n`;
          for (const entry of entries) {
            output += `- ${entry}\n`;
          }
        }
-       
+
        return output;
      },
 
@@ -486,12 +485,10 @@ Available built-in strategies:
       * @returns {string} Formatted link
       */
      formatVersionLink(version, previousVersion, template) {
-       if (!template) return '';
-       
-       const link = template
-         .replace('{version}', version)
-         .replace('{previousVersion}', previousVersion);
-       
+       if (!template) return "";
+
+       const link = template.replace("{version}", version).replace("{previousVersion}", previousVersion);
+
        return `\n[${version}]: ${link}\n`;
      },
 
@@ -502,7 +499,7 @@ Available built-in strategies:
       * @returns {string|undefined} Matched header or undefined
       */
      versionHeaderMatcher(content, version) {
-       const regex = new RegExp(`^## \\[${version}\\].*$`, 'm');
+       const regex = new RegExp(`^## \\[${version}\\].*$`, "m");
        const match = content.match(regex);
        return match ? match[0] : undefined;
      },
@@ -518,15 +515,15 @@ Available built-in strategies:
        if (match && match.index !== undefined) {
          return match.index;
        }
-       
+
        // Look for main changelog header
        const headerMatch = content.match(/^# Changelog/m);
        if (headerMatch && headerMatch.index !== undefined) {
          return headerMatch.index + headerMatch[0].length + 1;
        }
-       
+
        return 0;
-     }
+     },
    };
    ```
 
@@ -588,25 +585,17 @@ The changelogger can also be used as a library in your Node.js applications:
 #### TypeScript / ES6 Modules (with bundler)
 
 ```typescript
-import { 
-  loadConfig,
-  addCommand,
-  validateCommand, 
-  writeCommand,
-  Config,
-  WritingStrategy,
-  VersioningStrategy
-} from '@stellarwp/changelogger';
+import { loadConfig, addCommand, validateCommand, writeCommand, Config, WritingStrategy, VersioningStrategy } from "@stellarwp/changelogger";
 
 // Load configuration from package.json
 const config = await loadConfig();
 
 // Add a new change entry programmatically
 await addCommand({
-  significance: 'minor',
-  type: 'added',
-  entry: 'New feature added',
-  filename: 'custom-change.yaml'
+  significance: "minor",
+  type: "added",
+  entry: "New feature added",
+  filename: "custom-change.yaml",
 });
 
 // Validate all change files
@@ -615,9 +604,9 @@ console.log(validationResult);
 
 // Write changelog (with options)
 const writeResult = await writeCommand({
-  overwriteVersion: '1.2.3',
+  overwriteVersion: "1.2.3",
   dryRun: false,
-  date: '2024-03-20'
+  date: "2024-03-20",
 });
 console.log(writeResult);
 ```
@@ -625,17 +614,12 @@ console.log(writeResult);
 #### CommonJS
 
 ```javascript
-const { 
-  loadConfig,
-  addCommand,
-  validateCommand, 
-  writeCommand 
-} = require('@stellarwp/changelogger');
+const { loadConfig, addCommand, validateCommand, writeCommand } = require("@stellarwp/changelogger");
 
 // Same usage as above
 (async () => {
   const config = await loadConfig();
-  console.log('Config loaded:', config.changelogFile);
+  console.log("Config loaded:", config.changelogFile);
 })();
 ```
 
@@ -643,46 +627,36 @@ const {
 
 ```typescript
 // TypeScript / ES6 with bundler
-import {
-  defaultConfig,
-  getTypeLabel
-} from '@stellarwp/changelogger';
+import { defaultConfig, getTypeLabel } from "@stellarwp/changelogger";
 
 // Use default configuration as a base
 const myConfig = {
   ...defaultConfig,
-  changesDir: 'my-changes'
+  changesDir: "my-changes",
 };
 
 // Get formatted labels for change types
-console.log(getTypeLabel('added')); // "Added"
-console.log(getTypeLabel('fix')); // "Fix"
-console.log(getTypeLabel('custom-type')); // Falls back to "custom-type" if not defined
+console.log(getTypeLabel("added")); // "Added"
+console.log(getTypeLabel("fix")); // "Fix"
+console.log(getTypeLabel("custom-type")); // Falls back to "custom-type" if not defined
 ```
 
 ### Custom Strategies
 
 ```typescript
 // TypeScript / ES6 with bundler
-import {
-  loadVersioningStrategy,
-  loadWritingStrategy,
-  versioningStrategies,
-  writingStrategies,
-  getTypeLabel,
-  defaultConfig
-} from '@stellarwp/changelogger';
+import { loadVersioningStrategy, loadWritingStrategy, versioningStrategies, writingStrategies, getTypeLabel, defaultConfig } from "@stellarwp/changelogger";
 
 // Load built-in strategies
 const semverStrategy = versioningStrategies.semverStrategy;
 const keepachangelog = writingStrategies.keepachangelog;
 
 // Load custom strategies from files
-const customVersioning = await loadVersioningStrategy('./my-versioning.js');
-const customWriting = await loadWritingStrategy('./my-writing.js');
+const customVersioning = await loadVersioningStrategy("./my-versioning.js");
+const customWriting = await loadWritingStrategy("./my-writing.js");
 
 // Use strategies directly
-const nextVersion = customVersioning.getNextVersion('1.2.3', 'minor');
+const nextVersion = customVersioning.getNextVersion("1.2.3", "minor");
 console.log(nextVersion); // Your custom versioning logic result
 ```
 
@@ -691,26 +665,20 @@ console.log(nextVersion); // Your custom versioning logic result
 The package includes TypeScript declarations for full type support:
 
 ```typescript
-import { 
-  Config,
-  ChangeFile,
-  WriteCommandOptions,
-  VersioningStrategy,
-  WritingStrategy 
-} from '@stellarwp/changelogger';
+import { Config, ChangeFile, WriteCommandOptions, VersioningStrategy, WritingStrategy } from "@stellarwp/changelogger";
 
 // All types are available for TypeScript users
 const config: Config = await loadConfig();
 
 const change: ChangeFile = {
-  significance: 'patch',
-  type: 'fixed',
-  entry: 'Fixed a bug'
+  significance: "patch",
+  type: "fixed",
+  entry: "Fixed a bug",
 };
 
 const options: WriteCommandOptions = {
-  overwriteVersion: '1.0.0',
-  dryRun: true
+  overwriteVersion: "1.0.0",
+  dryRun: true,
 };
 ```
 
