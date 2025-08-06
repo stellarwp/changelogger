@@ -126,12 +126,14 @@ The project is itself a GitHub Action (defined in `action.yml`) that can be used
 ## Versioning System Architecture
 
 ### How Versioning Strategies Work
+
 - The `write` command loads the versioning strategy from `package.json` config
 - Config loading: `loadConfig()` automatically reads `package.json` from current directory
 - Strategy loading: `loadVersioningStrategy(config.versioning)` loads the appropriate strategy
 - Version extraction: `getCurrentVersion()` validates extracted versions with regex `/^\d+\.\d+\.\d+(?:\.\d+)?$/`
 
 ### StellarWP Versioning
+
 - Supports 3-part versions: `1.2.3`
 - Supports 4-part versions with hotfix: `1.2.3.4`
 - Version incrementing logic:
@@ -142,11 +144,13 @@ The project is itself a GitHub Action (defined in `action.yml`) that can be used
 ## Testing Considerations
 
 ### TypeScript Strict Mode
+
 - Tests inherit `noUncheckedIndexedAccess: true` from main tsconfig
 - Array/object access in tests requires optional chaining: `mockCall?.[0]` instead of `mockCall[0]`
 - This prevents "Object is possibly 'undefined'" errors
 
 ### Test File Patterns
+
 ```typescript
 // Correct pattern for accessing mock calls
 const writeCall = mockedFs.writeFile.mock.calls[0];
@@ -157,6 +161,7 @@ expect(writeCall?.[0]?.toString()).toContain("expected");
 ```
 
 ### Running Tests
+
 ```bash
 # Run specific test file
 npm test __tests__/commands/write.test.ts
