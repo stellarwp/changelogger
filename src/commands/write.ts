@@ -1,8 +1,8 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import * as semver from "semver";
 import * as yaml from "yaml";
 import { loadConfig } from "../utils/config";
+import { loadVersioningStrategy } from "../utils/versioning";
 import { loadWritingStrategy } from "../utils/writing";
 import { ChangeFile, WriteCommandOptions } from "../types";
 
@@ -81,6 +81,7 @@ async function ensureFileExists(filePath: string, defaultContent: string): Promi
  */
 export async function run(options: WriteCommandOptions): Promise<string> {
   const config = await loadConfig();
+  const versioningStrategy = await loadVersioningStrategy(config.versioning);
   const changes: ChangeFile[] = [];
   let processedFiles: string[] = [];
 
@@ -134,11 +135,11 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     }
     const currentVersion = await getCurrentVersion(firstFile.path);
     const significance = determineSignificance(changes);
-    version = getNextVersion(currentVersion, significance);
+    version = getNextVersion(currentVersion, significance, versioningStrategy);
   }
 
-  // Validate version format
-  if (!semver.valid(version)) {
+  // Validate version format using the configured versioning strategy
+  if (!versioningStrategy.isValidVersion(version)) {
     throw new Error(`Invalid version format: ${version}`);
   }
 
@@ -269,12 +270,22 @@ function determineSignificance(changes: ChangeFile[]): "major" | "minor" | "patc
 
 /**
  * Gets the next version number based on the current version and significance.
+ * Uses the configured versioning strategy.
  *
  * @param currentVersion - The current version string
  * @param significance - The significance of the changes
+ * @param versioningStrategy - The versioning strategy to use
  * @returns The next version string
  */
-function getNextVersion(currentVersion: string, significance: "major" | "minor" | "patch"): string {
-  const version = semver.valid(currentVersion) || "0.1.0";
-  return semver.inc(version, significance) || "0.1.0";
+function getNextVersion(
+  currentVersion: string,
+  significance: "major" | "minor" | "patch",
+  versioningStrategy: { getNextVersion: (version: string, sig: "major" | "minor" | "patch") => string }
+): string {
+  try {
+    return versioningStrategy.getNextVersion(currentVersion, significance);
+  } catch {
+    // Fallback to a sensible default if versioning fails
+    return "0.1.0";
+  }
 }

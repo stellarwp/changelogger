@@ -60,7 +60,7 @@ export async function loadVersioningStrategy(versioning: string): Promise<Versio
             return version;
         }
       },
-      isValidVersion: (version: string) => Boolean(semver.valid(semver.coerce(version))),
+      isValidVersion: (version: string) => Boolean(semver.valid(version)),
       compareVersions: (v1: string, v2: string) => {
         const version1 = semver.valid(semver.coerce(v1));
         const version2 = semver.valid(semver.coerce(v2));

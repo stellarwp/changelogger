@@ -60559,9 +60559,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
-const semver = __importStar(__nccwpck_require__(62088));
 const yaml = __importStar(__nccwpck_require__(38815));
 const config_1 = __nccwpck_require__(67799);
+const versioning_1 = __nccwpck_require__(26877);
 const writing_1 = __nccwpck_require__(50473);
 /**
  * Ensures a directory exists, creating it if it doesn't.
@@ -60638,6 +60638,7 @@ async function ensureFileExists(filePath, defaultContent) {
  */
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
+    const versioningStrategy = await (0, versioning_1.loadVersioningStrategy)(config.versioning);
     const changes = [];
     let processedFiles = [];
     // Ensure changes directory exists
@@ -60684,10 +60685,10 @@ async function run(options) {
         }
         const currentVersion = await getCurrentVersion(firstFile.path);
         const significance = determineSignificance(changes);
-        version = getNextVersion(currentVersion, significance);
+        version = getNextVersion(currentVersion, significance, versioningStrategy);
     }
-    // Validate version format
-    if (!semver.valid(version)) {
+    // Validate version format using the configured versioning strategy
+    if (!versioningStrategy.isValidVersion(version)) {
         throw new Error(`Invalid version format: ${version}`);
     }
     // If dry run, show header
@@ -60802,14 +60803,21 @@ function determineSignificance(changes) {
 }
 /**
  * Gets the next version number based on the current version and significance.
+ * Uses the configured versioning strategy.
  *
  * @param currentVersion - The current version string
  * @param significance - The significance of the changes
+ * @param versioningStrategy - The versioning strategy to use
  * @returns The next version string
  */
-function getNextVersion(currentVersion, significance) {
-    const version = semver.valid(currentVersion) || "0.1.0";
-    return semver.inc(version, significance) || "0.1.0";
+function getNextVersion(currentVersion, significance, versioningStrategy) {
+    try {
+        return versioningStrategy.getNextVersion(currentVersion, significance);
+    }
+    catch {
+        // Fallback to a sensible default if versioning fails
+        return "0.1.0";
+    }
 }
 
 

@@ -54,10 +54,9 @@ export async function loadConfig(reload = false, filePath?: string): Promise<Con
   }
 
   try {
-    // If no file path provided or file doesn't exist, return default config
+    // If no file path provided, try to load package.json from current directory
     if (!filePath) {
-      cachedConfig = defaultConfig;
-      return defaultConfig;
+      filePath = "package.json";
     }
 
     // Read and parse JSON file
