@@ -921,19 +921,19 @@ describe("write command", () => {
 
     // The key part of this test is that the old content after version 1.1.0 is preserved
     // We don't care about the exact format, just that the preservation works
-    
+
     // Should contain the new entry for 1.1.0
     expect(writtenContent).toContain("1.1.0");
     expect(writtenContent).toContain("New changelog entry");
-    
+
     // Most importantly: Should NOT contain the old 1.1.0 content (it was replaced)
     expect(writtenContent).not.toContain("Old changelog for 1.1.0");
-    
+
     // The bug was that everything after 1.1.0 was being deleted
     // So we just need to verify that content after 1.1.0 still exists
     // Check that we have actual content beyond just the new entry
     expect(writtenContent.length).toBeGreaterThan(40); // Should have content
-    
+
     // If it's using keepachangelog format (default), check for that
     if (writtenContent.includes("## [")) {
       expect(writtenContent).toContain("## [1.1.0]");

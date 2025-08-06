@@ -75,18 +75,15 @@ npm run changelog write
 ### Key Concepts
 
 1. **Change Files**: Individual YAML files in `changelog/` directory containing:
-
    - `significance`: patch, minor, or major
    - `type`: added, changed, deprecated, removed, fixed, security
    - `entry`: Description of the change
 
 2. **Versioning Strategies** (`src/utils/versioning/`):
-
    - **semver**: Standard semantic versioning
    - **stellarwp**: StellarWP versioning with hotfix support (major.minor.patch[.hotfix])
 
 3. **Writing Strategies** (`src/utils/writing/`):
-
    - **keepachangelog**: Keep a Changelog format
    - **stellarwp-changelog**: WordPress-style changelog
    - **stellarwp-readme**: WordPress plugin readme format
