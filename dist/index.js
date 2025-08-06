@@ -632,7 +632,13 @@ async function getCurrentVersion(filePath) {
             // Try Keep a Changelog format
             match = content.match(/## \[([^\]]+)\]/);
         }
-        return match?.[1] ?? "0.1.0";
+        const extractedVersion = match?.[1];
+        // Only return the extracted version if it looks like a valid semantic version
+        // This regex matches basic semver patterns like 1.0.0, 1.2.3.4, etc.
+        if (extractedVersion && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(extractedVersion)) {
+            return extractedVersion;
+        }
+        return "0.1.0";
     }
     catch (error) {
         if (error.code === "ENOENT") {
@@ -664,13 +670,7 @@ function determineSignificance(changes) {
  * @returns The next version string
  */
 function getNextVersion(currentVersion, significance, versioningStrategy) {
-    try {
-        return versioningStrategy.getNextVersion(currentVersion, significance);
-    }
-    catch {
-        // Fallback to a sensible default if versioning fails
-        return "0.1.0";
-    }
+    return versioningStrategy.getNextVersion(currentVersion, significance);
 }
 
 
@@ -838,10 +838,9 @@ async function loadConfig(reload = false, filePath) {
         return cachedConfig;
     }
     try {
-        // If no file path provided or file doesn't exist, return default config
+        // If no file path provided, try to load package.json from current directory
         if (!filePath) {
-            cachedConfig = exports.defaultConfig;
-            return exports.defaultConfig;
+            filePath = "package.json";
         }
         // Read and parse JSON file
         const fileContents = await fs.readFile(filePath, "utf-8");
@@ -991,7 +990,7 @@ async function loadVersioningStrategy(versioning) {
                         return version;
                 }
             },
-            isValidVersion: (version) => Boolean(semver.valid(semver.coerce(version))),
+            isValidVersion: (version) => Boolean(semver.valid(version)),
             compareVersions: (v1, v2) => {
                 const version1 = semver.valid(semver.coerce(v1));
                 const version2 = semver.valid(semver.coerce(v2));
