@@ -252,7 +252,6 @@ The changelogger supports multiple versioning strategies:
    ```
 
 2. **stellarwp**: StellarWP versioning with hotfix support (major.minor.patch[.hotfix])
-
    - Supports 3-part versions: `1.2.3`
    - Supports 4-part versions with hotfix: `1.2.3.4`
    - Hotfix number only appears when greater than 0
@@ -433,7 +432,6 @@ When adding new changelog entries:
 1. **Default Filename**: By default, uses the current git branch name (cleaned up) or a timestamp if no branch name is available.
 
 2. **File Naming Rules**:
-
    - Converts to lowercase
    - Replaces non-alphanumeric characters with hyphens
    - Removes leading/trailing hyphens
@@ -441,12 +439,10 @@ When adding new changelog entries:
      Example: `Feature/Add-NEW_thing!!!` → `feature-add-new-thing.yaml`
 
 3. **Duplicate Handling**: If a file with the same name exists:
-
    - Adds a timestamp to the filename
    - Example: If `feature.yaml` exists, creates `feature-1234567890.yaml`
 
 4. **Interactive Prompts**:
-
    - Significance: patch, minor, or major
    - Type: added, changed, deprecated, removed, fixed, or security
    - Entry: Description of the change
