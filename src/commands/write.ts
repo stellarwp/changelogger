@@ -185,15 +185,35 @@ export async function run(options: WriteCommandOptions): Promise<string> {
       // Find the start of the version section
       const versionStart = content.indexOf(previousVersion);
 
-      // Find the next version header
-      const nextVersionMatch = fileStrategy.versionHeaderMatcher(content.slice(versionStart + 1), version);
+      // Find the next version header after the current one
+      // We need to search for any version pattern, not the specific version we're overwriting
+      const contentAfterVersion = content.slice(versionStart + previousVersion.length);
+
+      // Use a generic version pattern based on the strategy
+      // For stellarwp-readme: = [version] date =
+      // For keepachangelog: ## [version] - date
+      const versionPatterns = [
+        /^= \[[^\]]+\] [^=]+ =$/m, // stellarwp pattern
+        /^## \[[^\]]+\]/m, // keepachangelog pattern
+      ];
+
+      let nextVersionIndex = -1;
+      for (const pattern of versionPatterns) {
+        const match = contentAfterVersion.match(pattern);
+        if (match && match.index !== undefined) {
+          nextVersionIndex = match.index;
+          break;
+        }
+      }
 
       // Determine where the current section ends
       const sectionEnd = (() => {
-        if (typeof nextVersionMatch === "number") {
-          return versionStart + nextVersionMatch + 1;
+        if (nextVersionIndex !== -1) {
+          // Found next version header
+          return versionStart + previousVersion.length + nextVersionIndex;
         }
 
+        // No next version found, look for empty lines
         const nextEmptyLine = content.indexOf("\n\n", versionStart);
         if (nextEmptyLine !== -1) {
           return nextEmptyLine + 2;

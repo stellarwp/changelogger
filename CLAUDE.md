@@ -154,7 +154,7 @@ The project is itself a GitHub Action (defined in `action.yml`) that can be used
 ```typescript
 // Correct pattern for accessing mock calls
 const writeCall = mockedFs.writeFile.mock.calls[0];
-const writtenContent = writeCall?.[1] as string;  // Use optional chaining
+const writtenContent = writeCall?.[1] as string; // Use optional chaining
 
 // For assertions with potentially undefined values
 expect(writeCall?.[0]?.toString()).toContain("expected");
