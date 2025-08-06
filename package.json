@@ -56,7 +56,7 @@
   "scripts": {
     "build": "npm run fix:format && npm run check && npm run build:compile && npm run build:package && npm run build:gha",
     "build:compile": "tsc",
-    "build:package": "ncc build --source-map --license licenses.txt",
+    "build:package": "ncc build lib/main.js --source-map --license licenses.txt",
     "build:gha": "ncc build src/github.ts -o dist/gha --source-map --license licenses.txt",
     "check": "concurrently -n check: -c red,green,blue -g npm:check:*",
     "check:build": "tsc --noEmit",

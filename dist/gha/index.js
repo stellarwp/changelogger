@@ -60559,9 +60559,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
-const semver = __importStar(__nccwpck_require__(62088));
 const yaml = __importStar(__nccwpck_require__(38815));
 const config_1 = __nccwpck_require__(67799);
+const versioning_1 = __nccwpck_require__(26877);
 const writing_1 = __nccwpck_require__(50473);
 /**
  * Ensures a directory exists, creating it if it doesn't.
@@ -60638,6 +60638,7 @@ async function ensureFileExists(filePath, defaultContent) {
  */
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
+    const versioningStrategy = await (0, versioning_1.loadVersioningStrategy)(config.versioning);
     const changes = [];
     let processedFiles = [];
     // Ensure changes directory exists
@@ -60684,10 +60685,10 @@ async function run(options) {
         }
         const currentVersion = await getCurrentVersion(firstFile.path);
         const significance = determineSignificance(changes);
-        version = getNextVersion(currentVersion, significance);
+        version = getNextVersion(currentVersion, significance, versioningStrategy);
     }
-    // Validate version format
-    if (!semver.valid(version)) {
+    // Validate version format using the configured versioning strategy
+    if (!versioningStrategy.isValidVersion(version)) {
         throw new Error(`Invalid version format: ${version}`);
     }
     // If dry run, show header
@@ -60778,7 +60779,13 @@ async function getCurrentVersion(filePath) {
             // Try Keep a Changelog format
             match = content.match(/## \[([^\]]+)\]/);
         }
-        return match?.[1] ?? "0.1.0";
+        const extractedVersion = match?.[1];
+        // Only return the extracted version if it looks like a valid semantic version
+        // This regex matches basic semver patterns like 1.0.0, 1.2.3.4, etc.
+        if (extractedVersion && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(extractedVersion)) {
+            return extractedVersion;
+        }
+        return "0.1.0";
     }
     catch (error) {
         if (error.code === "ENOENT") {
@@ -60802,14 +60809,15 @@ function determineSignificance(changes) {
 }
 /**
  * Gets the next version number based on the current version and significance.
+ * Uses the configured versioning strategy.
  *
  * @param currentVersion - The current version string
  * @param significance - The significance of the changes
+ * @param versioningStrategy - The versioning strategy to use
  * @returns The next version string
  */
-function getNextVersion(currentVersion, significance) {
-    const version = semver.valid(currentVersion) || "0.1.0";
-    return semver.inc(version, significance) || "0.1.0";
+function getNextVersion(currentVersion, significance, versioningStrategy) {
+    return versioningStrategy.getNextVersion(currentVersion, significance);
 }
 
 
@@ -61105,10 +61113,9 @@ async function loadConfig(reload = false, filePath) {
         return cachedConfig;
     }
     try {
-        // If no file path provided or file doesn't exist, return default config
+        // If no file path provided, try to load package.json from current directory
         if (!filePath) {
-            cachedConfig = exports.defaultConfig;
-            return exports.defaultConfig;
+            filePath = "package.json";
         }
         // Read and parse JSON file
         const fileContents = await fs.readFile(filePath, "utf-8");
@@ -61258,7 +61265,7 @@ async function loadVersioningStrategy(versioning) {
                         return version;
                 }
             },
-            isValidVersion: (version) => Boolean(semver.valid(semver.coerce(version))),
+            isValidVersion: (version) => Boolean(semver.valid(version)),
             compareVersions: (v1, v2) => {
                 const version1 = semver.valid(semver.coerce(v1));
                 const version2 = semver.valid(semver.coerce(v2));

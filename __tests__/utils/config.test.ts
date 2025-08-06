@@ -128,8 +128,8 @@ describe("config", () => {
     expect(defaultConfig.formatter).toBe("keepachangelog");
     expect(defaultConfig.versioning).toBe("semver");
     expect(Array.isArray(defaultConfig.files)).toBe(true);
-    expect(defaultConfig.files[0].path).toBe("changelog.md");
-    expect(defaultConfig.files[0].strategy).toBe("keepachangelog");
+    expect(defaultConfig.files[0]?.path).toBe("changelog.md");
+    expect(defaultConfig.files[0]?.strategy).toBe("keepachangelog");
 
     // Validate required type keys exist
     const requiredTypes = ["added", "changed", "deprecated", "removed", "fixed", "security", "feature", "tweak", "fix", "compatibility", "language"];
@@ -226,8 +226,8 @@ describe("config", () => {
       expect(config.formatter).toBe("custom-format");
       expect(config.versioning).toBe("custom-version");
       expect(config.files).toHaveLength(2);
-      expect(config.files[0].strategy).toBe("custom-strategy");
-      expect(config.files[1].strategy).toBe("json");
+      expect(config.files[0]?.strategy).toBe("custom-strategy");
+      expect(config.files[1]?.strategy).toBe("json");
     });
 
     it("should handle full config correctly", async () => {
@@ -248,9 +248,9 @@ describe("config", () => {
 
       // Verify multiple file outputs
       expect(config.files).toHaveLength(3);
-      expect(config.files[0].path).toBe("full-changelog.md");
-      expect(config.files[1].path).toBe("full-changelog.json");
-      expect(config.files[2].path).toBe("full-changelog.html");
+      expect(config.files[0]?.path).toBe("full-changelog.md");
+      expect(config.files[1]?.path).toBe("full-changelog.json");
+      expect(config.files[2]?.path).toBe("full-changelog.html");
     });
   });
 });

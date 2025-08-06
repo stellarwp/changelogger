@@ -11,7 +11,7 @@ import { php } from "locutus";
 const program = new Command();
 
 // Get version from package.json
-const packageJson = JSON.parse(readFileSync(join(__dirname, "..", "..", "package.json"), "utf8"));
+const packageJson = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"));
 
 program
   .name("changelogger")

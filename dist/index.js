@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 996:
+/***/ 58704:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -48,8 +48,8 @@ const inquirer_1 = __importDefault(__nccwpck_require__(2432));
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const yaml = __importStar(__nccwpck_require__(38815));
-const config_1 = __nccwpck_require__(55042);
-const git_1 = __nccwpck_require__(6538);
+const config_1 = __nccwpck_require__(47230);
+const git_1 = __nccwpck_require__(15454);
 /**
  * Cleans up a string to be used as a filename
  * - Converts to lowercase
@@ -185,7 +185,7 @@ async function run(options) {
 
 /***/ }),
 
-/***/ 21613:
+/***/ 77993:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -227,9 +227,23 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
-const config_1 = __nccwpck_require__(55042);
+const config_1 = __nccwpck_require__(47230);
 const yaml = __importStar(__nccwpck_require__(38815));
 const child_process_1 = __nccwpck_require__(35317);
+/**
+ * Checks if the current directory is a Git repository.
+ *
+ * @returns boolean indicating if we're in a Git repository
+ */
+function isGitRepository() {
+    try {
+        (0, child_process_1.execSync)("git rev-parse --is-inside-work-tree", { stdio: "ignore" });
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
 /**
  * Validates changelog entries.
  *
@@ -277,6 +291,9 @@ async function run(options = {}) {
     }
     // If from and to are specified, validate git changes
     else if (options.from && options.to) {
+        if (!isGitRepository()) {
+            throw new Error("This command must be run from within a Git repository");
+        }
         try {
             const changes = (0, child_process_1.execSync)(`git diff --name-only ${options.from} ${options.to}`).toString().split("\n");
             const changelogFiles = changes.filter(file => file.startsWith(config.changesDir) && file.endsWith(".yaml"));
@@ -353,7 +370,7 @@ function validateChangeFile(changeFile, filename, config, errors) {
 
 /***/ }),
 
-/***/ 56440:
+/***/ 45676:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -395,10 +412,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
-const semver = __importStar(__nccwpck_require__(62088));
 const yaml = __importStar(__nccwpck_require__(38815));
-const config_1 = __nccwpck_require__(55042);
-const writing_1 = __nccwpck_require__(59306);
+const config_1 = __nccwpck_require__(47230);
+const versioning_1 = __nccwpck_require__(17948);
+const writing_1 = __nccwpck_require__(14382);
 /**
  * Ensures a directory exists, creating it if it doesn't.
  *
@@ -474,6 +491,7 @@ async function ensureFileExists(filePath, defaultContent) {
  */
 async function run(options) {
     const config = await (0, config_1.loadConfig)();
+    const versioningStrategy = await (0, versioning_1.loadVersioningStrategy)(config.versioning);
     const changes = [];
     let processedFiles = [];
     // Ensure changes directory exists
@@ -510,17 +528,20 @@ async function run(options) {
         return significanceOrder[a.significance] - significanceOrder[b.significance];
     });
     // Determine version and date
-    const date = options.date || new Date().toISOString().split("T")[0];
+    const date = (options.date ?? new Date().toISOString().split("T")[0]);
     let version = options.overwriteVersion;
     if (!version) {
         // Get current version from the first file
         const firstFile = config.files[0];
+        if (!firstFile) {
+            throw new Error("No files configured for changelog");
+        }
         const currentVersion = await getCurrentVersion(firstFile.path);
         const significance = determineSignificance(changes);
-        version = getNextVersion(currentVersion, significance);
+        version = getNextVersion(currentVersion, significance, versioningStrategy);
     }
-    // Validate version format
-    if (!semver.valid(version)) {
+    // Validate version format using the configured versioning strategy
+    if (!versioningStrategy.isValidVersion(version)) {
         throw new Error(`Invalid version format: ${version}`);
     }
     // If dry run, show header
@@ -543,7 +564,7 @@ async function run(options) {
             await ensureFileExists(file.path, defaultContent);
         }
         const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
-        const previousVersion = fileStrategy.versionHeaderMatcher(content, version);
+        const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "0.0.0";
         // Format the new changelog entry
         const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
         const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
@@ -611,7 +632,13 @@ async function getCurrentVersion(filePath) {
             // Try Keep a Changelog format
             match = content.match(/## \[([^\]]+)\]/);
         }
-        return match ? match[1] : "0.1.0";
+        const extractedVersion = match?.[1];
+        // Only return the extracted version if it looks like a valid semantic version
+        // This regex matches basic semver patterns like 1.0.0, 1.2.3.4, etc.
+        if (extractedVersion && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(extractedVersion)) {
+            return extractedVersion;
+        }
+        return "0.1.0";
     }
     catch (error) {
         if (error.code === "ENOENT") {
@@ -635,20 +662,21 @@ function determineSignificance(changes) {
 }
 /**
  * Gets the next version number based on the current version and significance.
+ * Uses the configured versioning strategy.
  *
  * @param currentVersion - The current version string
  * @param significance - The significance of the changes
+ * @param versioningStrategy - The versioning strategy to use
  * @returns The next version string
  */
-function getNextVersion(currentVersion, significance) {
-    const version = semver.valid(currentVersion) || "0.1.0";
-    return semver.inc(version, significance) || "0.1.0";
+function getNextVersion(currentVersion, significance, versioningStrategy) {
+    return versioningStrategy.getNextVersion(currentVersion, significance);
 }
 
 
 /***/ }),
 
-/***/ 6927:
+/***/ 25915:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -673,17 +701,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
-const add_1 = __nccwpck_require__(996);
+const add_1 = __nccwpck_require__(58704);
 Object.defineProperty(exports, "addCommand", ({ enumerable: true, get: function () { return add_1.run; } }));
-const validate_1 = __nccwpck_require__(21613);
+const validate_1 = __nccwpck_require__(77993);
 Object.defineProperty(exports, "validateCommand", ({ enumerable: true, get: function () { return validate_1.run; } }));
-const write_1 = __nccwpck_require__(56440);
+const write_1 = __nccwpck_require__(45676);
 Object.defineProperty(exports, "writeCommand", ({ enumerable: true, get: function () { return write_1.run; } }));
-const keepachangelog_1 = __importDefault(__nccwpck_require__(28411));
-const stellarwp_changelog_1 = __importDefault(__nccwpck_require__(73524));
-const stellarwp_readme_1 = __importDefault(__nccwpck_require__(36818));
-const semver_1 = __importDefault(__nccwpck_require__(56151));
-const stellarwp_1 = __importDefault(__nccwpck_require__(58185));
+const keepachangelog_1 = __importDefault(__nccwpck_require__(82239));
+const stellarwp_changelog_1 = __importDefault(__nccwpck_require__(67744));
+const stellarwp_readme_1 = __importDefault(__nccwpck_require__(56678));
+const semver_1 = __importDefault(__nccwpck_require__(75683));
+const stellarwp_1 = __importDefault(__nccwpck_require__(10325));
 const writingStrategies = {
     keepachangelog: keepachangelog_1.default,
     stellarwpChangelog: stellarwp_changelog_1.default,
@@ -691,24 +719,24 @@ const writingStrategies = {
 };
 exports.writingStrategies = writingStrategies;
 // Export types
-__exportStar(__nccwpck_require__(96141), exports);
+__exportStar(__nccwpck_require__(32433), exports);
 const versioningStrategies = {
     semverStrategy: semver_1.default,
     stellarStrategy: stellarwp_1.default,
 };
 exports.versioningStrategies = versioningStrategies;
 // Export utility functions
-var config_1 = __nccwpck_require__(55042);
+var config_1 = __nccwpck_require__(47230);
 Object.defineProperty(exports, "loadConfig", ({ enumerable: true, get: function () { return config_1.loadConfig; } }));
-var writing_1 = __nccwpck_require__(59306);
+var writing_1 = __nccwpck_require__(14382);
 Object.defineProperty(exports, "loadWritingStrategy", ({ enumerable: true, get: function () { return writing_1.loadWritingStrategy; } }));
-var versioning_1 = __nccwpck_require__(20240);
+var versioning_1 = __nccwpck_require__(17948);
 Object.defineProperty(exports, "loadVersioningStrategy", ({ enumerable: true, get: function () { return versioning_1.loadVersioningStrategy; } }));
 
 
 /***/ }),
 
-/***/ 96141:
+/***/ 32433:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -718,7 +746,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ }),
 
-/***/ 55042:
+/***/ 47230:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -810,10 +838,9 @@ async function loadConfig(reload = false, filePath) {
         return cachedConfig;
     }
     try {
-        // If no file path provided or file doesn't exist, return default config
+        // If no file path provided, try to load package.json from current directory
         if (!filePath) {
-            cachedConfig = exports.defaultConfig;
-            return exports.defaultConfig;
+            filePath = "package.json";
         }
         // Read and parse JSON file
         const fileContents = await fs.readFile(filePath, "utf-8");
@@ -843,7 +870,7 @@ async function loadConfig(reload = false, filePath) {
 
 /***/ }),
 
-/***/ 6538:
+/***/ 15454:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -886,7 +913,7 @@ async function getRemoteUrl() {
 
 /***/ }),
 
-/***/ 20240:
+/***/ 17948:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -963,7 +990,7 @@ async function loadVersioningStrategy(versioning) {
                         return version;
                 }
             },
-            isValidVersion: (version) => Boolean(semver.valid(semver.coerce(version))),
+            isValidVersion: (version) => Boolean(semver.valid(version)),
             compareVersions: (v1, v2) => {
                 const version1 = semver.valid(semver.coerce(v1));
                 const version2 = semver.valid(semver.coerce(v2));
@@ -974,7 +1001,7 @@ async function loadVersioningStrategy(versioning) {
         };
     }
     if (versioning === "stellarwp") {
-        const stellarStrategy = await Promise.resolve().then(() => __importStar(__nccwpck_require__(58185)));
+        const stellarStrategy = await Promise.resolve().then(() => __importStar(__nccwpck_require__(10325)));
         return stellarStrategy.default;
     }
     throw new Error(`Unknown versioning strategy: ${versioning}`);
@@ -983,7 +1010,7 @@ async function loadVersioningStrategy(versioning) {
 
 /***/ }),
 
-/***/ 56151:
+/***/ 75683:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1048,7 +1075,7 @@ exports["default"] = semverStrategy;
 
 /***/ }),
 
-/***/ 58185:
+/***/ 10325:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1122,7 +1149,7 @@ exports["default"] = stellarStrategy;
 
 /***/ }),
 
-/***/ 59306:
+/***/ 14382:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1186,11 +1213,11 @@ async function loadWritingStrategy(formatter) {
     // Handle built-in writing strategies
     switch (formatter) {
         case "keepachangelog":
-            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(28411)))).default;
+            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(82239)))).default;
         case "stellarwp-changelog":
-            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(73524)))).default;
+            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(67744)))).default;
         case "stellarwp-readme":
-            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(36818)))).default;
+            return (await Promise.resolve().then(() => __importStar(__nccwpck_require__(56678)))).default;
         default:
             throw new Error(`Unknown writing strategy: ${formatter}`);
     }
@@ -1199,13 +1226,13 @@ async function loadWritingStrategy(formatter) {
 
 /***/ }),
 
-/***/ 28411:
+/***/ 82239:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __nccwpck_require__(55042);
+const config_1 = __nccwpck_require__(47230);
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -1213,7 +1240,7 @@ const keepachangelog = {
             if (!acc[change.type]) {
                 acc[change.type] = [];
             }
-            acc[change.type].push(change.entry);
+            acc[change.type]?.push(change.entry);
             return acc;
         }, {});
         // Format each type's changes
@@ -1256,13 +1283,13 @@ exports["default"] = keepachangelog;
 
 /***/ }),
 
-/***/ 73524:
+/***/ 67744:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __nccwpck_require__(55042);
+const config_1 = __nccwpck_require__(47230);
 const stellarwpChangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -1270,7 +1297,7 @@ const stellarwpChangelog = {
             if (!acc[change.type]) {
                 acc[change.type] = [];
             }
-            acc[change.type].push(change.entry);
+            acc[change.type]?.push(change.entry);
             return acc;
         }, {});
         // Format each type's changes using the original types from the changes
@@ -1294,7 +1321,7 @@ const stellarwpChangelog = {
         // Match StellarWP version headers
         const versionRegex = new RegExp(`^(### \\[${version}\\] (?:[^=]+))$`, "m");
         const match = content.match(versionRegex);
-        return match ? match[1].trim() : undefined;
+        return match ? match[1]?.trim() : undefined;
     },
     changelogHeaderMatcher(content) {
         // Find the position after the first version header
@@ -1312,13 +1339,13 @@ exports["default"] = stellarwpChangelog;
 
 /***/ }),
 
-/***/ 36818:
+/***/ 56678:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __nccwpck_require__(55042);
+const config_1 = __nccwpck_require__(47230);
 const stellarwpReadme = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -1326,7 +1353,7 @@ const stellarwpReadme = {
             if (!acc[change.type]) {
                 acc[change.type] = [];
             }
-            acc[change.type].push(change.entry);
+            acc[change.type]?.push(change.entry);
             return acc;
         }, {});
         // Format each type's changes using the original types from the changes
@@ -1350,7 +1377,7 @@ const stellarwpReadme = {
         // Match StellarWP version headers
         const versionRegex = new RegExp(`^(= \\[${version}\\] (?:[^=])+ =)$`, "m");
         const match = content.match(versionRegex);
-        return match ? match[1].trim() : undefined;
+        return match ? match[1]?.trim() : undefined;
     },
     changelogHeaderMatcher(content) {
         // Find the position after the first version header
@@ -44701,7 +44728,7 @@ module.exports = /*#__PURE__*/JSON.parse('[["0","\\u0000",128],["a1","｡",62],[
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(6927);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(25915);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
