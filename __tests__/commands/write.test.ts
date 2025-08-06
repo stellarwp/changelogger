@@ -919,15 +919,15 @@ describe("write command", () => {
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall?.[1] as string;
 
-    // The key part of this test is that the old content after version 1.1.0 is preserved
-    // We don't care about the exact format, just that the preservation works
+    // The key part of this test is that when using --overwrite-version,
+    // new changes are APPENDED to the existing version content
 
     // Should contain the new entry for 1.1.0
     expect(writtenContent).toContain("1.1.0");
     expect(writtenContent).toContain("New changelog entry");
 
-    // Most importantly: Should NOT contain the old 1.1.0 content (it was replaced)
-    expect(writtenContent).not.toContain("Old changelog for 1.1.0");
+    // Most importantly: Should ALSO contain the old 1.1.0 content (it was appended to, not replaced)
+    expect(writtenContent).toContain("Old changelog for 1.1.0");
 
     // The bug was that everything after 1.1.0 was being deleted
     // So we just need to verify that content after 1.1.0 still exists

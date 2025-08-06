@@ -572,14 +572,21 @@ async function run(options) {
         const newEntry = `${header}${link}${changesText}`.trim();
         // Find where to insert the new entry
         const insertIndex = fileStrategy.changelogHeaderMatcher(content);
-        // If we found a previous version, we need to replace that section
+        // If we found a previous version, we need to append to that section
         let newContent;
         if (previousVersion) {
-            // Find the start of the version section
-            const versionStart = content.indexOf(previousVersion);
+            // Find the start of the version section header
+            const versionHeaderStart = content.indexOf(previousVersion);
+            // Find where the version header line ends (after the full header line)
+            const headerLineEnd = content.indexOf("\n", versionHeaderStart) + 1;
+            // Skip any empty lines after the header
+            let contentStart = headerLineEnd;
+            while (contentStart < content.length && content[contentStart] === "\n") {
+                contentStart++;
+            }
             // Find the next version header after the current one
             // We need to search for any version pattern, not the specific version we're overwriting
-            const contentAfterVersion = content.slice(versionStart + previousVersion.length);
+            const contentAfterHeader = content.slice(contentStart);
             // Use a generic version pattern based on the strategy
             // For stellarwp-readme: = [version] date =
             // For keepachangelog: ## [version] - date
@@ -589,27 +596,24 @@ async function run(options) {
             ];
             let nextVersionIndex = -1;
             for (const pattern of versionPatterns) {
-                const match = contentAfterVersion.match(pattern);
+                const match = contentAfterHeader.match(pattern);
                 if (match && match.index !== undefined) {
                     nextVersionIndex = match.index;
                     break;
                 }
             }
-            // Determine where the current section ends
-            const sectionEnd = (() => {
-                if (nextVersionIndex !== -1) {
-                    // Found next version header
-                    return versionStart + previousVersion.length + nextVersionIndex;
-                }
-                // No next version found, look for empty lines
-                const nextEmptyLine = content.indexOf("\n\n", versionStart);
-                if (nextEmptyLine !== -1) {
-                    return nextEmptyLine + 2;
-                }
-                return content.length;
-            })();
-            // Replace the version section while preserving the rest of the content
-            newContent = `${content.slice(0, versionStart)}${newEntry}\n${content.slice(sectionEnd)}`;
+            // Find where to insert the new changes (right after the header)
+            // Append the new changes after the version header, keeping existing content
+            if (nextVersionIndex !== -1) {
+                // There's existing content and a next version
+                const existingContent = contentAfterHeader.slice(0, nextVersionIndex);
+                // Merge new changes with existing content
+                newContent = `${content.slice(0, headerLineEnd)}${changesText}\n${existingContent}${content.slice(contentStart + nextVersionIndex)}`;
+            }
+            else {
+                // No next version found, append at the end of current content
+                newContent = `${content.slice(0, headerLineEnd)}${changesText}\n\n${contentAfterHeader}`;
+            }
         }
         else {
             // No previous version found, insert at the header position
