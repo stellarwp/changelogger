@@ -859,4 +859,60 @@ describe("write command", () => {
     expect(writtenContent).toContain("### Fixed");
     expect(writtenContent).toContain("- Bug fix");
   });
+
+  it("should support manually setting a non-existent version", async () => {
+    const changeFile: ChangeFile = {
+      type: "added",
+      significance: "minor",
+      entry: "Added new feature",
+    };
+
+    // Mock reading change files
+    mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("changelog.md")) {
+        return "## [1.1.0] 2024-03-22### Added\n- Old feature\n";
+      }
+      if (filePath.endsWith("changelogger.config.json")) {
+        return JSON.stringify({
+          formatter: "stellarwp",
+          types: {
+            added: "Added",
+            fixed: "Fixed",
+            changed: "Changed",
+            feature: "Feature",
+            fix: "Fix",
+            tweak: "Tweak",
+          },
+        });
+      }
+      throw new Error(`Unexpected file path: ${filePath}`);
+    });
+
+    const options: WriteCommandOptions = {
+      overwriteVersion: "1.2.0", // This version does not exist in the changelog.
+    };
+
+    const result = await run(options);
+
+    expect(mockedFs.writeFile).toHaveBeenCalled();
+    expect(result).toContain("Updated changelog.md to version 1.2.0");
+
+    // Verify changelog content
+    const writeCall = mockedFs.writeFile.mock.calls[0];
+    const writtenContent = writeCall?.[1] as string;
+    expect(writtenContent).toContain("## [1.2.0]");
+    expect(writtenContent).toContain("- Added new feature");
+
+    // Verify new version is at the top of the file (before old version)
+    const newVersionIndex = writtenContent.indexOf("## [1.2.0]");
+    const oldVersionIndex = writtenContent.indexOf("## [1.1.0]");
+    expect(newVersionIndex).toBeGreaterThan(-1);
+    expect(oldVersionIndex).toBeGreaterThan(-1);
+    expect(newVersionIndex).toBeLessThan(oldVersionIndex);
+  });
 });
