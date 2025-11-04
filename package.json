@@ -58,7 +58,7 @@
     }
   },
   "bin": {
-    "changelogger": "./dist/cli.js"
+    "changelogger": "dist/cli.js"
   },
   "scripts": {
     "clean": "rm -rf dist",
