@@ -565,7 +565,7 @@ async function run(options) {
             await ensureFileExists(file.path, defaultContent);
         }
         const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
-        const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "0.0.0";
+        const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "";
         // Format the new changelog entry
         const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
         const changesText = fileStrategy.formatChanges(version, changes, previousVersion);

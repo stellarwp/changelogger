@@ -60847,7 +60847,7 @@ async function run(options) {
             await ensureFileExists(file.path, defaultContent);
         }
         const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
-        const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "0.0.0";
+        const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "";
         // Format the new changelog entry
         const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
         const changesText = fileStrategy.formatChanges(version, changes, previousVersion);
@@ -61110,7 +61110,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
+exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.getTypeLabel = exports.defaultConfig = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
 const add_1 = __nccwpck_require__(35357);
 Object.defineProperty(exports, "addCommand", ({ enumerable: true, get: function () { return add_1.run; } }));
@@ -61139,6 +61139,8 @@ exports.versioningStrategies = versioningStrategies;
 // Export utility functions
 var config_1 = __nccwpck_require__(67799);
 Object.defineProperty(exports, "loadConfig", ({ enumerable: true, get: function () { return config_1.loadConfig; } }));
+Object.defineProperty(exports, "defaultConfig", ({ enumerable: true, get: function () { return config_1.defaultConfig; } }));
+Object.defineProperty(exports, "getTypeLabel", ({ enumerable: true, get: function () { return config_1.getTypeLabel; } }));
 var writing_1 = __nccwpck_require__(50473);
 Object.defineProperty(exports, "loadWritingStrategy", ({ enumerable: true, get: function () { return writing_1.loadWritingStrategy; } }));
 var versioning_1 = __nccwpck_require__(26877);
