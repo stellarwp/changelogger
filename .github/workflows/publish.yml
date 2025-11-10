@@ -1,0 +1,73 @@
+name: Publish package on npm
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
+
+  check-package-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Get package version from NPM registry
+        id: npm_version
+        run: |
+          # Try to get the version from npm, but handle case where package doesn't exist yet
+          NPM_VERSION=$(npm view @stellarwp/changelogger version 2>/dev/null || echo "0.0.0")
+          echo "npm_version=$NPM_VERSION" >> $GITHUB_OUTPUT
+          echo "NPM registry version: $NPM_VERSION"
+
+      - name: Get package version from package.json
+        id: package_version
+        run: |
+          PACKAGE_VERSION=$(jq -r .version ./package.json)
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "Package.json version: $PACKAGE_VERSION"
+
+      - name: Compare versions using semver
+        run: |
+          NPM_VERSION="${{ steps.npm_version.outputs.npm_version }}"
+          PACKAGE_VERSION="${{ steps.package_version.outputs.package_version }}"
+
+          echo "Comparing versions:"
+          echo "  NPM registry: $NPM_VERSION"
+          echo "  package.json: $PACKAGE_VERSION"
+
+          # Use npx semver to check if package version is greater than npm version
+          if npx semver "$PACKAGE_VERSION" -r ">$NPM_VERSION" > /dev/null 2>&1; then
+            echo "✓ Package version ($PACKAGE_VERSION) is greater than NPM registry version ($NPM_VERSION)"
+          else
+            echo "✗ Package version ($PACKAGE_VERSION) is not greater than NPM registry version ($NPM_VERSION)"
+            echo "Please bump the version in package.json before publishing."
+            exit 1
+          fi
+
+  publish-npm:
+    needs: [build, check-package-version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
