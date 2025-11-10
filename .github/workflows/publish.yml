@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18.17.0
+          node-version-file: .nvmrc
       - run: npm ci
       - run: npm run build
       - run: npm run test
@@ -50,7 +50,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18.17.0
+          node-version-file: .nvmrc
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm publish
