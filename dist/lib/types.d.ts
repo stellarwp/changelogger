@@ -1,5 +1,5 @@
 export type Significance = "patch" | "minor" | "major";
-export type ChangeType = "added" | "changed" | "deprecated" | "removed" | "fixed" | "security" | "feature" | "tweak" | "fix" | "compatibility" | "language";
+export type ChangeType = "added" | "changed" | "deprecated" | "removed" | "security" | "feature" | "tweak" | "fix" | "compatibility" | "language";
 export interface ChangeFile {
     significance: Significance;
     type: ChangeType;
