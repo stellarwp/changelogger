@@ -97,7 +97,7 @@
       "changed": "Changed",
       "deprecated": "Deprecated",
       "removed": "Removed",
-      "fix": "Fixed",
+      "fix": "Fix",
       "security": "Security"
     }
   }

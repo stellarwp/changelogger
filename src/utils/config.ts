@@ -13,7 +13,7 @@ export const defaultConfig: Config = {
     changed: "Changed",
     deprecated: "Deprecated",
     removed: "Removed",
-    fix: "Fixed",
+    fix: "Fix",
     security: "Security",
     feature: "Feature",
     tweak: "Tweak",
