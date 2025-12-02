@@ -219,7 +219,7 @@ Configure the changelogger through your package.json:
       "changed": "Changed",
       "deprecated": "Deprecated",
       "removed": "Removed",
-      "fixed": "Fixed",
+      "fix": "Fix",
       "security": "Security"
     },
     "versioning": "semver",
@@ -378,7 +378,7 @@ Available built-in strategies:
 
    - New feature description
 
-   ### Fixed
+   ### Fix
 
    - Bug fix description
 
@@ -538,7 +538,7 @@ Available built-in strategies:
    # Version 1.2.3 (2024-03-22)
 
    - [ADDED] New feature description
-   - [FIXED] Bug fix description
+   - [FIX] Bug fix description
      Compare: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
 
@@ -561,7 +561,7 @@ When adding new changelog entries:
 
 4. **Interactive Prompts**:
    - Significance: patch, minor, or major
-   - Type: added, changed, deprecated, removed, fixed, or security
+   - Type: added, changed, deprecated, removed, fix, or security
    - Entry: Description of the change
    - Filename: Optional custom filename
 
@@ -575,7 +575,7 @@ Change files are YAML files containing:
 
 ```yaml
 significance: patch|minor|major
-type: added|changed|deprecated|removed|fixed|security
+type: added|changed|deprecated|removed|fix|security
 entry: Description of the change
 ```
 
@@ -704,7 +704,7 @@ const config: Config = await loadConfig();
 
 const change: ChangeFile = {
   significance: 'patch',
-  type: 'fixed',
+  type: 'fix',
   entry: 'Fixed a bug'
 };
 
