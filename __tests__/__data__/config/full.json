@@ -10,11 +10,10 @@
       "changed": "Enhancement 🚀",
       "deprecated": "Deprecated ⚠️",
       "removed": "Removed 🗑️",
-      "fixed": "Bug Fix 🐛",
+      "fix": "Bug Fix 🐛",
       "security": "Security 🔒",
       "feature": "Feature 🎯",
       "tweak": "Tweak 🔧",
-      "fix": "Fix 🩹",
       "compatibility": "Compatibility 🤝",
       "language": "Language 🌐"
     },

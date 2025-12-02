@@ -6,13 +6,13 @@ describe("Keep a Changelog Writing Strategy", () => {
     it("should group changes by type", () => {
       const changes: ChangeFile[] = [
         { type: "added", entry: "Feature A", significance: "minor" },
-        { type: "fixed", entry: "Bug fix B", significance: "patch" },
+        { type: "fix", entry: "Bug fix B", significance: "patch" },
         { type: "added", entry: "Feature C", significance: "minor" },
       ];
 
       const result = keepachangelog.formatChanges("1.0.0", changes);
       expect(result).toContain("### Added\n- Feature A\n- Feature C");
-      expect(result).toContain("### Fixed\n- Bug fix B");
+      expect(result).toContain("### Fix\n- Bug fix B");
     });
 
     it("should capitalize type names", () => {
@@ -46,7 +46,7 @@ describe("Keep a Changelog Writing Strategy", () => {
         { type: "changed", entry: "Change B", significance: "minor" },
         { type: "deprecated", entry: "Deprecation C", significance: "minor" },
         { type: "removed", entry: "Removal D", significance: "major" },
-        { type: "fixed", entry: "Fix E", significance: "patch" },
+        { type: "fix", entry: "Fix E", significance: "patch" },
         { type: "security", entry: "Security F", significance: "patch" },
       ];
 
@@ -55,7 +55,7 @@ describe("Keep a Changelog Writing Strategy", () => {
       expect(result).toContain("### Changed\n- Change B");
       expect(result).toContain("### Deprecated\n- Deprecation C");
       expect(result).toContain("### Removed\n- Removal D");
-      expect(result).toContain("### Fixed\n- Fix E");
+      expect(result).toContain("### Fix\n- Fix E");
       expect(result).toContain("### Security\n- Security F");
     });
   });

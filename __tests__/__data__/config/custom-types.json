@@ -9,7 +9,7 @@
       "changed": "Enhancement",
       "deprecated": "Soon Removing",
       "removed": "Deleted",
-      "fixed": "Bug Fix",
+      "fix": "Bug Fix",
       "security": "Security Patch"
     }
   }

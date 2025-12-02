@@ -38,10 +38,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -94,10 +93,9 @@ describe("write command", () => {
               formatter: "keepachangelog",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Feature",
-                fix: "Fix",
                 tweak: "Tweak",
               },
             })
@@ -146,10 +144,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -233,10 +230,9 @@ describe("write command", () => {
           formatter: "keepachangelog",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -288,10 +284,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -359,7 +354,7 @@ describe("write command", () => {
         entry: "Added feature 1",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug 1",
       },
@@ -387,10 +382,9 @@ describe("write command", () => {
               formatter: "stellarwp",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Added",
-                fix: "Fixed",
                 tweak: "Changed",
               },
             })
@@ -413,7 +407,7 @@ describe("write command", () => {
         entry: "Added feature 1",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug 1",
       },
@@ -449,10 +443,9 @@ describe("write command", () => {
               formatter: "stellarwp",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Added",
-                fix: "Fixed",
                 tweak: "Changed",
               },
             })
@@ -471,7 +464,7 @@ describe("write command", () => {
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added feature 1");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug 1");
     expect(writtenContent).toContain("### Changed");
     expect(writtenContent).toContain("- Changed behavior");
@@ -485,7 +478,7 @@ describe("write command", () => {
         entry: "",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug 1",
       },
@@ -513,10 +506,9 @@ describe("write command", () => {
               formatter: "stellarwp",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Added",
-                fix: "Fixed",
                 tweak: "Changed",
               },
             })
@@ -533,7 +525,7 @@ describe("write command", () => {
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.1]");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug 1");
   });
 
@@ -581,10 +573,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Added",
-            fix: "Fixed",
             tweak: "Changed",
           },
         });
@@ -606,9 +597,9 @@ describe("write command", () => {
   it("should handle invalid version in changelog", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
-        entry: "Fixed bug",
+        entry: "Fix bug",
       },
     ];
 
@@ -637,7 +628,7 @@ describe("write command", () => {
         entry: "Added feature 1",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "minor",
         entry: "Fixed bug 1",
       },
@@ -668,10 +659,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -688,7 +678,7 @@ describe("write command", () => {
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added feature 1");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug 1");
     expect(writtenContent).toContain("### Changed");
     expect(writtenContent).toContain("- Changed behavior");
@@ -705,7 +695,7 @@ describe("write command", () => {
 
     const newChanges: ChangeFile[] = [
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug in feature",
       },
@@ -741,7 +731,7 @@ describe("write command", () => {
     const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.0]");
     expect(writtenContent).toContain("* Added - Initial feature");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug in feature");
   });
 
@@ -756,7 +746,7 @@ describe("write command", () => {
 
     const newChanges: ChangeFile[] = [
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug in feature",
       },
@@ -776,10 +766,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -802,7 +791,7 @@ describe("write command", () => {
     const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("= [1.0.0] 2024-03-21 =");
     expect(writtenContent).toContain("* Added - Initial feature");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug in feature");
   });
 
@@ -819,7 +808,7 @@ describe("write command", () => {
         entry: "New feature",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Bug fix",
       },
@@ -856,7 +845,7 @@ describe("write command", () => {
     expect(writtenContent).toContain("- Breaking change");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- New feature");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Bug fix");
   });
 
@@ -882,10 +871,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });

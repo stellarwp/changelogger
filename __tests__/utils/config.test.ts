@@ -102,11 +102,10 @@ describe("config", () => {
         changed: "Changed",
         deprecated: "Deprecated",
         removed: "Removed",
-        fixed: "Fixed",
+        fix: "Fix",
         security: "Security",
         feature: "Feature",
         tweak: "Tweak",
-        fix: "Fix",
         compatibility: "Compatibility",
         language: "Language",
       },
@@ -132,7 +131,7 @@ describe("config", () => {
     expect(defaultConfig.files[0]?.strategy).toBe("keepachangelog");
 
     // Validate required type keys exist
-    const requiredTypes = ["added", "changed", "deprecated", "removed", "fixed", "security", "feature", "tweak", "fix", "compatibility", "language"];
+    const requiredTypes = ["added", "changed", "deprecated", "removed", "security", "feature", "tweak", "fix", "compatibility", "language"];
     requiredTypes.forEach(type => {
       expect(defaultConfig.types[type as keyof typeof defaultConfig.types]).toBeDefined();
     });
@@ -209,7 +208,7 @@ describe("config", () => {
       expect(config.types.changed).toBe("Enhancement");
       expect(config.types.deprecated).toBe("Soon Removing");
       expect(config.types.removed).toBe("Deleted");
-      expect(config.types.fixed).toBe("Bug Fix");
+      expect(config.types.fix).toBe("Bug Fix");
       expect(config.types.security).toBe("Security Patch");
 
       // Verify default values for non-specified fields
