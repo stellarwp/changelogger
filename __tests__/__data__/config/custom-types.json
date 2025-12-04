@@ -7,7 +7,7 @@
     "types": {
       "deprecated": "Soon Removing",
       "feature": "New Feature",
-      "fixed": "Bug Fix",
+      "fix": "Bug Fix",
       "removed": "Deleted",
       "security": "Security Patch",
       "tweak": "Tweak"

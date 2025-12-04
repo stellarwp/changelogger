@@ -1,3 +1,4 @@
+import { defaultConfig } from "../../src/utils/config";
 import { Config } from "../../src/types";
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -21,7 +22,7 @@ describe("config", () => {
   });
 
   describe("getTypeLabel", () => {
-    let getTypeLabel: (type: string, config?: Config) => string;
+    let getTypeLabel: (type: string, strategy?: string, config?: Config) => string;
     let defaultConfig: Config;
 
     beforeEach(async () => {
@@ -33,8 +34,8 @@ describe("config", () => {
     });
 
     it("should return default label for known type when no config is loaded", () => {
-      expect(getTypeLabel("feature")).toBe("Added");
-      expect(getTypeLabel("tweak")).toBe("Changed");
+      expect(getTypeLabel("feature")).toBe("Feature");
+      expect(getTypeLabel("tweak")).toBe("Tweak");
       expect(getTypeLabel("deprecated")).toBe("Deprecated");
     });
 
@@ -50,7 +51,7 @@ describe("config", () => {
 
       // Verify it uses the cached config
       expect(getTypeLabel("feature")).toBe("New Feature");
-      expect(getTypeLabel("tweak")).toBe("Enhancement");
+      expect(getTypeLabel("tweak")).toBe("Tweak");
       expect(getTypeLabel("deprecated")).toBe("Soon Removing");
     });
 
@@ -64,12 +65,12 @@ describe("config", () => {
         ...defaultConfig,
         types: {
           ...defaultConfig.types,
-          added: "Different Label",
+          feature: "Different Label",
         },
       };
 
       // Verify it uses the provided config
-      expect(getTypeLabel("feature", differentConfig)).toBe("Different Label");
+      expect(getTypeLabel("feature", '', differentConfig)).toBe("Different Label");
       expect(getTypeLabel("feature")).toBe("New Feature"); // Still uses cached config
     });
 
@@ -77,48 +78,22 @@ describe("config", () => {
       const configPath = path.join(testDataDir, "custom-types.json");
       const config = await loadConfig(false, configPath);
 
-      expect(getTypeLabel("feature", config)).toBe("New Feature");
-      expect(getTypeLabel("tweak", config)).toBe("Enhancement");
-      expect(getTypeLabel("deprecated", config)).toBe("Soon Removing");
+      expect(getTypeLabel("feature", '',config)).toBe("New Feature");
+      expect(getTypeLabel("tweak", '', config)).toBe("Tweak");
+      expect(getTypeLabel("deprecated", '', config)).toBe("Soon Removing");
     });
 
     it("should handle emoji types from full config", async () => {
       const configPath = path.join(testDataDir, "full.json");
       const config = await loadConfig(false, configPath);
 
-      expect(getTypeLabel("feature", config)).toBe("New Feature ✨");
-      expect(getTypeLabel("tweak", config)).toBe("Enhancement 🚀");
-      expect(getTypeLabel("deprecated", config)).toBe("Deprecated ⚠️");
+      expect(getTypeLabel("feature", '', config)).toBe("New Feature ✨");
+      expect(getTypeLabel("tweak", '', config)).toBe("Tweak 🔧");
+      expect(getTypeLabel("deprecated", '', config)).toBe("Deprecated ⚠️");
     });
   });
 
   it("should have valid default config structure", () => {
-    const defaultConfig: Config = {
-      changelogFile: "changelog.md",
-      changesDir: "changelog",
-      ordering: ["type", "content"],
-      types: {
-        added: "Added",
-        changed: "Changed",
-        deprecated: "Deprecated",
-        removed: "Removed",
-        fix: "Fix",
-        security: "Security",
-        feature: "Feature",
-        tweak: "Tweak",
-        compatibility: "Compatibility",
-        language: "Language",
-      },
-      formatter: "keepachangelog",
-      versioning: "semver",
-      files: [
-        {
-          path: "changelog.md",
-          strategy: "keepachangelog",
-        },
-      ],
-    };
-
     // Basic structure validation
     expect(defaultConfig.changelogFile).toBe("changelog.md");
     expect(defaultConfig.changesDir).toBe("changelog");
@@ -131,7 +106,7 @@ describe("config", () => {
     expect(defaultConfig.files[0]?.strategy).toBe("keepachangelog");
 
     // Validate required type keys exist
-    const requiredTypes = ["feature", "tweak", "deprecated", "removed", "security", "feature", "tweak", "fix", "compatibility", "language"];
+    const requiredTypes = ["compatibility", "deprecated", "feature", "fix", "language", "removed", "security", "tweak"];
     requiredTypes.forEach(type => {
       expect(defaultConfig.types[type as keyof typeof defaultConfig.types]).toBeDefined();
     });
@@ -193,8 +168,8 @@ describe("config", () => {
       expect(config.ordering).toEqual(["type", "content"]);
       expect(config.formatter).toBe("keepachangelog");
       expect(config.versioning).toBe("semver");
-      expect(config.types.added).toBe("Added");
-      expect(config.types.changed).toBe("Changed");
+      expect(config.types.feature).toBe("Feature");
+      expect(config.types.tweak).toBe("Tweak");
     });
 
     it("should handle custom types config correctly", async () => {
@@ -202,8 +177,8 @@ describe("config", () => {
       const config = await loadConfig(false, configPath);
 
       // Verify custom types are used
-      expect(config.types.added).toBe("New Feature");
-      expect(config.types.changed).toBe("Enhancement");
+      expect(config.types.feature).toBe("New Feature");
+      expect(config.types.tweak).toBe("Tweak");
       expect(config.types.deprecated).toBe("Soon Removing");
       expect(config.types.removed).toBe("Deleted");
       expect(config.types.fix).toBe("Bug Fix");
@@ -239,8 +214,8 @@ describe("config", () => {
       expect(config.versioning).toBe("custom-semver");
 
       // Verify custom types with emojis
-      expect(config.types.added).toBe("New Feature ✨");
-      expect(config.types.changed).toBe("Enhancement 🚀");
+      expect(config.types.feature).toBe("New Feature ✨");
+      expect(config.types.tweak).toBe("Tweak 🔧");
       expect(config.types.deprecated).toBe("Deprecated ⚠️");
 
       // Verify multiple file outputs

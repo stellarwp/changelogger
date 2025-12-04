@@ -13,7 +13,7 @@
       "language": "Language 🌐",
       "removed": "Removed 🗑️",
       "security": "Security 🔒",
-      "tweak": "Tweak 🔧",
+      "tweak": "Tweak 🔧"
     },
     "formatter": "custom-full",
     "versioning": "custom-semver",
