@@ -261,18 +261,18 @@ describe("config", () => {
     it("should combine default and user-provided types and sort them alphabetically by key", async () => {
       const configPath = path.join(testDataDir, "custom-types.json");
       const config = await loadConfig(false, configPath);
-  
+
       // Verify types are sorted alphabetically by key
       expect(Object.keys(config.types)).toEqual(Object.keys(config.types).sort());
     });
-  
+
     it("should allow overwriting default types with user-provided types", async () => {
       const configPath = path.join(testDataDir, "custom-types.json");
       const config = await loadConfig(false, configPath);
-  
+
       const fileContents = await fs.readFile(configPath, "utf-8");
       const customConfig = JSON.parse(fileContents).changelogger;
-  
+
       for (const key in customConfig.types) {
         // The loaded config should use the label from the custom config.
         expect(config.types[key as keyof typeof config.types]).toBe(customConfig.types[key]);
