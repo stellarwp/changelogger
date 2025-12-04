@@ -9,16 +9,27 @@ export const defaultConfig: Config = {
   changesDir: "changelog",
   ordering: ["type", "content"],
   types: {
-    added: "Added",
-    changed: "Changed",
-    deprecated: "Deprecated",
-    removed: "Removed",
-    fix: "Fix",
-    security: "Security",
-    feature: "Feature",
-    tweak: "Tweak",
     compatibility: "Compatibility",
+    deprecated: "Deprecated",
+    feature: "Feature",
+    fix: "Fix",
     language: "Language",
+    removed: "Removed",
+    security: "Security",
+    tweak: "Tweak",
+  },
+  typeLabelOverrides: {
+    keepachangelog: {
+      feature: "Added",
+      fix: "Fixed",
+      tweak: "Changed",
+    },
+    "stellarwp-changelog": {
+      fix: "Fix",
+    },
+    "stellarwp-readme": {
+      fix: "Fix",
+    },
   },
   formatter: "keepachangelog",
   versioning: "semver",
@@ -33,12 +44,18 @@ export const defaultConfig: Config = {
 /**
  * Gets the formatted label for a given changelog type
  * @param type - The type to get the label for
+ * @param strategy - The strategy to use for type labels. If not provided, uses the global labels.
  * @param config - Optional config to use for type labels. If not provided, uses cached config or default config.
  * @returns The formatted label for the type
  */
-export function getTypeLabel(type: string, config?: Config): string {
+export function getTypeLabel(type: string, strategy?: string, config?: Config): string {
   const activeConfig = config || cachedConfig || defaultConfig;
-  return activeConfig.types[type as keyof typeof activeConfig.types] || type;
+
+  if (typeof strategy === "string" && activeConfig?.typeLabelOverrides?.[strategy]?.[type as ChangeType]) {
+    return activeConfig.typeLabelOverrides[strategy][type as ChangeType] || type;
+  }
+
+  return activeConfig.types[type as ChangeType] || type;
 }
 
 /**
@@ -80,11 +97,17 @@ export async function loadConfig(reload = false, filePath?: string): Promise<Con
         {} as Record<ChangeType, string>
       );
 
+    const typeLabelOverrides = {
+      ...defaultConfig.typeLabelOverrides,
+      ...userConfig.typeLabelOverrides,
+    };
+
     // Deep merge user config with default config
     const mergedConfig: Config = {
       ...defaultConfig,
       ...userConfig,
       types,
+      typeLabelOverrides,
       files: userConfig.files || defaultConfig.files,
     };
 
