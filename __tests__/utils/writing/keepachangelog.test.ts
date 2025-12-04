@@ -5,18 +5,18 @@ describe("Keep a Changelog Writing Strategy", () => {
   describe("formatChanges", () => {
     it("should group changes by type", () => {
       const changes: ChangeFile[] = [
-        { type: "added", entry: "Feature A", significance: "minor" },
+        { type: "feature", entry: "Feature A", significance: "minor" },
         { type: "fix", entry: "Bug fix B", significance: "patch" },
-        { type: "added", entry: "Feature C", significance: "minor" },
+        { type: "feature", entry: "Feature C", significance: "minor" },
       ];
 
       const result = keepachangelog.formatChanges("1.0.0", changes);
       expect(result).toContain("### Added\n- Feature A\n- Feature C");
-      expect(result).toContain("### Fix\n- Bug fix B");
+      expect(result).toContain("### Fixed\n- Bug fix B");
     });
 
     it("should capitalize type names", () => {
-      const changes: ChangeFile[] = [{ type: "added", entry: "Feature A", significance: "minor" }];
+      const changes: ChangeFile[] = [{ type: "feature", entry: "Feature A", significance: "minor" }];
 
       const result = keepachangelog.formatChanges("1.0.0", changes);
       expect(result).toContain("### Added");
@@ -30,7 +30,7 @@ describe("Keep a Changelog Writing Strategy", () => {
     it("should preserve entry formatting", () => {
       const changes: ChangeFile[] = [
         {
-          type: "added",
+          type: "feature",
           entry: "**Bold** and _italic_ text",
           significance: "minor",
         },
@@ -42,8 +42,8 @@ describe("Keep a Changelog Writing Strategy", () => {
 
     it("should handle multiple entries of different types", () => {
       const changes: ChangeFile[] = [
-        { type: "added", entry: "Feature A", significance: "minor" },
-        { type: "changed", entry: "Change B", significance: "minor" },
+        { type: "feature", entry: "Feature A", significance: "minor" },
+        { type: "tweak", entry: "Change B", significance: "minor" },
         { type: "deprecated", entry: "Deprecation C", significance: "minor" },
         { type: "removed", entry: "Removal D", significance: "major" },
         { type: "fix", entry: "Fix E", significance: "patch" },
@@ -55,7 +55,7 @@ describe("Keep a Changelog Writing Strategy", () => {
       expect(result).toContain("### Changed\n- Change B");
       expect(result).toContain("### Deprecated\n- Deprecation C");
       expect(result).toContain("### Removed\n- Removal D");
-      expect(result).toContain("### Fix\n- Fix E");
+      expect(result).toContain("### Fixed\n- Fix E");
       expect(result).toContain("### Security\n- Security F");
     });
   });

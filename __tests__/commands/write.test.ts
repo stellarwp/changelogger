@@ -18,7 +18,7 @@ describe("write command", () => {
 
   it("should write changelog entries correctly", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -66,7 +66,7 @@ describe("write command", () => {
 
   it("should write changelog entries correctly in Keep a Changelog format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -124,7 +124,7 @@ describe("write command", () => {
 
   it("should write changelog entries correctly in StellarWP format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -210,7 +210,7 @@ describe("write command", () => {
 
   it("should create changelog file if it does not exist in Keep a Changelog format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -264,7 +264,7 @@ describe("write command", () => {
 
   it("should create changelog file if it does not exist in StellarWP format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -318,7 +318,7 @@ describe("write command", () => {
 
   it("should clean up change files after writing", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -349,7 +349,7 @@ describe("write command", () => {
   it("should determine version bump based on significance", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Added feature 1",
       },
@@ -402,7 +402,7 @@ describe("write command", () => {
   it("should handle multiple change types", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Added feature 1",
       },
@@ -412,7 +412,7 @@ describe("write command", () => {
         entry: "Fixed bug 1",
       },
       {
-        type: "changed",
+        type: "tweak",
         significance: "patch",
         entry: "Changed behavior",
       },
@@ -473,7 +473,7 @@ describe("write command", () => {
   it("should handle empty entries", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "patch",
         entry: "",
       },
@@ -553,7 +553,7 @@ describe("write command", () => {
   it("should handle major version bumps", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "changed",
+        type: "tweak",
         significance: "major",
         entry: "Breaking change",
       },
@@ -623,7 +623,7 @@ describe("write command", () => {
   it("should handle mixed significance levels", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "major",
         entry: "Added feature 1",
       },
@@ -633,7 +633,7 @@ describe("write command", () => {
         entry: "Fixed bug 1",
       },
       {
-        type: "changed",
+        type: "tweak",
         significance: "patch",
         entry: "Changed behavior",
       },
@@ -687,7 +687,7 @@ describe("write command", () => {
   it("should append changes to existing version in Keep a Changelog format", async () => {
     const existingChanges: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Initial feature",
       },
@@ -738,7 +738,7 @@ describe("write command", () => {
   it("should append changes to existing version in StellarWP format", async () => {
     const existingChanges: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Initial feature",
       },
@@ -798,12 +798,12 @@ describe("write command", () => {
   it("should handle mixed significance levels in StellarWP format", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "changed",
+        type: "tweak",
         significance: "major",
         entry: "Breaking change",
       },
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "New feature",
       },
@@ -851,7 +851,7 @@ describe("write command", () => {
 
   it("should support manually setting a non-existent version", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
