@@ -1,6 +1,6 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import { Config } from "../types";
+import { ChangeType, Config } from "../types";
 
 let cachedConfig: Config | null = null;
 
@@ -64,14 +64,27 @@ export async function loadConfig(reload = false, filePath?: string): Promise<Con
     const jsonData = JSON.parse(fileContents);
     const userConfig = jsonData.changelogger || {};
 
+    const mergedTypes = {
+      ...defaultConfig.types,
+      ...userConfig.types,
+    };
+
+    // Sort types alphabetically by key.
+    const types = Object.keys(mergedTypes)
+      .sort()
+      .reduce(
+        (accumulator, key) => {
+          accumulator[key as ChangeType] = mergedTypes[key];
+          return accumulator;
+        },
+        {} as Record<ChangeType, string>
+      );
+
     // Deep merge user config with default config
     const mergedConfig: Config = {
       ...defaultConfig,
       ...userConfig,
-      types: {
-        ...defaultConfig.types,
-        ...userConfig.types,
-      },
+      types,
       files: userConfig.files || defaultConfig.files,
     };
 

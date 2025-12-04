@@ -5,6 +5,7 @@ import * as path from "path";
 describe("config", () => {
   const testDataDir = path.join(__dirname, "../__data__/config");
   const originalCwd = process.cwd();
+  let loadConfig: (reload?: boolean, filePath?: string) => Promise<Config>;
 
   beforeEach(async () => {
     // Change to test data directory before each test
@@ -21,7 +22,6 @@ describe("config", () => {
 
   describe("getTypeLabel", () => {
     let getTypeLabel: (type: string, config?: Config) => string;
-    let loadConfig: (reload?: boolean, filePath?: string) => Promise<Config>;
     let defaultConfig: Config;
 
     beforeEach(async () => {
@@ -138,8 +138,6 @@ describe("config", () => {
   });
 
   describe("caching functionality", () => {
-    let loadConfig: (reload?: boolean, filePath?: string) => Promise<Config>;
-
     beforeEach(async () => {
       // Import the module fresh for each test
       const configModule = await import("../../src/utils/config");
@@ -250,6 +248,35 @@ describe("config", () => {
       expect(config.files[0]?.path).toBe("full-changelog.md");
       expect(config.files[1]?.path).toBe("full-changelog.json");
       expect(config.files[2]?.path).toBe("full-changelog.html");
+    });
+  });
+
+  describe("user-provided types", () => {
+    beforeEach(async () => {
+      // Import the module fresh for each test
+      const configModule = await import("../../src/utils/config");
+      loadConfig = configModule.loadConfig;
+    });
+
+    it("should combine default and user-provided types and sort them alphabetically by key", async () => {
+      const configPath = path.join(testDataDir, "custom-types.json");
+      const config = await loadConfig(false, configPath);
+  
+      // Verify types are sorted alphabetically by key
+      expect(Object.keys(config.types)).toEqual(Object.keys(config.types).sort());
+    });
+  
+    it("should allow overwriting default types with user-provided types", async () => {
+      const configPath = path.join(testDataDir, "custom-types.json");
+      const config = await loadConfig(false, configPath);
+  
+      const fileContents = await fs.readFile(configPath, "utf-8");
+      const customConfig = JSON.parse(fileContents).changelogger;
+  
+      for (const key in customConfig.types) {
+        // The loaded config should use the label from the custom config.
+        expect(config.types[key as keyof typeof config.types]).toBe(customConfig.types[key]);
+      }
     });
   });
 });

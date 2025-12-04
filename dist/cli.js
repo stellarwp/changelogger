@@ -777,14 +777,22 @@ async function loadConfig(reload = false, filePath) {
         const fileContents = await fs.readFile(filePath, "utf-8");
         const jsonData = JSON.parse(fileContents);
         const userConfig = jsonData.changelogger || {};
+        const mergedTypes = {
+            ...exports.defaultConfig.types,
+            ...userConfig.types,
+        };
+        // Sort types alphabetically by key.
+        const types = Object.keys(mergedTypes)
+            .sort()
+            .reduce((accumulator, key) => {
+            accumulator[key] = mergedTypes[key];
+            return accumulator;
+        }, {});
         // Deep merge user config with default config
         const mergedConfig = {
             ...exports.defaultConfig,
             ...userConfig,
-            types: {
-                ...exports.defaultConfig.types,
-                ...userConfig.types,
-            },
+            types,
             files: userConfig.files || exports.defaultConfig.files,
         };
         // Cache the merged config

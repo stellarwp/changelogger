@@ -8,8 +8,9 @@
       "added": "New Feature",
       "changed": "Enhancement",
       "deprecated": "Soon Removing",
+      "feature": "Feature",
+      "fixed": "Bug Fix",
       "removed": "Deleted",
-      "fix": "Bug Fix",
       "security": "Security Patch"
     }
   }
