@@ -798,16 +798,27 @@ exports.defaultConfig = {
     changesDir: "changelog",
     ordering: ["type", "content"],
     types: {
-        added: "Added",
-        changed: "Changed",
-        deprecated: "Deprecated",
-        removed: "Removed",
-        fix: "Fix",
-        security: "Security",
-        feature: "Feature",
-        tweak: "Tweak",
         compatibility: "Compatibility",
+        deprecated: "Deprecated",
+        feature: "Feature",
+        fix: "Fix",
         language: "Language",
+        removed: "Removed",
+        security: "Security",
+        tweak: "Tweak",
+    },
+    typeLabelOverrides: {
+        keepachangelog: {
+            feature: "Added",
+            fix: "Fixed",
+            tweak: "Changed",
+        },
+        "stellarwp-changelog": {
+            fix: "Fix",
+        },
+        "stellarwp-readme": {
+            fix: "Fix",
+        },
     },
     formatter: "keepachangelog",
     versioning: "semver",
@@ -821,11 +832,15 @@ exports.defaultConfig = {
 /**
  * Gets the formatted label for a given changelog type
  * @param type - The type to get the label for
+ * @param strategy - The strategy to use for type labels. If not provided, uses the global labels.
  * @param config - Optional config to use for type labels. If not provided, uses cached config or default config.
  * @returns The formatted label for the type
  */
-function getTypeLabel(type, config) {
+function getTypeLabel(type, strategy, config) {
     const activeConfig = config || cachedConfig || exports.defaultConfig;
+    if (typeof strategy === "string" && activeConfig?.typeLabelOverrides?.[strategy]?.[type]) {
+        return activeConfig.typeLabelOverrides[strategy][type] || type;
+    }
     return activeConfig.types[type] || type;
 }
 /**
@@ -859,11 +874,16 @@ async function loadConfig(reload = false, filePath) {
             accumulator[key] = mergedTypes[key];
             return accumulator;
         }, {});
+        const typeLabelOverrides = {
+            ...exports.defaultConfig.typeLabelOverrides,
+            ...userConfig.typeLabelOverrides,
+        };
         // Deep merge user config with default config
         const mergedConfig = {
             ...exports.defaultConfig,
             ...userConfig,
             types,
+            typeLabelOverrides,
             files: userConfig.files || exports.defaultConfig.files,
         };
         // Cache the merged config
@@ -1255,7 +1275,7 @@ const keepachangelog = {
         }, {});
         // Format each type's changes
         const sections = Object.entries(groupedChanges).map(([type, entries]) => {
-            const title = (0, config_1.getTypeLabel)(type);
+            const title = (0, config_1.getTypeLabel)(type, "keepachangelog");
             const items = entries.map(entry => `- ${entry}`).join("\n");
             return `### ${title}\n${items}`;
         });
@@ -1314,7 +1334,7 @@ const stellarwpChangelog = {
         const sections = Object.entries(groupedChanges)
             .map(([type, entries]) => {
             // Capitalize the first letter of the type
-            const formattedType = (0, config_1.getTypeLabel)(type);
+            const formattedType = (0, config_1.getTypeLabel)(type, "stellarwp-changelog");
             return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
         })
             .filter(section => section.length > 0);
@@ -1370,7 +1390,7 @@ const stellarwpReadme = {
         const sections = Object.entries(groupedChanges)
             .map(([type, entries]) => {
             // Capitalize the first letter of the type
-            const formattedType = (0, config_1.getTypeLabel)(type);
+            const formattedType = (0, config_1.getTypeLabel)(type, "stellarwp-readme");
             return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
         })
             .filter(section => section.length > 0);
