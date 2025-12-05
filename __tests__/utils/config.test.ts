@@ -70,7 +70,7 @@ describe("config", () => {
       };
 
       // Verify it uses the provided config
-      expect(getTypeLabel("feature", '', differentConfig)).toBe("Different Label");
+      expect(getTypeLabel("feature", "", differentConfig)).toBe("Different Label");
       expect(getTypeLabel("feature")).toBe("New Feature"); // Still uses cached config
     });
 
@@ -78,18 +78,18 @@ describe("config", () => {
       const configPath = path.join(testDataDir, "custom-types.json");
       const config = await loadConfig(false, configPath);
 
-      expect(getTypeLabel("feature", '',config)).toBe("New Feature");
-      expect(getTypeLabel("tweak", '', config)).toBe("Tweak");
-      expect(getTypeLabel("deprecated", '', config)).toBe("Soon Removing");
+      expect(getTypeLabel("feature", "", config)).toBe("New Feature");
+      expect(getTypeLabel("tweak", "", config)).toBe("Tweak");
+      expect(getTypeLabel("deprecated", "", config)).toBe("Soon Removing");
     });
 
     it("should handle emoji types from full config", async () => {
       const configPath = path.join(testDataDir, "full.json");
       const config = await loadConfig(false, configPath);
 
-      expect(getTypeLabel("feature", '', config)).toBe("New Feature ✨");
-      expect(getTypeLabel("tweak", '', config)).toBe("Tweak 🔧");
-      expect(getTypeLabel("deprecated", '', config)).toBe("Deprecated ⚠️");
+      expect(getTypeLabel("feature", "", config)).toBe("New Feature ✨");
+      expect(getTypeLabel("tweak", "", config)).toBe("Tweak 🔧");
+      expect(getTypeLabel("deprecated", "", config)).toBe("Deprecated ⚠️");
     });
   });
 
