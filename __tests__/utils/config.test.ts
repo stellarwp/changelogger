@@ -92,8 +92,8 @@ describe("config", () => {
       expect(getTypeLabel("deprecated", "", config)).toBe("Deprecated ⚠️");
     });
 
-    it("should allow overriding type labels with typeLabelOverrides", async () => {
-      const configPath = path.join(testDataDir, "full.json");
+    it("should include default type label overrides for the keepachangelog strategy", async () => {
+      const configPath = path.join(testDataDir, "minimal.json");
       const config = await loadConfig(false, configPath);
 
       expect(getTypeLabel("feature", "keepachangelog", config)).toBe("Added");
@@ -108,6 +108,34 @@ describe("config", () => {
       expect(getTypeLabel("feature", "custom-strategy", config)).toBe("New Feature");
       expect(getTypeLabel("fix", "custom-strategy", config)).toBe("Bug Fix");
       expect(getTypeLabel("tweak", "custom-strategy", config)).toBe("Updated");
+    });
+
+    it("should return default labels when no strategy is provided", async () => {
+      const configPath = path.join(testDataDir, "minimal.json");
+      const config = await loadConfig(false, configPath);
+
+      expect(getTypeLabel("compatibility", "", config)).toBe("Compatibility");
+      expect(getTypeLabel("deprecated", "", config)).toBe("Deprecated");
+      expect(getTypeLabel("feature", "", config)).toBe("Feature");
+      expect(getTypeLabel("fix", "", config)).toBe("Fix");
+      expect(getTypeLabel("language", "", config)).toBe("Language");
+      expect(getTypeLabel("removed", "", config)).toBe("Removed");
+      expect(getTypeLabel("security", "", config)).toBe("Security");
+      expect(getTypeLabel("tweak", "", config)).toBe("Tweak");
+    });
+
+    it("should return default labels when a strategy-specific override is not available", async () => {
+      const configPath = path.join(testDataDir, "minimal.json");
+      const config = await loadConfig(false, configPath);
+
+      expect(getTypeLabel("compatibility", "unknown-strategy", config)).toBe("Compatibility");
+      expect(getTypeLabel("deprecated", "unknown-strategy", config)).toBe("Deprecated");
+      expect(getTypeLabel("feature", "unknown-strategy", config)).toBe("Feature");
+      expect(getTypeLabel("fix", "unknown-strategy", config)).toBe("Fix");
+      expect(getTypeLabel("language", "unknown-strategy", config)).toBe("Language");
+      expect(getTypeLabel("removed", "unknown-strategy", config)).toBe("Removed");
+      expect(getTypeLabel("security", "unknown-strategy", config)).toBe("Security");
+      expect(getTypeLabel("tweak", "unknown-strategy", config)).toBe("Tweak");
     });
   });
 
