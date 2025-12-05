@@ -569,6 +569,8 @@ You can do this with the optional `typeLabelOverrides` key in your configuration
 
 This is particularly useful if you're outputting your changelog in multiple locations with the `files` key and each is configured to use a different writing strategy.
 
+If you're using a custom writing strategy, you will need to ensure you call `getTypeLabel()` with the `strategy` parameter matching the key you set in this configuration.
+
 ### Change File Handling
 
 When adding new changelog entries:
