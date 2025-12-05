@@ -91,6 +91,15 @@ describe("config", () => {
       expect(getTypeLabel("tweak", "", config)).toBe("Tweak 🔧");
       expect(getTypeLabel("deprecated", "", config)).toBe("Deprecated ⚠️");
     });
+
+    it("should allow overriding type labels with typeLabelOverrides", async () => {
+      const configPath = path.join(testDataDir, "full.json");
+      const config = await loadConfig(false, configPath);
+
+      expect(getTypeLabel("feature", "keepachangelog", config)).toBe("Added");
+      expect(getTypeLabel("fix", "keepachangelog", config)).toBe("Fixed");
+      expect(getTypeLabel("tweak", "keepachangelog", config)).toBe("Changed");
+    });
   });
 
   it("should have valid default config structure", () => {
