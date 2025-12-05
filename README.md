@@ -542,6 +542,37 @@ Available built-in strategies:
      Compare: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
 
+### Type Label Overrides per-Writing Strategy
+
+There may be times where you want a specific writing stategy to use different type labels than the global `types` object.
+
+You can do this with the optional `typeLabelOverrides` key in your configuration.
+
+```json
+{
+  "changelogger": {
+    "typeLabelOverrides": [
+      {
+        "keepachangelog": {
+          "keepachangelog": {
+            "feature": "Added",
+            "fix": "Fixed",
+            "tweak": "Changed"
+          },
+          "custom-strategy": {
+            "feature": "New Feature",
+            "fix": "Bug Fix",
+            "tweak": "Updated"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+This is particularly useful if you're outputting your changelog in multiple locations with the `files` key and each is configured to use a different writing strategy.
+
 ### Change File Handling
 
 When adding new changelog entries:
