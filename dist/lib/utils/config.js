@@ -44,17 +44,21 @@ exports.defaultConfig = {
     changesDir: "changelog",
     ordering: ["type", "content"],
     types: {
-        added: "Added",
-        changed: "Changed",
-        deprecated: "Deprecated",
-        removed: "Removed",
-        fixed: "Fixed",
-        security: "Security",
-        feature: "Feature",
-        tweak: "Tweak",
-        fix: "Fix",
         compatibility: "Compatibility",
+        deprecated: "Deprecated",
+        feature: "Feature",
+        fix: "Fix",
         language: "Language",
+        removed: "Removed",
+        security: "Security",
+        tweak: "Tweak",
+    },
+    typeLabelOverrides: {
+        keepachangelog: {
+            feature: "Added",
+            fix: "Fixed",
+            tweak: "Changed",
+        },
     },
     formatter: "keepachangelog",
     versioning: "semver",
@@ -68,11 +72,15 @@ exports.defaultConfig = {
 /**
  * Gets the formatted label for a given changelog type
  * @param type - The type to get the label for
+ * @param strategy - The strategy to use for type labels. If not provided, uses the global labels.
  * @param config - Optional config to use for type labels. If not provided, uses cached config or default config.
  * @returns The formatted label for the type
  */
-function getTypeLabel(type, config) {
+function getTypeLabel(type, strategy, config) {
     const activeConfig = config || cachedConfig || exports.defaultConfig;
+    if (typeof strategy === "string" && activeConfig?.typeLabelOverrides?.[strategy]?.[type]) {
+        return activeConfig.typeLabelOverrides[strategy][type] || type;
+    }
     return activeConfig.types[type] || type;
 }
 /**
@@ -106,11 +114,16 @@ async function loadConfig(reload = false, filePath) {
             accumulator[key] = mergedTypes[key];
             return accumulator;
         }, {});
+        const typeLabelOverrides = {
+            ...exports.defaultConfig.typeLabelOverrides,
+            ...userConfig.typeLabelOverrides,
+        };
         // Deep merge user config with default config
         const mergedConfig = {
             ...exports.defaultConfig,
             ...userConfig,
             types,
+            typeLabelOverrides,
             files: userConfig.files || exports.defaultConfig.files,
         };
         // Cache the merged config

@@ -13,7 +13,7 @@ const keepachangelog = {
         }, {});
         // Format each type's changes
         const sections = Object.entries(groupedChanges).map(([type, entries]) => {
-            const title = (0, config_1.getTypeLabel)(type);
+            const title = (0, config_1.getTypeLabel)(type, "keepachangelog");
             const items = entries.map(entry => `- ${entry}`).join("\n");
             return `### ${title}\n${items}`;
         });

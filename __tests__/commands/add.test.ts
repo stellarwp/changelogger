@@ -53,7 +53,7 @@ describe("add command", () => {
 
   it("should create a change file with provided options", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "test-change",
@@ -67,7 +67,7 @@ describe("add command", () => {
 
     const content = yaml.parse(writeCall?.[1] as string);
     expect(content).toMatchObject({
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
     });
@@ -78,7 +78,7 @@ describe("add command", () => {
 
   it("should use branch name as default filename", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
     };
@@ -92,7 +92,7 @@ describe("add command", () => {
 
   it("should handle special characters in filename", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "Test @#$% File Name!!!",
@@ -107,7 +107,7 @@ describe("add command", () => {
 
   it("should handle existing files by adding timestamp", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "existing-file",
@@ -128,7 +128,7 @@ describe("add command", () => {
     mockedGetBranchName.mockResolvedValue("");
 
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
     };
@@ -142,7 +142,7 @@ describe("add command", () => {
 
   it("should prompt for missing options", async () => {
     mockedInquirer.prompt.mockResolvedValue({
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Prompted entry",
       filename: "prompted-file",
@@ -157,7 +157,7 @@ describe("add command", () => {
 
     const content = yaml.parse(writeCall?.[1] as string);
     expect(content).toMatchObject({
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Prompted entry",
     });
@@ -165,7 +165,7 @@ describe("add command", () => {
 
   it("should create changes directory if it does not exist", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "test-file",
@@ -206,7 +206,7 @@ describe("add command", () => {
 
   it("should handle cleanup of complex filenames", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "---COMPLEX@#$%^&*()   FILE  ___NAME---",
@@ -221,7 +221,7 @@ describe("add command", () => {
 
   it("should handle file system errors", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "test-file",
@@ -235,7 +235,7 @@ describe("add command", () => {
 
   it("should handle mkdir errors", async () => {
     const options: AddCommandOptions = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Test change",
       filename: "test-file",
