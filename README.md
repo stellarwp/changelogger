@@ -551,22 +551,18 @@ You can do this with the optional `typeLabelOverrides` key in your configuration
 ```json
 {
   "changelogger": {
-    "typeLabelOverrides": [
-      {
-        "keepachangelog": {
-          "keepachangelog": {
-            "feature": "Added",
-            "fix": "Fixed",
-            "tweak": "Changed"
-          },
-          "custom-strategy": {
-            "feature": "New Feature",
-            "fix": "Bug Fix",
-            "tweak": "Updated"
-          }
-        }
+    "typeLabelOverrides": {
+      "keepachangelog": {
+        "feature": "Added",
+        "fix": "Fixed",
+        "tweak": "Changed"
+      },
+      "custom-strategy": {
+        "feature": "New Feature",
+        "fix": "Bug Fix",
+        "tweak": "Updated"
       }
-    ]
+    }
   }
 }
 ```
