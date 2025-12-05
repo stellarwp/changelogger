@@ -61224,12 +61224,6 @@ exports.defaultConfig = {
             fix: "Fixed",
             tweak: "Changed",
         },
-        "stellarwp-changelog": {
-            fix: "Fix",
-        },
-        "stellarwp-readme": {
-            fix: "Fix",
-        },
     },
     formatter: "keepachangelog",
     versioning: "semver",
