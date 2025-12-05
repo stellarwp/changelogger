@@ -100,6 +100,15 @@ describe("config", () => {
       expect(getTypeLabel("fix", "keepachangelog", config)).toBe("Fixed");
       expect(getTypeLabel("tweak", "keepachangelog", config)).toBe("Changed");
     });
+
+    it("should support overriding type labels with a custom strategy", async () => {
+      const configPath = path.join(testDataDir, "custom-strategy-type-labels.json");
+      const config = await loadConfig(false, configPath);
+
+      expect(getTypeLabel("feature", "custom-strategy", config)).toBe("New Feature");
+      expect(getTypeLabel("fix", "custom-strategy", config)).toBe("Bug Fix");
+      expect(getTypeLabel("tweak", "custom-strategy", config)).toBe("Updated");
+    });
   });
 
   it("should have valid default config structure", () => {
