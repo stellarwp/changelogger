@@ -215,12 +215,12 @@ Configure the changelogger through your package.json:
     "linkTemplate": "https://github.com/owner/repo/compare/${old}...${new}",
     "ordering": ["type", "content"],
     "types": {
-      "added": "Added",
-      "changed": "Changed",
       "deprecated": "Deprecated",
-      "removed": "Removed",
+      "feature": "Feature",
       "fix": "Fix",
+      "removed": "Removed",
       "security": "Security"
+      "tweak": "Tweak",
     },
     "versioning": "semver",
     "files": [
@@ -378,7 +378,7 @@ Available built-in strategies:
 
    - New feature description
 
-   ### Fix
+   ### Fixed
 
    - Bug fix description
 
@@ -537,8 +537,8 @@ Available built-in strategies:
    ```markdown
    # Version 1.2.3 (2024-03-22)
 
-   - [ADDED] New feature description
-   - [FIX] Bug fix description
+   - [Feature] New feature description
+   - [Fix] Bug fix description
      Compare: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
 
@@ -561,7 +561,7 @@ When adding new changelog entries:
 
 4. **Interactive Prompts**:
    - Significance: patch, minor, or major
-   - Type: added, changed, deprecated, removed, fix, or security
+   - Type: feature, tweak, deprecated, removed, fix, or security
    - Entry: Description of the change
    - Filename: Optional custom filename
 
@@ -575,7 +575,7 @@ Change files are YAML files containing:
 
 ```yaml
 significance: patch|minor|major
-type: added|changed|deprecated|removed|fix|security
+type: feature|tweak|deprecated|removed|fix|security
 entry: Description of the change
 ```
 
@@ -604,7 +604,7 @@ const config = await loadConfig();
 // Add a new change entry programmatically
 await addCommand({
   significance: 'minor',
-  type: 'added',
+  type: 'feature',
   entry: 'New feature added',
   filename: 'custom-change.yaml'
 });
@@ -655,7 +655,7 @@ const myConfig = {
 };
 
 // Get formatted labels for change types
-console.log(getTypeLabel('added')); // "Added"
+console.log(getTypeLabel('feature')); // "Feature"
 console.log(getTypeLabel('fix')); // "Fix"
 console.log(getTypeLabel('custom-type')); // Falls back to "custom-type" if not defined
 ```
