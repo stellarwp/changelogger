@@ -33,11 +33,10 @@ module.exports = {
         changed: '🔄',
         deprecated: '⚠️',
         removed: '🗑️',
-        fixed: '🐛',
+        fix: '🐛',
         security: '🔒',
         feature: '🚀',
-        tweak: '🔧',
-        fix: '🩹'
+        tweak: '🔧'
       }[type] || '📝';
       
       output += `\n${emoji} ${type.toUpperCase()}\n`;

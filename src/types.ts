@@ -1,6 +1,6 @@
 export type Significance = "patch" | "minor" | "major";
 
-export type ChangeType = "added" | "changed" | "deprecated" | "removed" | "fixed" | "security" | "feature" | "tweak" | "fix" | "compatibility" | "language";
+export type ChangeType = "deprecated" | "removed" | "security" | "feature" | "tweak" | "fix" | "compatibility" | "language";
 
 export interface ChangeFile {
   significance: Significance;
@@ -53,6 +53,7 @@ export interface Config {
   linkTemplate?: string;
   ordering: ("type" | "significance" | "timestamp" | "content")[];
   types: Record<ChangeType, string>;
+  typeLabelOverrides: Record<string, Partial<Record<ChangeType, string>>>;
   formatter: string;
   /**
    * The versioning strategy to use.

@@ -18,7 +18,7 @@ const keepachangelog: WritingStrategy = {
 
     // Format each type's changes
     const sections = Object.entries(groupedChanges).map(([type, entries]) => {
-      const title = getTypeLabel(type);
+      const title = getTypeLabel(type, "keepachangelog");
       const items = entries.map(entry => `- ${entry}`).join("\n");
       return `### ${title}\n${items}`;
     });

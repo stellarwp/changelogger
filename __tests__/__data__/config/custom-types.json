@@ -5,13 +5,12 @@
     "changelogFile": "types-changelog.md",
     "changesDir": "types-changes",
     "types": {
-      "added": "New Feature",
-      "changed": "Enhancement",
       "deprecated": "Soon Removing",
-      "feature": "Feature",
-      "fixed": "Bug Fix",
+      "feature": "New Feature",
+      "fix": "Bug Fix",
       "removed": "Deleted",
-      "security": "Security Patch"
+      "security": "Security Patch",
+      "tweak": "Tweak"
     }
   }
 }

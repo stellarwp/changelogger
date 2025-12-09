@@ -18,7 +18,7 @@ describe("write command", () => {
 
   it("should write changelog entries correctly", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -38,10 +38,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -67,7 +66,7 @@ describe("write command", () => {
 
   it("should write changelog entries correctly in Keep a Changelog format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -94,10 +93,9 @@ describe("write command", () => {
               formatter: "keepachangelog",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Feature",
-                fix: "Fix",
                 tweak: "Tweak",
               },
             })
@@ -126,7 +124,7 @@ describe("write command", () => {
 
   it("should write changelog entries correctly in StellarWP format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -146,10 +144,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -213,7 +210,7 @@ describe("write command", () => {
 
   it("should create changelog file if it does not exist in Keep a Changelog format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -233,10 +230,9 @@ describe("write command", () => {
           formatter: "keepachangelog",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -268,7 +264,7 @@ describe("write command", () => {
 
   it("should create changelog file if it does not exist in StellarWP format", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -288,10 +284,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -323,7 +318,7 @@ describe("write command", () => {
 
   it("should clean up change files after writing", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -354,12 +349,12 @@ describe("write command", () => {
   it("should determine version bump based on significance", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Added feature 1",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug 1",
       },
@@ -387,10 +382,9 @@ describe("write command", () => {
               formatter: "stellarwp",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Added",
-                fix: "Fixed",
                 tweak: "Changed",
               },
             })
@@ -408,17 +402,17 @@ describe("write command", () => {
   it("should handle multiple change types", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Added feature 1",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug 1",
       },
       {
-        type: "changed",
+        type: "tweak",
         significance: "patch",
         entry: "Changed behavior",
       },
@@ -449,10 +443,9 @@ describe("write command", () => {
               formatter: "stellarwp",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Added",
-                fix: "Fixed",
                 tweak: "Changed",
               },
             })
@@ -471,7 +464,7 @@ describe("write command", () => {
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added feature 1");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug 1");
     expect(writtenContent).toContain("### Changed");
     expect(writtenContent).toContain("- Changed behavior");
@@ -480,12 +473,12 @@ describe("write command", () => {
   it("should handle empty entries", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "patch",
         entry: "",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug 1",
       },
@@ -513,10 +506,9 @@ describe("write command", () => {
               formatter: "stellarwp",
               types: {
                 added: "Added",
-                fixed: "Fixed",
+                fix: "Fix",
                 changed: "Changed",
                 feature: "Added",
-                fix: "Fixed",
                 tweak: "Changed",
               },
             })
@@ -533,7 +525,7 @@ describe("write command", () => {
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.1]");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug 1");
   });
 
@@ -561,7 +553,7 @@ describe("write command", () => {
   it("should handle major version bumps", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "changed",
+        type: "tweak",
         significance: "major",
         entry: "Breaking change",
       },
@@ -581,10 +573,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Added",
-            fix: "Fixed",
             tweak: "Changed",
           },
         });
@@ -606,9 +597,9 @@ describe("write command", () => {
   it("should handle invalid version in changelog", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
-        entry: "Fixed bug",
+        entry: "Fix bug",
       },
     ];
 
@@ -632,17 +623,17 @@ describe("write command", () => {
   it("should handle mixed significance levels", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "major",
         entry: "Added feature 1",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "minor",
         entry: "Fixed bug 1",
       },
       {
-        type: "changed",
+        type: "tweak",
         significance: "patch",
         entry: "Changed behavior",
       },
@@ -668,10 +659,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -688,7 +678,7 @@ describe("write command", () => {
     expect(writtenContent).toContain("## [2.0.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added feature 1");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug 1");
     expect(writtenContent).toContain("### Changed");
     expect(writtenContent).toContain("- Changed behavior");
@@ -697,7 +687,7 @@ describe("write command", () => {
   it("should append changes to existing version in Keep a Changelog format", async () => {
     const existingChanges: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Initial feature",
       },
@@ -705,7 +695,7 @@ describe("write command", () => {
 
     const newChanges: ChangeFile[] = [
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug in feature",
       },
@@ -741,14 +731,14 @@ describe("write command", () => {
     const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("## [1.0.0]");
     expect(writtenContent).toContain("* Added - Initial feature");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug in feature");
   });
 
   it("should append changes to existing version in StellarWP format", async () => {
     const existingChanges: ChangeFile[] = [
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "Initial feature",
       },
@@ -756,7 +746,7 @@ describe("write command", () => {
 
     const newChanges: ChangeFile[] = [
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Fixed bug in feature",
       },
@@ -776,10 +766,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
@@ -802,24 +791,24 @@ describe("write command", () => {
     const writtenContent = writeCall?.[1] as string;
     expect(writtenContent).toContain("= [1.0.0] 2024-03-21 =");
     expect(writtenContent).toContain("* Added - Initial feature");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Fixed bug in feature");
   });
 
   it("should handle mixed significance levels in StellarWP format", async () => {
     const changes: ChangeFile[] = [
       {
-        type: "changed",
+        type: "tweak",
         significance: "major",
         entry: "Breaking change",
       },
       {
-        type: "added",
+        type: "feature",
         significance: "minor",
         entry: "New feature",
       },
       {
-        type: "fixed",
+        type: "fix",
         significance: "patch",
         entry: "Bug fix",
       },
@@ -856,13 +845,13 @@ describe("write command", () => {
     expect(writtenContent).toContain("- Breaking change");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- New feature");
-    expect(writtenContent).toContain("### Fixed");
+    expect(writtenContent).toContain("### Fix");
     expect(writtenContent).toContain("- Bug fix");
   });
 
   it("should support manually setting a non-existent version", async () => {
     const changeFile: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "minor",
       entry: "Added new feature",
     };
@@ -882,10 +871,9 @@ describe("write command", () => {
           formatter: "stellarwp",
           types: {
             added: "Added",
-            fixed: "Fixed",
+            fix: "Fix",
             changed: "Changed",
             feature: "Feature",
-            fix: "Fix",
             tweak: "Tweak",
           },
         });
