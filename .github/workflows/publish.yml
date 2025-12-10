@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -26,7 +26,7 @@ jobs:
   check-package-version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -68,7 +68,7 @@ jobs:
     needs: [build, check-package-version]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # We need to use npm >=11.5.1 for OIDC trusted publishing.
       # Using Node LTS for publishing to ensure we have a modern npm version
