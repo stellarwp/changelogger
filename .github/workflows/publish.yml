@@ -73,7 +73,7 @@ jobs:
       # We need to use npm >=11.5.1 for OIDC trusted publishing.
       # Using Node LTS for publishing to ensure we have a modern npm version
       - name: Set up node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
