@@ -1,9 +1,15 @@
+# This uses OIDC Trusted Publishing: https://docs.npmjs.com/trusted-publishers
+
 name: Publish package on npm
 
 on:
   release:
-    types: [created]
+    types: [published]
   workflow_dispatch:
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
 
 jobs:
   build:
@@ -63,11 +69,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      # We need to use npm >=11.5.1 for OIDC trusted publishing.
+      # Using Node LTS for publishing to ensure we have a modern npm version
+      - name: Set up node
+        uses: actions/setup-node@v6
         with:
-          node-version-file: .nvmrc
-          registry-url: https://registry.npmjs.org/
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+
       - run: npm ci
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      # npm >=11.5.1 automatically supports OIDC trusted publishing.
+      - name: Publish package to NPM
+        run: npm publish --verbose --access public
