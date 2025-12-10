@@ -71,15 +71,12 @@ jobs:
       - uses: actions/checkout@v4
 
       # We need to use npm >=11.5.1 for OIDC trusted publishing.
-      # Node 18.x doesn't include npm 11+, so we manually upgrade npm
+      # Using Node LTS for publishing to ensure we have a modern npm version
       - name: Set up node
         uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Upgrade npm for OIDC support
-        run: npm install -g npm@11.5.1
 
       - run: npm ci
 
