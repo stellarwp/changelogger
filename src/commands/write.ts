@@ -2,6 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import * as yaml from "yaml";
 import { loadConfig } from "../utils/config";
+import { sortChanges } from "../utils/sorting";
 import { loadVersioningStrategy } from "../utils/versioning";
 import { loadWritingStrategy } from "../utils/writing";
 import { ChangeFile, WriteCommandOptions } from "../types";
@@ -117,11 +118,8 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 
-  // Sort changes by significance
-  changes.sort((a, b) => {
-    const significanceOrder = { major: 0, minor: 1, patch: 2 };
-    return significanceOrder[a.significance] - significanceOrder[b.significance];
-  });
+  // Sort changes based on configured ordering.
+  sortChanges(changes, config.ordering);
 
   // Determine version and date
   const date = (options.date ?? new Date().toISOString().split("T")[0]) as string;
