@@ -60,6 +60,7 @@ export interface Config {
      * Array of files to update with their individual writing strategies
      */
     files: Array<{
+        ordering?: ("type" | "significance" | "timestamp" | "content")[];
         path: string;
         strategy: string;
     }>;
