@@ -231,6 +231,7 @@ Configure the changelogger through your package.json:
         "strategy": "keepachangelog"
       },
       {
+        "ordering": ["significance", "content"],
         "path": "readme.txt",
         "strategy": "stellarwp-readme"
       }
@@ -596,6 +597,35 @@ You can do this with the optional `typeLabelOverrides` key in your configuration
 This is particularly useful if you're outputting your changelog in multiple locations with the `files` key and each is configured to use a different writing strategy.
 
 If you're using a custom writing strategy, you will need to ensure you call `getTypeLabel()` with the `strategy` parameter matching the key you set in this configuration.
+
+### Change item sorting per-changelog location
+
+When multiple changelog locations have been defined with the `files` key, you may find a need to provide a different sort order for each changelog file.
+
+This can be done with the `ordering` key for each file.
+
+If a `ordering` key has not been defined for a file, the global `ordering` key is used.
+
+```json
+{
+  "changelogger": {
+    ...
+    "ordering": ["type", "content"],
+    ...
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "strategy": "keepachangelog"
+      },
+      {
+        "ordering": ["significance", "content"],
+        "path": "readme.txt",
+        "strategy": "stellarwp-readme"
+      }
+    ]
+  }
+}
+```
 
 ### Change File Handling
 
