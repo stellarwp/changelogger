@@ -180,8 +180,10 @@ const semver = versioningStrategies.semverStrategy;
 const stellarwp = versioningStrategies.stellarStrategy;
 
 // Load custom strategies
-const customWritingStrategy = await loadWritingStrategy("./path/to/custom-writing.ts");
-const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-versioning.ts");
+// Note: Custom strategy files must be compiled JavaScript (.js) files.
+// TypeScript (.ts) files are not supported and must be compiled first.
+const customWritingStrategy = await loadWritingStrategy("./path/to/custom-writing.js");
+const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-versioning.js");
 ```
 
 ### As a GitHub Action
@@ -278,6 +280,13 @@ The changelogger supports multiple versioning strategies:
        "versioning": "./path/to/custom-versioning.js"
      }
    }
+   ```
+
+   > [!IMPORTANT]
+   Custom strategy files must be JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom versioning strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+   
+   ```bash
+   tsc path/to/your/custom-versioning.ts --outDir path/to/your --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
    ```
 
    The custom versioning file must export an object with these methods:
@@ -422,6 +431,13 @@ Available built-in strategies:
        ]
      }
    }
+   ```
+
+   > [!IMPORTANT]
+   Custom strategy files must be compiled JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom writing strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+
+   ```bash
+   tsc path/to/your/custom-writing.ts --outDir path/to/your/ --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
    ```
 
    The custom writing file must export an object with these methods:
@@ -716,7 +732,7 @@ import {
 const semverStrategy = versioningStrategies.semverStrategy;
 const keepachangelog = writingStrategies.keepachangelog;
 
-// Load custom strategies from files
+// Load custom strategies from files (must be compiled .js files).
 const customVersioning = await loadVersioningStrategy('./my-versioning.js');
 const customWriting = await loadWritingStrategy('./my-writing.js');
 
