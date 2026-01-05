@@ -69,5 +69,6 @@ export interface Config {
   files: Array<{
     path: string;
     strategy: string;
+    ordering?: ("type" | "significance" | "timestamp" | "content")[];
   }>;
 }
