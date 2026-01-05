@@ -604,7 +604,7 @@ When multiple changelog locations have been defined with the `files` key, you ma
 
 This can be done with the `ordering` key for each file.
 
-If a `ordering` key has not been defined for a file, the global `ordering` key is used.
+If an `ordering` key has not been defined for a file, the global `ordering` key is used.
 
 ```json
 {
