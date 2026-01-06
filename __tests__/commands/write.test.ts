@@ -6,6 +6,7 @@ import { ChangeFile, WriteCommandOptions } from "../../src/types";
 import { PathLike, ObjectEncodingOptions, OpenMode } from "fs";
 import { FileHandle } from "fs/promises";
 import { Abortable } from "events";
+import { loadConfig } from "../../src/utils/config";
 
 // Mock fs/promises
 jest.mock("fs/promises");
@@ -900,6 +901,9 @@ describe("write command", () => {
       overwriteVersion: "1.1.0",
     };
 
+    // Force reload config to use the mocked package.json.
+    await loadConfig(true);
+
     const result = await run(options);
 
     // The result message uses the default changelog name, not the configured file path
@@ -960,6 +964,9 @@ describe("write command", () => {
       }
       throw new Error(`Unexpected file path: ${filePath}`);
     });
+
+    // Force reload config to use the default config.
+    await loadConfig(true);
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.2.0", // This version does not exist in the changelog.
