@@ -208,35 +208,25 @@ async function run(options) {
             while (contentStart < content.length && content[contentStart] === "\n") {
                 contentStart++;
             }
-            // Find the next version header after the current one
-            // We need to search for any version pattern, not the specific version we're overwriting
-            const contentAfterHeader = content.slice(contentStart);
-            // Use a generic version pattern based on the strategy
-            // For stellarwp-readme: = [version] date =
-            // For keepachangelog: ## [version] - date
-            const versionPatterns = [
-                /^= \[[^\]]+\] [^=]+ =$/m, // stellarwp pattern
-                /^## \[[^\]]+\]/m, // keepachangelog pattern
-            ];
-            let nextVersionIndex = -1;
-            for (const pattern of versionPatterns) {
-                const match = contentAfterHeader.match(pattern);
-                if (match && match.index !== undefined) {
-                    nextVersionIndex = match.index;
-                    break;
-                }
-            }
-            // Find where to insert the new changes (right after the header)
-            // Append the new changes after the version header, keeping existing content
-            if (nextVersionIndex !== -1) {
-                // There's existing content and a next version
-                const existingContent = contentAfterHeader.slice(0, nextVersionIndex);
-                // Merge new changes with existing content
-                newContent = `${content.slice(0, headerLineEnd)}${changesText}\n${existingContent}${content.slice(contentStart + nextVersionIndex)}`;
+            // We're appending to an existing version, so we need to find where its section ends.
+            // Use the strategy's changelogHeaderMatcher to find the next (older) version header.
+            // This keeps the logic agnostic to the specific header format.
+            const contentAfterPreviousVersionHeader = content.slice(contentStart);
+            // Find the version that comes before the previous version (i.e., the next older version).
+            // changelogHeaderMatcher finds the first version header in the given content.
+            const versionBeforePreviousVersionIndex = fileStrategy.changelogHeaderMatcher(contentAfterPreviousVersionHeader);
+            // If we found an older version header (index > 0), there's existing content between the two versions.
+            // If index is 0, we've reached the end or there's no older version.
+            if (versionBeforePreviousVersionIndex > 0) {
+                // Extract the existing entries between the previous version and the older version
+                const existingContent = contentAfterPreviousVersionHeader.slice(0, versionBeforePreviousVersionIndex);
+                // Insert new entries at the beginning (after any blank lines), keeping existing entries below
+                newContent = `${content.slice(0, contentStart)}${changesText}\n${existingContent}${content.slice(contentStart + versionBeforePreviousVersionIndex)}`;
             }
             else {
-                // No next version found, append at the end of current content
-                newContent = `${content.slice(0, headerLineEnd)}${changesText}\n\n${contentAfterHeader}`;
+                // No older version found - we're at the end of the changelog
+                // Append new entries after any blank lines following the header
+                newContent = `${content.slice(0, contentStart)}${changesText}\n\n${contentAfterPreviousVersionHeader}`;
             }
         }
         else {
