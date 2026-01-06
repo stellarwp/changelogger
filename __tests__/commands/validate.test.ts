@@ -15,7 +15,7 @@ describe("validate command", () => {
 
   it("should validate a valid change file", async () => {
     const validChange: ChangeFile = {
-      type: "added",
+      type: "feature",
       significance: "patch",
       entry: "Added new feature",
     };
@@ -43,7 +43,7 @@ describe("validate command", () => {
 
   it("should throw error for invalid significance", async () => {
     const invalidChange = {
-      type: "added",
+      type: "feature",
       significance: "invalid",
       entry: "Invalid significance",
     };
@@ -56,7 +56,7 @@ describe("validate command", () => {
 
   it("should throw error for missing entry in non-patch change", async () => {
     const invalidChange = {
-      type: "added",
+      type: "feature",
       significance: "minor",
     };
 
@@ -84,7 +84,7 @@ describe("validate command", () => {
     mockedFs.readdir.mockResolvedValue(["change1.txt", ".change2.yaml", "change3.yaml"] as any);
     mockedFs.readFile.mockResolvedValue(
       yaml.stringify({
-        type: "added",
+        type: "feature",
         significance: "patch",
         entry: "Valid change",
       })

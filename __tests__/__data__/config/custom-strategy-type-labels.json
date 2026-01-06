@@ -1,0 +1,15 @@
+{
+  "name": "custom-types-config",
+  "version": "1.0.0",
+  "changelogger": {
+    "changelogFile": "types-changelog.md",
+    "changesDir": "types-changes",
+    "typeLabelOverrides": {
+      "custom-strategy": {
+        "feature": "New Feature",
+        "fix": "Bug Fix",
+        "tweak": "Updated"
+      }
+    }
+  }
+}

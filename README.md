@@ -180,8 +180,10 @@ const semver = versioningStrategies.semverStrategy;
 const stellarwp = versioningStrategies.stellarStrategy;
 
 // Load custom strategies
-const customWritingStrategy = await loadWritingStrategy("./path/to/custom-writing.ts");
-const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-versioning.ts");
+// Note: Custom strategy files must be compiled JavaScript (.js) files.
+// TypeScript (.ts) files are not supported and must be compiled first.
+const customWritingStrategy = await loadWritingStrategy("./path/to/custom-writing.js");
+const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-versioning.js");
 ```
 
 ### As a GitHub Action
@@ -215,12 +217,12 @@ Configure the changelogger through your package.json:
     "linkTemplate": "https://github.com/owner/repo/compare/${old}...${new}",
     "ordering": ["type", "content"],
     "types": {
-      "added": "Added",
-      "changed": "Changed",
       "deprecated": "Deprecated",
+      "feature": "Feature",
+      "fix": "Fix",
       "removed": "Removed",
-      "fixed": "Fixed",
       "security": "Security"
+      "tweak": "Tweak",
     },
     "versioning": "semver",
     "files": [
@@ -278,6 +280,13 @@ The changelogger supports multiple versioning strategies:
        "versioning": "./path/to/custom-versioning.js"
      }
    }
+   ```
+
+   > [!IMPORTANT]
+   > Custom strategy files must be JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom versioning strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+
+   ```bash
+   tsc path/to/your/custom-versioning.ts --outDir path/to/your --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
    ```
 
    The custom versioning file must export an object with these methods:
@@ -424,6 +433,13 @@ Available built-in strategies:
    }
    ```
 
+   > [!IMPORTANT]
+   > Custom strategy files must be compiled JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom writing strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+
+   ```bash
+   tsc path/to/your/custom-writing.ts --outDir path/to/your/ --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
+   ```
+
    The custom writing file must export an object with these methods:
 
    ```javascript
@@ -534,10 +550,49 @@ Available built-in strategies:
    ```markdown
    # Version 1.2.3 (2024-03-22)
 
-   - [ADDED] New feature description
-   - [FIXED] Bug fix description
+   - [Feature] New feature description
+   - [Fix] Bug fix description
      Compare: https://github.com/owner/repo/compare/1.2.2...1.2.3
    ```
+
+### Type Label Overrides per-Writing Strategy
+
+There may be times where you want a specific writing stategy to use different type labels than the global `types` object.
+
+You can do this with the optional `typeLabelOverrides` key in your configuration.
+
+```json
+{
+  "changelogger": {
+    "types": {
+      "compatibility": "Compatibility",
+      "deprecated": "Deprecated",
+      "feature": "Feature",
+      "fix": "Fix",
+      "language": "Language",
+      "removed": "Removed",
+      "security": "Security",
+      "tweak": "Tweak"
+    },
+    "typeLabelOverrides": {
+      "keepachangelog": {
+        "feature": "Added",
+        "fix": "Fixed",
+        "tweak": "Changed"
+      },
+      "custom-strategy": {
+        "feature": "New Feature",
+        "fix": "Bug Fix",
+        "tweak": "Updated"
+      }
+    }
+  }
+}
+```
+
+This is particularly useful if you're outputting your changelog in multiple locations with the `files` key and each is configured to use a different writing strategy.
+
+If you're using a custom writing strategy, you will need to ensure you call `getTypeLabel()` with the `strategy` parameter matching the key you set in this configuration.
 
 ### Change File Handling
 
@@ -558,7 +613,7 @@ When adding new changelog entries:
 
 4. **Interactive Prompts**:
    - Significance: patch, minor, or major
-   - Type: added, changed, deprecated, removed, fixed, or security
+   - Type: feature, tweak, deprecated, removed, fix, or security
    - Entry: Description of the change
    - Filename: Optional custom filename
 
@@ -572,7 +627,7 @@ Change files are YAML files containing:
 
 ```yaml
 significance: patch|minor|major
-type: added|changed|deprecated|removed|fixed|security
+type: feature|tweak|deprecated|removed|fix|security
 entry: Description of the change
 ```
 
@@ -593,7 +648,7 @@ const config = await loadConfig();
 // Add a new change entry programmatically
 await addCommand({
   significance: "minor",
-  type: "added",
+  type: "feature",
   entry: "New feature added",
   filename: "custom-change.yaml",
 });
@@ -636,7 +691,7 @@ const myConfig = {
 };
 
 // Get formatted labels for change types
-console.log(getTypeLabel("added")); // "Added"
+console.log(getTypeLabel("feature")); // "Feature"
 console.log(getTypeLabel("fix")); // "Fix"
 console.log(getTypeLabel("custom-type")); // Falls back to "custom-type" if not defined
 ```
@@ -651,7 +706,7 @@ import { loadVersioningStrategy, loadWritingStrategy, versioningStrategies, writ
 const semverStrategy = versioningStrategies.semverStrategy;
 const keepachangelog = writingStrategies.keepachangelog;
 
-// Load custom strategies from files
+// Load custom strategies from files (must be compiled .js files).
 const customVersioning = await loadVersioningStrategy("./my-versioning.js");
 const customWriting = await loadWritingStrategy("./my-writing.js");
 
@@ -672,7 +727,7 @@ const config: Config = await loadConfig();
 
 const change: ChangeFile = {
   significance: "patch",
-  type: "fixed",
+  type: "fix",
   entry: "Fixed a bug",
 };
 

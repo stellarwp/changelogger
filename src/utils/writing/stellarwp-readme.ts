@@ -20,7 +20,7 @@ const stellarwpReadme: WritingStrategy = {
     const sections = Object.entries(groupedChanges)
       .map(([type, entries]) => {
         // Capitalize the first letter of the type
-        const formattedType = getTypeLabel(type);
+        const formattedType = getTypeLabel(type, "stellarwp-readme");
         return entries.map(entry => `* ${formattedType} - ${entry}`).join("\n");
       })
       .filter(section => section.length > 0);
