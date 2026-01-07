@@ -915,22 +915,35 @@ describe("write command", () => {
     // The key part of this test is that when using --overwrite-version,
     // new changes are APPENDED to the existing version content
 
-    // Should contain the new entry for 1.1.0
+    // Should contain all versions
     expect(writtenContent).toContain("1.1.0");
-    expect(writtenContent).toContain("New changelog entry");
+    expect(writtenContent).toContain("1.0.0");
+    expect(writtenContent).toContain("0.9.0");
 
-    // Most importantly: Should ALSO contain the old 1.1.0 content (it was appended to, not replaced)
+    // Should contain both old and new entries
     expect(writtenContent).toContain("Old changelog for 1.1.0");
+    expect(writtenContent).toContain("New changelog entry");
+    expect(writtenContent).toContain("Old changelog for 1.0.0");
+    expect(writtenContent).toContain("Some bug fix");
+    expect(writtenContent).toContain("Even older changelog");
 
-    // The bug was that everything after 1.1.0 was being deleted
-    // So we just need to verify that content after 1.1.0 still exists
-    // Check that we have actual content beyond just the new entry
-    expect(writtenContent.length).toBeGreaterThan(40); // Should have content
+    // CRITICAL: New entries should come AFTER existing entries in the same version
+    const oldEntryIndex = writtenContent.indexOf("Old changelog for 1.1.0");
+    const newEntryIndex = writtenContent.indexOf("New changelog entry");
+    expect(newEntryIndex).toBeGreaterThan(oldEntryIndex);
+    expect(oldEntryIndex).toBeGreaterThan(-1);
+    expect(newEntryIndex).toBeGreaterThan(-1);
 
-    // If it's using keepachangelog format (default), check for that
-    if (writtenContent.includes("## [")) {
-      expect(writtenContent).toContain("## [1.1.0]");
-    }
+    // CRITICAL: Older versions should still exist AFTER the 1.1.0 section
+    const version110Index = writtenContent.indexOf("= [1.1.0]");
+    const version100Index = writtenContent.indexOf("= [1.0.0]");
+    const version090Index = writtenContent.indexOf("= [0.9.0]");
+    expect(version110Index).toBeGreaterThan(-1);
+    expect(version100Index).toBeGreaterThan(version110Index);
+    expect(version090Index).toBeGreaterThan(version100Index);
+
+    // The 1.0.0 content should still exist after 1.1.0
+    expect(version100Index).toBeGreaterThan(newEntryIndex);
   });
 
   it("should support manually setting a non-existent version", async () => {
