@@ -194,26 +194,40 @@ export async function run(options: WriteCommandOptions): Promise<string> {
         contentStart++;
       }
 
-      // We're appending to an existing version, so we need to find where its section ends.
+      // Get everything after the header (after any blank lines).
+      const contentAfterHeader = content.slice(contentStart);
+
       // Use the strategy's changelogHeaderMatcher to find the next (older) version header.
-      // This keeps the logic agnostic to the specific header format.
-      const contentAfterPreviousVersionHeader = content.slice(contentStart);
+      const nextVersionIndex = fileStrategy.changelogHeaderMatcher(contentAfterHeader);
 
-      // Find the version that comes before the previous version (i.e., the next older version).
-      // changelogHeaderMatcher finds the first version header in the given content.
-      const versionBeforePreviousVersionIndex = fileStrategy.changelogHeaderMatcher(contentAfterPreviousVersionHeader);
+      let existingEntriesInThisVersion: string;
+      let restOfChangelog: string;
 
-      // If we found an older version header (index > 0), there's existing content between the two versions.
-      // If index is 0, we've reached the end or there's no older version.
-      if (versionBeforePreviousVersionIndex > 0) {
-        // Extract the existing entries between the previous version and the older version
-        const existingContent = contentAfterPreviousVersionHeader.slice(0, versionBeforePreviousVersionIndex);
-        // Insert new entries at the beginning (after any blank lines), keeping existing entries below
-        newContent = `${content.slice(0, contentStart)}${changesText}\n${existingContent}${content.slice(contentStart + versionBeforePreviousVersionIndex)}`;
+      /**
+       * changelogHeaderMatcher returns the index where it found a version header.
+       * - If > 0, there's another version after this one.
+       * - If === 0, it could mean: (a) version header at index 0, or (b) no version found (returns 0 as default).
+       *
+       * To stay strategy-agnostic, when nextVersionIndex === 0, we treat all remaining content as existing entries
+       * in the current version.
+       */
+      if (nextVersionIndex > 0) {
+        // Found a next version at this position.
+        existingEntriesInThisVersion = contentAfterHeader.slice(0, nextVersionIndex).trimEnd();
+        restOfChangelog = contentAfterHeader.slice(nextVersionIndex);
       } else {
-        // No older version found - we're at the end of the changelog
-        // Append new entries after any blank lines following the header
-        newContent = `${content.slice(0, contentStart)}${changesText}\n\n${contentAfterPreviousVersionHeader}`;
+        // No next version found - all remaining content belongs to this version.
+        existingEntriesInThisVersion = contentAfterHeader.trimEnd();
+        restOfChangelog = "";
+      }
+
+      // Build the new content: header + existing entries + new entries + rest of changelog
+      const beforeHeader = content.slice(0, contentStart);
+      if (existingEntriesInThisVersion) {
+        newContent = `${beforeHeader}${existingEntriesInThisVersion}\n${changesText}${restOfChangelog ? `\n\n${restOfChangelog}` : "\n\n"}`;
+      } else {
+        // Edge case: The header exists without any existing entries.
+        newContent = `${beforeHeader}\n${changesText}${restOfChangelog ? `\n\n${restOfChangelog}` : "\n\n"}`;
       }
     } else {
       // No previous version found, insert at the header position
