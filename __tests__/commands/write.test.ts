@@ -1,4 +1,5 @@
 import { run } from "../../src/commands/write";
+import { loadConfig } from "../../src/utils/config";
 import * as fs from "fs/promises";
 import * as path from "path";
 import * as yaml from "yaml";
@@ -1002,5 +1003,96 @@ describe("write command", () => {
     expect(newVersionIndex).toBeGreaterThan(-1);
     expect(oldVersionIndex).toBeGreaterThan(-1);
     expect(newVersionIndex).toBeLessThan(oldVersionIndex);
+  });
+
+  it("should respect per-file ordering configuration", async () => {
+    const changes: ChangeFile[] = [
+      {
+        type: "tweak",
+        significance: "patch",
+        entry: "Alpha tweak",
+      },
+      {
+        type: "feature",
+        significance: "minor",
+        entry: "Beta feature",
+      },
+      {
+        type: "fix",
+        significance: "major",
+        entry: "Gamma fix",
+      },
+    ];
+
+    mockedFs.readdir.mockResolvedValue(["change1.yaml", "change2.yaml", "change3.yaml"] as any);
+    mockedFs.readFile.mockImplementation(async (pathArg: PathLike | FileHandle) => {
+      const pathStr = pathArg.toString();
+      if (pathStr.endsWith("change1.yaml")) {
+        return yaml.stringify(changes[0]);
+      }
+      if (pathStr.endsWith("change2.yaml")) {
+        return yaml.stringify(changes[1]);
+      }
+      if (pathStr.endsWith("change3.yaml")) {
+        return yaml.stringify(changes[2]);
+      }
+      if (pathStr.endsWith("changelog.md")) {
+        return "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
+      }
+      if (pathStr.endsWith("changelog-by-significance.md")) {
+        return "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
+      }
+      if (pathStr.endsWith("package.json")) {
+        return JSON.stringify({
+          changelogger: {
+            ordering: ["type", "content"],
+            files: [
+              {
+                path: "changelog.md",
+                strategy: "stellarwp-changelog",
+              },
+              {
+                path: "changelog-by-significance.md",
+                strategy: "stellarwp-changelog",
+                ordering: ["significance", "content"],
+              },
+            ],
+          },
+        });
+      }
+      throw new Error(`Unexpected file path: ${pathStr}`);
+    });
+
+    // Force config reload to pick up the mocked package.json
+    await loadConfig(true);
+
+    const options: WriteCommandOptions = {
+      overwriteVersion: "2.0.0",
+    };
+
+    const result = await run(options);
+
+    expect(mockedFs.writeFile).toHaveBeenCalledTimes(2);
+    expect(result).toContain("Updated changelog.md to version 2.0.0");
+
+    // First file uses global ordering: ["type", "content"]
+    // Order should be: feature (Beta), fix (Gamma), tweak (Alpha) - sorted by type alphabetically
+    const firstWriteCall = mockedFs.writeFile.mock.calls[0];
+    const firstContent = firstWriteCall?.[1] as string;
+    const firstFeatureIndex = firstContent.indexOf("Beta feature");
+    const firstFixIndex = firstContent.indexOf("Gamma fix");
+    const firstTweakIndex = firstContent.indexOf("Alpha tweak");
+    expect(firstFeatureIndex).toBeLessThan(firstFixIndex);
+    expect(firstFixIndex).toBeLessThan(firstTweakIndex);
+
+    // Second file uses per-file ordering: ["significance", "content"]
+    // Order should be: fix (major), feature (minor), tweak (patch) - sorted by significance
+    const secondWriteCall = mockedFs.writeFile.mock.calls[1];
+    const secondContent = secondWriteCall?.[1] as string;
+    const secondFixIndex = secondContent.indexOf("Gamma fix");
+    const secondFeatureIndex = secondContent.indexOf("Beta feature");
+    const secondTweakIndex = secondContent.indexOf("Alpha tweak");
+    expect(secondFixIndex).toBeLessThan(secondFeatureIndex);
+    expect(secondFeatureIndex).toBeLessThan(secondTweakIndex);
   });
 });

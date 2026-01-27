@@ -2,6 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import * as yaml from "yaml";
 import { loadConfig } from "../utils/config";
+import { sortChanges } from "../utils/sorting";
 import { loadVersioningStrategy } from "../utils/versioning";
 import { loadWritingStrategy } from "../utils/writing";
 import { ChangeFile, WriteCommandOptions } from "../types";
@@ -117,12 +118,6 @@ export async function run(options: WriteCommandOptions): Promise<string> {
     throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 
-  // Sort changes by significance
-  changes.sort((a, b) => {
-    const significanceOrder = { major: 0, minor: 1, patch: 2 };
-    return significanceOrder[a.significance] - significanceOrder[b.significance];
-  });
-
   // Determine version and date
   const date = (options.date ?? new Date().toISOString().split("T")[0]) as string;
   let version = options.overwriteVersion;
@@ -153,6 +148,14 @@ export async function run(options: WriteCommandOptions): Promise<string> {
   for (const file of config.files) {
     // Load the specific writing strategy for this file
     const fileStrategy = await loadWritingStrategy(file.strategy);
+
+    if (file.ordering) {
+      // Sort changes based on configured per-file ordering.
+      sortChanges(changes, file.ordering);
+    } else {
+      // Sort changes based on configured global ordering.
+      sortChanges(changes, config.ordering);
+    }
 
     // Show file header in dry run
     if (options.dryRun) {

@@ -4,7 +4,8 @@ import { WritingStrategy } from "../writing";
 
 const keepachangelog: WritingStrategy = {
   formatChanges(version: string, changes: ChangeFile[], previousVersion?: string): string {
-    // Group changes by type
+    // Group changes into sections by type.
+    // Any other sorting is still handled normally by the sorting utility.
     const groupedChanges = changes.reduce(
       (acc, change) => {
         if (!acc[change.type]) {
