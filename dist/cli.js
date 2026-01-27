@@ -415,6 +415,7 @@ const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const yaml = __importStar(__nccwpck_require__(38815));
 const config_1 = __nccwpck_require__(3705);
+const sorting_1 = __nccwpck_require__(28603);
 const versioning_1 = __nccwpck_require__(75443);
 const writing_1 = __nccwpck_require__(7999);
 /**
@@ -523,11 +524,6 @@ async function run(options) {
         }
         throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
-    // Sort changes by significance
-    changes.sort((a, b) => {
-        const significanceOrder = { major: 0, minor: 1, patch: 2 };
-        return significanceOrder[a.significance] - significanceOrder[b.significance];
-    });
     // Determine version and date
     const date = (options.date ?? new Date().toISOString().split("T")[0]);
     let version = options.overwriteVersion;
@@ -554,6 +550,14 @@ async function run(options) {
     for (const file of config.files) {
         // Load the specific writing strategy for this file
         const fileStrategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
+        if (file.ordering) {
+            // Sort changes based on configured per-file ordering.
+            (0, sorting_1.sortChanges)(changes, file.ordering);
+        }
+        else {
+            // Sort changes based on configured global ordering.
+            (0, sorting_1.sortChanges)(changes, config.ordering);
+        }
         // Show file header in dry run
         if (options.dryRun) {
             console.log(`\nFile: ${file.path}`);
@@ -866,6 +870,89 @@ async function getRemoteUrl() {
 
 /***/ }),
 
+/***/ 28603:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sortChanges = sortChanges;
+const config_1 = __nccwpck_require__(3705);
+/**
+ * Comparator functions for each ordering criteria
+ */
+const comparators = {
+    /**
+     * Sort by change type alphabetically
+     */
+    type: (a, b) => a.type.localeCompare(b.type),
+    /**
+     * Sort by significance (major > minor > patch)
+     */
+    significance: (a, b) => {
+        const significanceOrder = { major: 0, minor: 1, patch: 2 };
+        return significanceOrder[a.significance] - significanceOrder[b.significance];
+    },
+    /**
+     * Sort by timestamp (oldest first, missing timestamps go last)
+     */
+    timestamp: (a, b) => {
+        // If both have timestamps, compare them
+        if (a.timestamp && b.timestamp) {
+            return a.timestamp.localeCompare(b.timestamp);
+        }
+        // If only one has a timestamp, the one with timestamp comes first
+        if (a.timestamp && !b.timestamp)
+            return -1;
+        if (!a.timestamp && b.timestamp)
+            return 1;
+        // If neither has a timestamp, they're equal for this criterion
+        return 0;
+    },
+    /**
+     * Sort by entry content alphabetically
+     */
+    content: (a, b) => a.entry.localeCompare(b.entry),
+};
+/**
+ * Sorts changelog entries based on the configured ordering criteria.
+ *
+ * The ordering array specifies the priority of sort criteria, where the first
+ * element is the primary sort key, the second is the secondary (used when primary
+ * values are equal), and so on.
+ *
+ * @param changes - Array of change files to sort
+ * @param ordering - Array of ordering criteria from config (defaults to defaultConfig.ordering)
+ * @returns The sorted array (sorted in place)
+ *
+ * @example
+ * ```typescript
+ * // Sort primarily by type, then by content within each type
+ * sortChanges(changes, ["type", "content"]);
+ *
+ * // Sort primarily by significance, then by type, then by content
+ * sortChanges(changes, ["significance", "type", "content"]);
+ * ```
+ */
+function sortChanges(changes, ordering = config_1.defaultConfig.ordering) {
+    return changes.sort((a, b) => {
+        for (const criterion of ordering) {
+            const comparator = comparators[criterion];
+            const result = comparator(a, b);
+            // If the comparison is not equal, return the result
+            // Otherwise, continue to the next criterion
+            if (result !== 0) {
+                return result;
+            }
+        }
+        // If all criteria are equal, maintain original order
+        return 0;
+    });
+}
+
+
+/***/ }),
+
 /***/ 75443:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -1123,7 +1210,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const config_1 = __nccwpck_require__(3705);
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
-        // Group changes by type
+        // Group changes into sections by type.
+        // Any other sorting is still handled normally by the sorting utility.
         const groupedChanges = changes.reduce((acc, change) => {
             if (!acc[change.type]) {
                 acc[change.type] = [];

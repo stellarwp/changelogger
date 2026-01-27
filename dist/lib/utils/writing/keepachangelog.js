@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("../config");
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
-        // Group changes by type
+        // Group changes into sections by type.
+        // Any other sorting is still handled normally by the sorting utility.
         const groupedChanges = changes.reduce((acc, change) => {
             if (!acc[change.type]) {
                 acc[change.type] = [];

@@ -38,6 +38,7 @@ const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const yaml = __importStar(require("yaml"));
 const config_1 = require("../utils/config");
+const sorting_1 = require("../utils/sorting");
 const versioning_1 = require("../utils/versioning");
 const writing_1 = require("../utils/writing");
 /**
@@ -146,11 +147,6 @@ async function run(options) {
         }
         throw new Error(`Failed to read change files: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
-    // Sort changes by significance
-    changes.sort((a, b) => {
-        const significanceOrder = { major: 0, minor: 1, patch: 2 };
-        return significanceOrder[a.significance] - significanceOrder[b.significance];
-    });
     // Determine version and date
     const date = (options.date ?? new Date().toISOString().split("T")[0]);
     let version = options.overwriteVersion;
@@ -177,6 +173,14 @@ async function run(options) {
     for (const file of config.files) {
         // Load the specific writing strategy for this file
         const fileStrategy = await (0, writing_1.loadWritingStrategy)(file.strategy);
+        if (file.ordering) {
+            // Sort changes based on configured per-file ordering.
+            (0, sorting_1.sortChanges)(changes, file.ordering);
+        }
+        else {
+            // Sort changes based on configured global ordering.
+            (0, sorting_1.sortChanges)(changes, config.ordering);
+        }
         // Show file header in dry run
         if (options.dryRun) {
             console.log(`\nFile: ${file.path}`);
