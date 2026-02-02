@@ -27,7 +27,7 @@ jobs:
           date: ${{ github.event.inputs.date || github.event.repository.updated_at }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "docs: write changelog for version ${{ github.event.inputs.version }}"
           title: "docs: write changelog for version ${{ github.event.inputs.version }}"

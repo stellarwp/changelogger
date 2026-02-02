@@ -59,7 +59,7 @@ jobs:
 
       - name: Create Pull Request
         if: github.event.inputs.commit_type == 'pull_request'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore: add changelog entry for PR #${{ github.event.inputs.pr_number }}"
           title: "chore: add changelog entry for PR #${{ github.event.inputs.pr_number }}"
