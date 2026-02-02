@@ -75,8 +75,8 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v6
         with:
-          node-version: 'lts/*'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "lts/*"
+          registry-url: "https://registry.npmjs.org"
 
       - run: npm ci
 

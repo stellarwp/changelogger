@@ -576,26 +576,51 @@ async function run(options) {
         const newEntry = `${header}${link}${changesText}`.trim();
         // Find where to insert the new entry
         const insertIndex = fileStrategy.changelogHeaderMatcher(content);
-        // If we found a previous version, we need to replace that section
+        // If we found a previous version, we need to append to that section
         let newContent;
         if (previousVersion) {
-            // Find the start of the version section
-            const versionStart = content.indexOf(previousVersion);
-            // Find the next version header
-            const nextVersionMatch = fileStrategy.versionHeaderMatcher(content.slice(versionStart + 1), version);
-            // Determine where the current section ends
-            const sectionEnd = (() => {
-                if (typeof nextVersionMatch === "number") {
-                    return versionStart + nextVersionMatch + 1;
-                }
-                const nextEmptyLine = content.indexOf("\n\n", versionStart);
-                if (nextEmptyLine !== -1) {
-                    return nextEmptyLine + 2;
-                }
-                return content.length;
-            })();
-            // Replace the version section while preserving the rest of the content
-            newContent = `${content.slice(0, versionStart)}${newEntry}\n${content.slice(sectionEnd)}`;
+            // Find the start of the version section header
+            const versionHeaderStart = content.indexOf(previousVersion);
+            // Find where the version header line ends (after the full header line)
+            const headerLineEnd = content.indexOf("\n", versionHeaderStart) + 1;
+            // Skip any empty lines after the header
+            let contentStart = headerLineEnd;
+            while (contentStart < content.length && content[contentStart] === "\n") {
+                contentStart++;
+            }
+            // Get everything after the header (after any blank lines).
+            const contentAfterHeader = content.slice(contentStart);
+            // Use the strategy's changelogHeaderMatcher to find the next (older) version header.
+            const nextVersionIndex = fileStrategy.changelogHeaderMatcher(contentAfterHeader);
+            let existingEntriesInThisVersion;
+            let restOfChangelog;
+            /**
+             * changelogHeaderMatcher returns the index where it found a version header.
+             * - If > 0, there's another version after this one.
+             * - If === 0, it could mean: (a) version header at index 0, or (b) no version found (returns 0 as default).
+             *
+             * To stay strategy-agnostic, when nextVersionIndex === 0, we treat all remaining content as existing entries
+             * in the current version.
+             */
+            if (nextVersionIndex > 0) {
+                // Found a next version at this position.
+                existingEntriesInThisVersion = contentAfterHeader.slice(0, nextVersionIndex).trimEnd();
+                restOfChangelog = contentAfterHeader.slice(nextVersionIndex);
+            }
+            else {
+                // No next version found - all remaining content belongs to this version.
+                existingEntriesInThisVersion = contentAfterHeader.trimEnd();
+                restOfChangelog = "";
+            }
+            // Build the new content: header + existing entries + new entries + rest of changelog
+            const beforeHeader = content.slice(0, contentStart);
+            if (existingEntriesInThisVersion) {
+                newContent = `${beforeHeader}${existingEntriesInThisVersion}\n${changesText}${restOfChangelog ? `\n\n${restOfChangelog}` : "\n\n"}`;
+            }
+            else {
+                // Edge case: The header exists without any existing entries.
+                newContent = `${beforeHeader}\n${changesText}${restOfChangelog ? `\n\n${restOfChangelog}` : "\n\n"}`;
+            }
         }
         else {
             // No previous version found, insert at the header position

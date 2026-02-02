@@ -53,5 +53,5 @@ module.exports = {
     if (major1 !== major2) return major1 - major2;
     if (minor1 !== minor2) return minor1 - minor2;
     return patch1 - patch2;
-  }
+  },
 };

@@ -2,12 +2,7 @@ import { sortChanges } from "../../src/utils/sorting";
 import { ChangeFile } from "../../src/types";
 
 describe("sortChanges", () => {
-  const createChange = (
-    type: ChangeFile["type"],
-    significance: ChangeFile["significance"],
-    entry: string,
-    timestamp?: string
-  ): ChangeFile => ({
+  const createChange = (type: ChangeFile["type"], significance: ChangeFile["significance"], entry: string, timestamp?: string): ChangeFile => ({
     type,
     significance,
     entry,
@@ -49,11 +44,7 @@ describe("sortChanges", () => {
 
       sortChanges(changes, ["content"]);
 
-      expect(changes.map(c => c.entry)).toEqual([
-        "Apple feature",
-        "Mango feature",
-        "Zebra feature",
-      ]);
+      expect(changes.map(c => c.entry)).toEqual(["Apple feature", "Mango feature", "Zebra feature"]);
     });
 
     it("should sort by timestamp (oldest first)", () => {
@@ -91,12 +82,7 @@ describe("sortChanges", () => {
 
       sortChanges(changes, ["type", "content"]);
 
-      expect(changes.map(c => `${c.type}: ${c.entry}`)).toEqual([
-        "feature: Alpha feature",
-        "feature: Beta feature",
-        "fix: Alpha fix",
-        "fix: Zebra fix",
-      ]);
+      expect(changes.map(c => `${c.type}: ${c.entry}`)).toEqual(["feature: Alpha feature", "feature: Beta feature", "fix: Alpha fix", "fix: Zebra fix"]);
     });
 
     it("should sort by significance first, then by type, then by content", () => {
@@ -129,12 +115,7 @@ describe("sortChanges", () => {
 
       sortChanges(changes);
 
-      expect(changes.map(c => `${c.type}: ${c.entry}`)).toEqual([
-        "feature: Alpha feature",
-        "feature: Beta feature",
-        "tweak: Alpha tweak",
-        "tweak: Beta tweak",
-      ]);
+      expect(changes.map(c => `${c.type}: ${c.entry}`)).toEqual(["feature: Alpha feature", "feature: Beta feature", "tweak: Alpha tweak", "tweak: Beta tweak"]);
     });
 
     it("should sort by timestamp within same type", () => {
@@ -147,12 +128,7 @@ describe("sortChanges", () => {
 
       sortChanges(changes, ["type", "timestamp"]);
 
-      expect(changes.map(c => `${c.type}: ${c.entry}`)).toEqual([
-        "feature: Feature 1",
-        "feature: Feature 2",
-        "fix: Fix 1",
-        "fix: Fix 2",
-      ]);
+      expect(changes.map(c => `${c.type}: ${c.entry}`)).toEqual(["feature: Feature 1", "feature: Feature 2", "fix: Fix 1", "fix: Fix 2"]);
     });
   });
 
@@ -166,9 +142,7 @@ describe("sortChanges", () => {
     });
 
     it("should handle single change", () => {
-      const changes: ChangeFile[] = [
-        createChange("feature", "minor", "Single change"),
-      ];
+      const changes: ChangeFile[] = [createChange("feature", "minor", "Single change")];
 
       sortChanges(changes, ["type", "content"]);
 
@@ -190,10 +164,7 @@ describe("sortChanges", () => {
     });
 
     it("should return the same array reference (sorts in place) instead of creating a new array", () => {
-      const changes: ChangeFile[] = [
-        createChange("tweak", "patch", "Change 1"),
-        createChange("feature", "minor", "Change 2"),
-      ];
+      const changes: ChangeFile[] = [createChange("tweak", "patch", "Change 1"), createChange("feature", "minor", "Change 2")];
 
       const result = sortChanges(changes, ["type"]);
 
@@ -214,4 +185,3 @@ describe("sortChanges", () => {
     });
   });
 });
-

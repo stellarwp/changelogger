@@ -850,6 +850,102 @@ describe("write command", () => {
     expect(writtenContent).toContain("- Bug fix");
   });
 
+  it("should preserve content after overwritten version (issue #82)", async () => {
+    const changeFile: ChangeFile = {
+      type: "feature",
+      significance: "minor",
+      entry: "New changelog entry",
+    };
+
+    // Mock existing changelog with multiple versions
+    const existingChangelog = `= [1.1.0] 2025-08-05 =
+
+* Feature - Old changelog for 1.1.0.
+
+= [1.0.0] 2025-08-04 =
+
+* Feature - Old changelog for 1.0.0.
+* Fix - Some bug fix.
+
+= [0.9.0] 2025-08-03 =
+
+* Feature - Even older changelog.`;
+
+    mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
+    mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+      const filePath = path.toString();
+      if (filePath.endsWith("change1.yaml")) {
+        return yaml.stringify(changeFile);
+      }
+      if (filePath.endsWith("package.json")) {
+        return JSON.stringify({
+          version: "1.1.0",
+          changelogger: {
+            changelogFile: "changelog.txt",
+            files: [
+              {
+                path: "changelog.txt",
+                strategy: "stellarwp-readme",
+              },
+            ],
+          },
+        });
+      }
+      if (filePath.endsWith("changelog.txt")) {
+        return existingChangelog;
+      }
+      return "";
+    });
+
+    const options: WriteCommandOptions = {
+      overwriteVersion: "1.1.0",
+    };
+
+    // Force reload config to use the mocked package.json.
+    await loadConfig(true);
+
+    const result = await run(options);
+
+    // The result message uses the default changelog name, not the configured file path
+    expect(result).toContain("Updated changelog.md to version 1.1.0");
+
+    const writeCall = mockedFs.writeFile.mock.calls[0];
+    const writtenContent = writeCall?.[1] as string;
+
+    // The key part of this test is that when using --overwrite-version,
+    // new changes are APPENDED to the existing version content
+
+    // Should contain all versions
+    expect(writtenContent).toContain("1.1.0");
+    expect(writtenContent).toContain("1.0.0");
+    expect(writtenContent).toContain("0.9.0");
+
+    // Should contain both old and new entries
+    expect(writtenContent).toContain("Old changelog for 1.1.0");
+    expect(writtenContent).toContain("New changelog entry");
+    expect(writtenContent).toContain("Old changelog for 1.0.0");
+    expect(writtenContent).toContain("Some bug fix");
+    expect(writtenContent).toContain("Even older changelog");
+
+    // CRITICAL: New entries should come AFTER existing entries in the same version
+    const oldEntryIndex = writtenContent.indexOf("Old changelog for 1.1.0");
+    const newEntryIndex = writtenContent.indexOf("New changelog entry");
+    expect(newEntryIndex).toBeGreaterThan(oldEntryIndex);
+    expect(oldEntryIndex).toBeGreaterThan(-1);
+    expect(newEntryIndex).toBeGreaterThan(-1);
+
+    // CRITICAL: Older versions should still exist AFTER the 1.1.0 section
+    const version110Index = writtenContent.indexOf("= [1.1.0]");
+    const version100Index = writtenContent.indexOf("= [1.0.0]");
+    const version090Index = writtenContent.indexOf("= [0.9.0]");
+    expect(version110Index).toBeGreaterThan(-1);
+    expect(version100Index).toBeGreaterThan(version110Index);
+    expect(version090Index).toBeGreaterThan(version100Index);
+
+    // The 1.0.0 content should still exist after 1.1.0
+    expect(version100Index).toBeGreaterThan(newEntryIndex);
+  });
+
   it("should support manually setting a non-existent version", async () => {
     const changeFile: ChangeFile = {
       type: "feature",
@@ -881,6 +977,9 @@ describe("write command", () => {
       }
       throw new Error(`Unexpected file path: ${filePath}`);
     });
+
+    // Force reload config to use the default config.
+    await loadConfig(true);
 
     const options: WriteCommandOptions = {
       overwriteVersion: "1.2.0", // This version does not exist in the changelog.
