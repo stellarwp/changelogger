@@ -7,7 +7,6 @@ import { ChangeFile, WriteCommandOptions } from "../../src/types";
 import { PathLike, ObjectEncodingOptions, OpenMode } from "fs";
 import { FileHandle } from "fs/promises";
 import { Abortable } from "events";
-import { loadConfig } from "../../src/utils/config";
 
 // Mock fs/promises
 jest.mock("fs/promises");
