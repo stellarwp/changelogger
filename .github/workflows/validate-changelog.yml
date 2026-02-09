@@ -13,6 +13,14 @@ jobs:
         with:
           fetch-depth: 0 # Required for git diff operations
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build:gha
+
       - name: Validate changelog changes
         uses: ./
         with:
