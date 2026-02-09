@@ -15,5 +15,5 @@ jobs:
         uses: stellarwp/changelogger@main
         with:
           command: validate
-          validate-from: ${{ github.event.pull_request.base.sha }}
-          validate-to: ${{ github.event.pull_request.head.sha }}
+          from: ${{ github.event.pull_request.base.sha }}
+          to: ${{ github.event.pull_request.head.sha }}
