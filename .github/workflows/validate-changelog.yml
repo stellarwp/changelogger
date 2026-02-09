@@ -2,6 +2,7 @@ name: Validate Changelog
 
 on:
   pull_request:
+    types: [opened, synchronize]
 
 jobs:
   validate-changelog:
