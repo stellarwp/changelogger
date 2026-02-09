@@ -316,7 +316,7 @@ The changelogger supports multiple versioning strategies:
    ```
 
    > [!IMPORTANT]
-   > Custom strategy files must be JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom versioning strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+   Custom strategy files must be JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom versioning strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
 
    ```bash
    tsc path/to/your/custom-versioning.ts --outDir path/to/your --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
@@ -467,7 +467,7 @@ Available built-in strategies:
    ```
 
    > [!IMPORTANT]
-   > Custom strategy files must be compiled JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom writing strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+   Custom strategy files must be compiled JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom writing strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
 
    ```bash
    tsc path/to/your/custom-writing.ts --outDir path/to/your/ --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
