@@ -1,0 +1,39 @@
+name: "Changelog: Get Contents"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to retrieve changelog contents for"
+        required: true
+        type: string
+      file:
+        description: "Specific changelog file to read from (optional, defaults to first configured file)"
+        required: false
+        type: string
+      html:
+        description: "Convert output to HTML"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  get-changelog-contents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get changelog contents
+        id: get-contents
+        uses: stellarwp/changelogger@main
+        with:
+          command: get-changelog-contents
+          version: ${{ github.event.inputs.version }}
+          file: ${{ github.event.inputs.file }}
+          html: ${{ github.event.inputs.html }}
+
+      - name: Display changelog contents
+        run: |
+          echo "## Changelog contents for version ${{ github.event.inputs.version }}"
+          echo ""
+          echo "${{ steps.get-contents.outputs.changelog }}"
