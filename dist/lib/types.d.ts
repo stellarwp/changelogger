@@ -39,6 +39,21 @@ export interface WriteCommandOptions {
      */
     date?: string;
 }
+/**
+ * Options for the get-changelog-contents command.
+ */
+export interface GetChangelogContentsOptions {
+    /**
+     * The version to retrieve changelog contents for.
+     */
+    version: string;
+    /**
+     * Optional path to a specific configured changelog file.
+     * Must match the path of one of the files in the config's files array.
+     * If not provided, the first configured file will be used.
+     */
+    file?: string;
+}
 export interface Config {
     changelogFile: string;
     readmeFile?: string;

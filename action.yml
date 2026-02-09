@@ -7,7 +7,7 @@ branding:
 inputs:
   command:
     required: true
-    description: The changelogger command to run (add, validate, write)
+    description: The changelogger command to run (add, validate, write, get-changelog-contents)
     default: "validate"
 
   # Validate command inputs
@@ -19,7 +19,7 @@ inputs:
     description: The git commit/tag/branch to compare to
   file:
     required: false
-    description: The file to validate
+    description: The file to validate (validate command) or the changelog file to read from (get-changelog-contents command)
 
   # Add command inputs
   significance:
@@ -38,7 +38,7 @@ inputs:
   # Write command inputs
   version:
     required: false
-    description: The version to use when writing the changelog
+    description: The version to use when writing the changelog or retrieving changelog contents
   date:
     required: false
     description: The date to use when writing the changelog
@@ -46,6 +46,8 @@ inputs:
 outputs:
   result:
     description: The result of the command execution
+  changelog:
+    description: The changelog contents for the requested version (only set for get-changelog-contents command)
 runs:
   using: "node20"
   main: "dist/gha/index.js"

@@ -1,5 +1,6 @@
 // Import command functions for programmatic usage
 import { run as addCommand } from "./commands/add";
+import { run as getChangelogContentsCommand } from "./commands/get-changelog-contents";
 import { run as validateCommand } from "./commands/validate";
 import { run as writeCommand } from "./commands/write";
 
@@ -38,4 +39,4 @@ export { loadWritingStrategy } from "./utils/writing";
 export { loadVersioningStrategy } from "./utils/versioning";
 
 // Export command functions for programmatic usage
-export { addCommand, validateCommand, writeCommand };
+export { addCommand, getChangelogContentsCommand, validateCommand, writeCommand };

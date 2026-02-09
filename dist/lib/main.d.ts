@@ -1,4 +1,5 @@
 import { run as addCommand } from "./commands/add";
+import { run as getChangelogContentsCommand } from "./commands/get-changelog-contents";
 import { run as validateCommand } from "./commands/validate";
 import { run as writeCommand } from "./commands/write";
 declare const writingStrategies: {
@@ -18,5 +19,5 @@ export { versioningStrategies };
 export { loadConfig, defaultConfig, getTypeLabel } from "./utils/config";
 export { loadWritingStrategy } from "./utils/writing";
 export { loadVersioningStrategy } from "./utils/versioning";
-export { addCommand, validateCommand, writeCommand };
+export { addCommand, getChangelogContentsCommand, validateCommand, writeCommand };
 //# sourceMappingURL=main.d.ts.map

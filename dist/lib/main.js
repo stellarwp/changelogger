@@ -17,10 +17,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.writeCommand = exports.validateCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.getTypeLabel = exports.defaultConfig = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
+exports.writeCommand = exports.validateCommand = exports.getChangelogContentsCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.getTypeLabel = exports.defaultConfig = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
 const add_1 = require("./commands/add");
 Object.defineProperty(exports, "addCommand", { enumerable: true, get: function () { return add_1.run; } });
+const get_changelog_contents_1 = require("./commands/get-changelog-contents");
+Object.defineProperty(exports, "getChangelogContentsCommand", { enumerable: true, get: function () { return get_changelog_contents_1.run; } });
 const validate_1 = require("./commands/validate");
 Object.defineProperty(exports, "validateCommand", { enumerable: true, get: function () { return validate_1.run; } });
 const write_1 = require("./commands/write");

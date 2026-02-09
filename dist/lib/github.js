@@ -82,6 +82,18 @@ async function run() {
                 }
                 await (0, main_1.writeCommand)({ overwriteVersion: version, date });
                 break;
+            case "get-changelog-contents": {
+                if (!version) {
+                    throw new Error("Version is required for the get-changelog-contents command");
+                }
+                const changelogFile = core.getInput("file");
+                const contents = await (0, main_1.getChangelogContentsCommand)({
+                    version,
+                    ...(changelogFile && { file: changelogFile }),
+                });
+                core.setOutput("changelog", contents);
+                break;
+            }
             default:
                 throw new Error(`Unknown command: ${command}`);
         }

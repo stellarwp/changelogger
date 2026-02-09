@@ -1,0 +1,243 @@
+import { run } from "../../src/commands/get-changelog-contents";
+import * as fs from "fs/promises";
+import { loadConfig } from "../../src/utils/config";
+import { Config } from "../../src/types";
+
+jest.mock("fs/promises");
+jest.mock("../../src/utils/config");
+
+const mockedFs = fs as jest.Mocked<typeof fs>;
+const mockedLoadConfig = loadConfig as jest.MockedFunction<typeof loadConfig>;
+
+const keepachangelogContent = `# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [1.1.0] - 2024-03-22
+
+### Added
+- New feature A
+- New feature B
+
+### Fixed
+- Bug fix C
+
+## [1.0.0] - 2024-03-20
+
+### Added
+- Initial feature
+`;
+
+const stellarwpChangelogContent = `== Changelog ==
+
+### [1.1.0] 2024-03-22
+
+* Feature - New feature A
+* Fix - Bug fix C
+
+### [1.0.0] 2024-03-20
+
+* Feature - Initial feature
+`;
+
+const stellarwpReadmeContent = `== Changelog ==
+
+= [1.1.0] 2024-03-22 =
+
+* Feature - New feature A
+* Fix - Bug fix C
+
+= [1.0.0] 2024-03-20 =
+
+* Feature - Initial feature
+`;
+
+function makeConfig(overrides: Partial<Config> = {}): Config {
+  return {
+    changelogFile: "changelog.md",
+    changesDir: "changelog",
+    ordering: ["type", "content"],
+    types: {
+      compatibility: "Compatibility",
+      deprecated: "Deprecated",
+      feature: "Feature",
+      fix: "Fix",
+      language: "Language",
+      removed: "Removed",
+      security: "Security",
+      tweak: "Tweak",
+    },
+    typeLabelOverrides: {
+      keepachangelog: {
+        feature: "Added",
+        fix: "Fixed",
+        tweak: "Changed",
+      },
+    },
+    formatter: "keepachangelog",
+    versioning: "semver",
+    files: [
+      {
+        path: "changelog.md",
+        strategy: "keepachangelog",
+      },
+    ],
+    ...overrides,
+  };
+}
+
+describe("get-changelog-contents command", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should retrieve entries for a version from a keepachangelog-formatted file", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig());
+    mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+    const result = await run({ version: "1.1.0" });
+
+    expect(result).toContain("### Added");
+    expect(result).toContain("- New feature A");
+    expect(result).toContain("- New feature B");
+    expect(result).toContain("### Fixed");
+    expect(result).toContain("- Bug fix C");
+  });
+
+  it("should retrieve entries for a version from a stellarwp-changelog-formatted file", async () => {
+    mockedLoadConfig.mockResolvedValue(
+      makeConfig({
+        files: [{ path: "changelog.md", strategy: "stellarwp-changelog" }],
+      })
+    );
+    mockedFs.readFile.mockResolvedValue(stellarwpChangelogContent);
+
+    const result = await run({ version: "1.1.0" });
+
+    expect(result).toContain("* Feature - New feature A");
+    expect(result).toContain("* Fix - Bug fix C");
+  });
+
+  it("should retrieve entries for a version from a stellarwp-readme-formatted file", async () => {
+    mockedLoadConfig.mockResolvedValue(
+      makeConfig({
+        files: [{ path: "readme.txt", strategy: "stellarwp-readme" }],
+      })
+    );
+    mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+    const result = await run({ version: "1.1.0" });
+
+    expect(result).toContain("* Feature - New feature A");
+    expect(result).toContain("* Fix - Bug fix C");
+  });
+
+  it("should return entries without the version header line", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig());
+    mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+    const result = await run({ version: "1.1.0" });
+
+    expect(result).not.toContain("## [1.1.0] - 2024-03-22");
+  });
+
+  it("should throw when the version is not found", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig());
+    mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+    await expect(run({ version: "9.9.9" })).rejects.toThrow("Version 9.9.9 not found in changelog.md");
+  });
+
+  it("should throw when the file cannot be read", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig());
+    mockedFs.readFile.mockRejectedValue(new Error("ENOENT: no such file or directory"));
+
+    await expect(run({ version: "1.0.0" })).rejects.toThrow("ENOENT");
+  });
+
+  it("should use the --file option to select a specific configured file", async () => {
+    mockedLoadConfig.mockResolvedValue(
+      makeConfig({
+        files: [
+          { path: "changelog.md", strategy: "keepachangelog" },
+          { path: "readme.txt", strategy: "stellarwp-readme" },
+        ],
+      })
+    );
+    mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+    const result = await run({ version: "1.1.0", file: "readme.txt" });
+
+    expect(mockedFs.readFile).toHaveBeenCalledWith("readme.txt", "utf8");
+    expect(result).toContain("* Feature - New feature A");
+  });
+
+  it("should throw when --file does not match any configured file", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig());
+
+    await expect(run({ version: "1.0.0", file: "nonexistent.md" })).rejects.toThrow('File "nonexistent.md" is not a configured changelog file');
+  });
+
+  it("should default to the first configured file when --file is not specified", async () => {
+    mockedLoadConfig.mockResolvedValue(
+      makeConfig({
+        files: [
+          { path: "changelog.md", strategy: "keepachangelog" },
+          { path: "readme.txt", strategy: "stellarwp-readme" },
+        ],
+      })
+    );
+    mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+    await run({ version: "1.1.0" });
+
+    expect(mockedFs.readFile).toHaveBeenCalledWith("changelog.md", "utf8");
+  });
+
+  it("should correctly extract content for a non-latest version", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig());
+    mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+    const result = await run({ version: "1.0.0" });
+
+    expect(result).toContain("### Added");
+    expect(result).toContain("- Initial feature");
+    // Should not contain entries from v1.1.0
+    expect(result).not.toContain("- New feature A");
+    expect(result).not.toContain("- Bug fix C");
+  });
+
+  it("should correctly extract content when the version is the last entry (stellarwp-changelog)", async () => {
+    mockedLoadConfig.mockResolvedValue(
+      makeConfig({
+        files: [{ path: "changelog.md", strategy: "stellarwp-changelog" }],
+      })
+    );
+    mockedFs.readFile.mockResolvedValue(stellarwpChangelogContent);
+
+    const result = await run({ version: "1.0.0" });
+
+    expect(result).toContain("* Feature - Initial feature");
+    expect(result).not.toContain("* Feature - New feature A");
+  });
+
+  it("should correctly extract content when the version is the last entry (stellarwp-readme)", async () => {
+    mockedLoadConfig.mockResolvedValue(
+      makeConfig({
+        files: [{ path: "readme.txt", strategy: "stellarwp-readme" }],
+      })
+    );
+    mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+    const result = await run({ version: "1.0.0" });
+
+    expect(result).toContain("* Feature - Initial feature");
+    expect(result).not.toContain("* Feature - New feature A");
+  });
+
+  it("should throw when no files are configured", async () => {
+    mockedLoadConfig.mockResolvedValue(makeConfig({ files: [] }));
+
+    await expect(run({ version: "1.0.0" })).rejects.toThrow("No files configured for changelog");
+  });
+});

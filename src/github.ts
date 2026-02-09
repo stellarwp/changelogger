@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { addCommand, validateCommand, writeCommand } from "./main";
+import { addCommand, getChangelogContentsCommand, validateCommand, writeCommand } from "./main";
 import { loadConfig } from "./utils/config";
 
 /**
@@ -51,6 +51,19 @@ export async function run(): Promise<void> {
         }
         await writeCommand({ overwriteVersion: version, date });
         break;
+
+      case "get-changelog-contents": {
+        if (!version) {
+          throw new Error("Version is required for the get-changelog-contents command");
+        }
+        const changelogFile = core.getInput("file");
+        const contents = await getChangelogContentsCommand({
+          version,
+          ...(changelogFile && { file: changelogFile }),
+        });
+        core.setOutput("changelog", contents);
+        break;
+      }
 
       default:
         throw new Error(`Unknown command: ${command}`);
