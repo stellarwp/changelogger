@@ -59,17 +59,19 @@ async function run() {
         await (0, config_1.loadConfig)();
         // Execute the appropriate command based on input
         switch (command) {
-            case "add":
+            case "add": {
                 if (!significance || !type || !entry) {
                     throw new Error("Significance, type, and entry are required for the add command");
                 }
-                await (0, main_1.addCommand)({
+                const addResult = await (0, main_1.addCommand)({
                     significance,
                     type,
                     entry,
                     ...(filename ? { filename } : { autoFilename: true }),
                 });
+                core.setOutput("filename", addResult.filePath);
                 break;
+            }
             case "validate":
                 await (0, main_1.validateCommand)({
                     ...(validateFile && { file: validateFile }),
