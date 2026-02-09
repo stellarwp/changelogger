@@ -9,7 +9,7 @@ on:
 
 permissions:
   id-token: write # Required for OIDC
-  contents: read
+  contents: write # Required for pushing build commit and updating tags
 
 jobs:
   build:
@@ -22,6 +22,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
   check-package-version:
     runs-on: ubuntu-latest
@@ -64,8 +69,64 @@ jobs:
             exit 1
           fi
 
+  build-and-commit:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Commit built files to main
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f dist/
+          git commit -m "Build for ${TAG_NAME}"
+          git push origin main
+
+      - name: Update release tag
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Update the tag ref to point at the new commit (with dist/)
+          # Using the API preserves the Release association since the tag name never disappears
+          gh api "repos/${{ github.repository }}/git/refs/tags/${TAG_NAME}" \
+            --method PATCH \
+            --field sha="$(git rev-parse HEAD)" \
+            --field force=true
+
+      # Support for floating version tags (e.g., @v1, @v2, @v3, etc.)
+      - name: Update floating version tag
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MAJOR=$(echo "${TAG_NAME}" | grep -oP '^v?\K[0-9]+')
+          if [ -n "$MAJOR" ]; then
+            # Create or update the major version tag via the API
+            gh api "repos/${{ github.repository }}/git/refs/tags/v${MAJOR}" \
+              --method PATCH \
+              --field sha="$(git rev-parse HEAD)" \
+              --field force=true 2>/dev/null || \
+            gh api "repos/${{ github.repository }}/git/refs" \
+              --method POST \
+              --field ref="refs/tags/v${MAJOR}" \
+              --field sha="$(git rev-parse HEAD)"
+          fi
+
   publish-npm:
-    needs: [build, check-package-version]
+    needs: [build, check-package-version, build-and-commit]
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.check-package-version.result == 'success' && (needs.build-and-commit.result == 'success' || needs.build-and-commit.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +138,11 @@ jobs:
         with:
           node-version: "lts/*"
           registry-url: "https://registry.npmjs.org"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
       - run: npm ci
 
