@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Write changelog
-        uses: stellarwp/changelogger@main
+        uses: ./
         with:
           command: write
           version: ${{ github.event.inputs.version }}
