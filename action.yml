@@ -43,6 +43,12 @@ inputs:
     required: false
     description: The date to use when writing the changelog
 
+  # Get changelog contents inputs
+  html:
+    required: false
+    description: Whether to convert the Markdown changelog contents to HTML (get-changelog-contents command)
+    default: "false"
+
 outputs:
   result:
     description: The result of the command execution

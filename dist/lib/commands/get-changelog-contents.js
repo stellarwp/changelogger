@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = run;
 const fs = __importStar(require("fs/promises"));
+const marked_1 = require("marked");
 const config_1 = require("../utils/config");
 const writing_1 = require("../utils/writing");
 /**
@@ -97,6 +98,9 @@ async function run(options) {
     else {
         // No next version found — all remaining content belongs to this version
         entries = contentAfterHeader.trimEnd();
+    }
+    if (options.html) {
+        return marked_1.marked.parse(entries);
     }
     return entries;
 }

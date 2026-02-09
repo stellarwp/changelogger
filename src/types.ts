@@ -61,6 +61,11 @@ export interface GetChangelogContentsOptions {
    * If not provided, the first configured file will be used.
    */
   file?: string;
+
+  /**
+   * If true, convert the Markdown changelog contents to HTML.
+   */
+  html?: boolean;
 }
 
 export interface Config {

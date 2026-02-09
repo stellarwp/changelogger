@@ -1,4 +1,5 @@
 import * as fs from "fs/promises";
+import { marked } from "marked";
 import { loadConfig } from "../utils/config";
 import { loadWritingStrategy } from "../utils/writing";
 import { GetChangelogContentsOptions } from "../types";
@@ -73,6 +74,10 @@ export async function run(options: GetChangelogContentsOptions): Promise<string>
   } else {
     // No next version found — all remaining content belongs to this version
     entries = contentAfterHeader.trimEnd();
+  }
+
+  if (options.html) {
+    return marked.parse(entries) as string;
   }
 
   return entries;

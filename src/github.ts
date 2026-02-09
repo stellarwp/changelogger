@@ -57,9 +57,11 @@ export async function run(): Promise<void> {
           throw new Error("Version is required for the get-changelog-contents command");
         }
         const changelogFile = core.getInput("file");
+        const html = core.getBooleanInput("html");
         const contents = await getChangelogContentsCommand({
           version,
           ...(changelogFile && { file: changelogFile }),
+          ...(html && { html }),
         });
         core.setOutput("changelog", contents);
         break;

@@ -1,7 +1,9 @@
 import { run } from "../../src/commands/get-changelog-contents";
 import * as fs from "fs/promises";
 import { loadConfig } from "../../src/utils/config";
-import { Config } from "../../src/types";
+import { Config, GetChangelogContentsOptions } from "../../src/types";
+import { PathLike } from "fs";
+import { FileHandle } from "fs/promises";
 
 jest.mock("fs/promises");
 jest.mock("../../src/utils/config");
@@ -239,5 +241,71 @@ describe("get-changelog-contents command", () => {
     mockedLoadConfig.mockResolvedValue(makeConfig({ files: [] }));
 
     await expect(run({ version: "1.0.0" })).rejects.toThrow("No files configured for changelog");
+  });
+
+  describe("--html option", () => {
+    it("should convert keepachangelog markdown entries to HTML", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      const result = await run({ version: "1.1.0", html: true });
+
+      expect(result).toContain("<h3>Added</h3>");
+      expect(result).toContain("<li>New feature A</li>");
+      expect(result).toContain("<li>New feature B</li>");
+      expect(result).toContain("<h3>Fixed</h3>");
+      expect(result).toContain("<li>Bug fix C</li>");
+    });
+
+    it("should convert stellarwp-changelog entries to HTML", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "changelog.md", strategy: "stellarwp-changelog" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpChangelogContent);
+
+      const result = await run({ version: "1.1.0", html: true });
+
+      expect(result).toContain("<li>Feature - New feature A</li>");
+      expect(result).toContain("<li>Fix - Bug fix C</li>");
+    });
+
+    it("should convert stellarwp-readme entries to HTML", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "readme.txt", strategy: "stellarwp-readme" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+      const result = await run({ version: "1.1.0", html: true });
+
+      expect(result).toContain("<li>Feature - New feature A</li>");
+      expect(result).toContain("<li>Fix - Bug fix C</li>");
+    });
+
+    it("should return raw markdown when html option is not set", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      const result = await run({ version: "1.1.0" });
+
+      expect(result).not.toContain("<h3>");
+      expect(result).not.toContain("<li>");
+      expect(result).toContain("### Added");
+      expect(result).toContain("- New feature A");
+    });
+
+    it("should return raw markdown when html option is false", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      const result = await run({ version: "1.1.0", html: false });
+
+      expect(result).not.toContain("<h3>");
+      expect(result).not.toContain("<li>");
+      expect(result).toContain("### Added");
+    });
   });
 });
