@@ -32,6 +32,7 @@ jobs:
       - name: "Verify: add command created file and returned success"
         run: |
           test "${{ steps.test_add.outputs.result }}" = "success"
+          test -n "${{ steps.test_add.outputs.filename }}"
           test -f changelog/integration-test.yaml
           grep "Integration test entry" changelog/integration-test.yaml
 

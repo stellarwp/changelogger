@@ -47,7 +47,7 @@ describe("github action entry point", () => {
     jest.clearAllMocks();
     // Restore default mock implementations
     mockedLoadConfig.mockResolvedValue({} as any);
-    mockedAddCommand.mockResolvedValue("Created change file");
+    mockedAddCommand.mockResolvedValue({ message: "Created change file", filePath: "changelog/test.yaml" });
     mockedValidateCommand.mockResolvedValue("All change files are valid");
     mockedWriteCommand.mockResolvedValue(undefined as any);
     mockedGetChangelogContentsCommand.mockResolvedValue("changelog contents");
@@ -78,6 +78,7 @@ describe("github action entry point", () => {
         entry: "New feature",
         filename: "my-feature",
       });
+      expect(mockedCore.setOutput).toHaveBeenCalledWith("filename", "changelog/test.yaml");
       expect(mockedCore.setOutput).toHaveBeenCalledWith("result", "success");
     });
 

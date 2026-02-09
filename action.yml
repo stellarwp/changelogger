@@ -52,6 +52,8 @@ inputs:
 outputs:
   result:
     description: The result of the command execution
+  filename:
+    description: The file path of the created change file (only set for add command)
   changelog:
     description: The changelog contents for the requested version (only set for get-changelog-contents command)
 runs:
