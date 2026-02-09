@@ -220,8 +220,37 @@ const customVersioningStrategy = await loadVersioningStrategy("./path/to/custom-
 
 ### As a GitHub Action
 
+The changelogger can be used directly in GitHub Actions workflows. All four commands (`add`, `validate`, `write`, `get-changelog-contents`) are supported.
+
+#### Inputs
+
+| Input           | Required | Description                                                              | Used By                              |
+|-----------------|----------|--------------------------------------------------------------------------|--------------------------------------|
+| `command`       | Yes      | The command to run: `add`, `validate`, `write`, `get-changelog-contents` | All                                  |
+| `significance`  | No       | Significance of the change: `patch`, `minor`, `major`                    | `add`                                |
+| `type`          | No       | Type of change (e.g., `feature`, `fix`, `tweak`)                         | `add`                                |
+| `entry`         | No       | The changelog entry text                                                 | `add`                                |
+| `filename`      | No       | Custom filename for the changelog entry                                  | `add`                                |
+| `version`       | No       | Version number for writing or retrieving changelog contents              | `write`, `get-changelog-contents`    |
+| `date`          | No       | Date for the changelog entry (PHP strtotime format)                      | `write`                              |
+| `file`          | No       | Specific file to validate or read from                                   | `validate`, `get-changelog-contents` |
+| `from`          | No       | Git ref to compare from                                                  | `validate`                           |
+| `to`            | No       | Git ref to compare to                                                    | `validate`                           |
+| `html`          | No       | Convert output to HTML (default: `false`)                                | `get-changelog-contents`             |
+
+#### Outputs
+
+| Output      | Description                                                            |
+|-------------|------------------------------------------------------------------------|
+| `result`    | The result of the command execution: `success` or `error`              |
+| `changelog` | The changelog contents (only set by `get-changelog-contents` command)  |
+
+#### Validate Changelog Entries on Pull Requests
+
+Validate that changelog entries were added and are properly formatted. Use `from` and `to` to check only the files changed in the PR:
+
 ```yaml
-name: Verify changelog Entry.
+name: Validate Changelog Entry
 
 on:
   pull_request:
@@ -232,9 +261,107 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: stellarwp/changelogger@main
         with:
           command: validate
+          from: ${{ github.event.pull_request.base.sha }}
+          to: ${{ github.event.pull_request.head.sha }}
+```
+
+Without `from`/`to`, all files in the changes directory are validated:
+
+```yaml
+      - uses: stellarwp/changelogger@main
+        with:
+          command: validate
+```
+
+To validate a specific file:
+
+```yaml
+      - uses: stellarwp/changelogger@main
+        with:
+          command: validate
+          file: changelog/my-change.yaml
+```
+
+#### Add a Changelog Entry
+
+Add a new changelog entry. When `filename` is not provided, the filename is auto-generated:
+
+```yaml
+      - uses: stellarwp/changelogger@main
+        with:
+          command: add
+          significance: minor
+          type: feature
+          entry: "Added new dashboard widget"
+```
+
+With a custom filename:
+
+```yaml
+      - uses: stellarwp/changelogger@main
+        with:
+          command: add
+          significance: patch
+          type: fix
+          entry: "Fixed login redirect issue"
+          filename: fix-login-redirect
+```
+
+#### Write Changelog
+
+Write pending changelog entries to the configured files:
+
+```yaml
+      - uses: stellarwp/changelogger@main
+        with:
+          command: write
+          version: "1.2.0"
+          date: "2024-03-20"
+```
+
+#### Get Changelog Contents
+
+Retrieve the already-written changelog entries for a version. This is useful for creating GitHub Releases, Slack notifications, or other automation:
+
+```yaml
+      - name: Get changelog
+        id: changelog
+        uses: stellarwp/changelogger@main
+        with:
+          command: get-changelog-contents
+          version: "1.2.0"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.changelog }}
+```
+
+To get HTML output instead of Markdown:
+
+```yaml
+      - name: Get changelog as HTML
+        id: changelog
+        uses: stellarwp/changelogger@main
+        with:
+          command: get-changelog-contents
+          version: "1.2.0"
+          html: "true"
+```
+
+To read from a specific configured file:
+
+```yaml
+      - uses: stellarwp/changelogger@main
+        with:
+          command: get-changelog-contents
+          version: "1.2.0"
+          file: readme.txt
 ```
 
 ## Configuration
