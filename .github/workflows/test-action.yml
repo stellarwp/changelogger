@@ -1,0 +1,103 @@
+name: "Test GitHub Action"
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure debug directory exists
+        run: mkdir -p debug
+
+      # Test 1: Add a changelog entry
+      - name: "Test: add command"
+        id: test_add
+        uses: ./
+        with:
+          command: add
+          significance: minor
+          type: fix
+          entry: "Integration test entry"
+          filename: integration-test
+
+      - name: "Verify: add command created file and returned success"
+        run: |
+          test "${{ steps.test_add.outputs.result }}" = "success"
+          test -f changelog/integration-test.yaml
+          grep "Integration test entry" changelog/integration-test.yaml
+
+      # Test 2: Validate all changelog entries
+      - name: "Test: validate command"
+        id: test_validate
+        uses: ./
+        with:
+          command: validate
+
+      - name: "Verify: validate command returned success"
+        run: test "${{ steps.test_validate.outputs.result }}" = "success"
+
+      # Test 3: Validate a specific file
+      - name: "Test: validate command with file"
+        id: test_validate_file
+        uses: ./
+        with:
+          command: validate
+          file: changelog/integration-test.yaml
+
+      - name: "Verify: validate file command returned success"
+        run: test "${{ steps.test_validate_file.outputs.result }}" = "success"
+
+      # Test 4: Write changelog
+      - name: "Test: write command"
+        id: test_write
+        uses: ./
+        with:
+          command: write
+          version: "99.99.99"
+          date: "2024-01-01"
+
+      - name: "Verify: write command updated changelog files"
+        run: |
+          test "${{ steps.test_write.outputs.result }}" = "success"
+          grep "99.99.99" debug/changelog.md
+          grep "Integration test entry" debug/changelog.md
+          grep "99.99.99" debug/readme.txt
+          grep "Integration test entry" debug/readme.txt
+
+      # Test 5: Get changelog contents (markdown)
+      - name: "Test: get-changelog-contents command"
+        id: test_get_contents
+        uses: ./
+        with:
+          command: get-changelog-contents
+          version: "99.99.99"
+          file: "debug/changelog.md"
+
+      - name: "Verify: get-changelog-contents returned changelog output"
+        run: |
+          test "${{ steps.test_get_contents.outputs.result }}" = "success"
+          echo "${{ steps.test_get_contents.outputs.changelog }}" | grep "Integration test entry"
+
+      # Test 6: Get changelog contents (HTML)
+      - name: "Test: get-changelog-contents with HTML"
+        id: test_get_html
+        uses: ./
+        with:
+          command: get-changelog-contents
+          version: "99.99.99"
+          file: "debug/changelog.md"
+          html: "true"
+
+      - name: "Verify: get-changelog-contents HTML output"
+        run: |
+          test "${{ steps.test_get_html.outputs.result }}" = "success"
+          echo "${{ steps.test_get_html.outputs.changelog }}" | grep "<li>"
