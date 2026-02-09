@@ -1,3 +1,20 @@
+/**
+ * Tests the GitHub Action entry point (src/github.ts).
+ *
+ * The project has three separate entry points, each bundled independently via ncc:
+ *   - dist/index.js    (library, from src/main.ts via build:package)
+ *   - dist/cli.js      (CLI, from src/cli.ts via build:cli)
+ *   - dist/gha/index.js (GitHub Action, from src/github.ts via build:gha)
+ *
+ * action.yml references dist/gha/index.js as the Action's entry point. This file
+ * is a thin adapter that reads @actions/core inputs, maps them to the shared
+ * command functions exported by src/main.ts, and sets @actions/core outputs.
+ *
+ * These tests verify the adapter logic (input parsing, command routing, output
+ * setting, and error handling) independently from the command implementations,
+ * which have their own tests in __tests__/commands/.
+ */
+
 // Mocks are hoisted before imports by Jest
 jest.mock("@actions/core");
 jest.mock("../src/main");
