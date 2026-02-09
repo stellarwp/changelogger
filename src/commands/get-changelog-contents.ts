@@ -77,7 +77,7 @@ export async function run(options: GetChangelogContentsOptions): Promise<string>
   }
 
   if (options.html) {
-    return marked.parse(entries) as string;
+    return (marked.parse(entries) as string).trimEnd();
   }
 
   return entries;

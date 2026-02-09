@@ -292,7 +292,7 @@ async function run(options) {
         entries = contentAfterHeader.trimEnd();
     }
     if (options.html) {
-        return marked_1.marked.parse(entries);
+        return marked_1.marked.parse(entries).trimEnd();
     }
     return entries;
 }
