@@ -2,11 +2,12 @@ name: Validate Changelog
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, labeled, unlabeled]
 
 jobs:
   validate-changelog:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'No Changelog Needed')"
     steps:
       - uses: actions/checkout@v4
         with:
