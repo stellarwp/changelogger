@@ -263,7 +263,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: validate
           from: ${{ github.event.pull_request.base.sha }}
@@ -273,7 +273,7 @@ jobs:
 Without `from`/`to`, all files in the changes directory are validated:
 
 ```yaml
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: validate
 ```
@@ -281,7 +281,7 @@ Without `from`/`to`, all files in the changes directory are validated:
 To validate a specific file:
 
 ```yaml
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: validate
           file: changelog/my-change.yaml
@@ -292,7 +292,7 @@ To validate a specific file:
 Add a new changelog entry. When `filename` is not provided, the filename is auto-generated:
 
 ```yaml
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: add
           significance: minor
@@ -303,7 +303,7 @@ Add a new changelog entry. When `filename` is not provided, the filename is auto
 With a custom filename:
 
 ```yaml
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: add
           significance: patch
@@ -317,7 +317,7 @@ With a custom filename:
 Write pending changelog entries to the configured files:
 
 ```yaml
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: write
           version: "1.2.0"
@@ -331,7 +331,7 @@ Retrieve the already-written changelog entries for a version. This is useful for
 ```yaml
       - name: Get changelog
         id: changelog
-        uses: stellarwp/changelogger@main
+        uses: stellarwp/changelogger@v0
         with:
           command: get-changelog-contents
           version: "1.2.0"
@@ -347,7 +347,7 @@ To get HTML output instead of Markdown:
 ```yaml
       - name: Get changelog as HTML
         id: changelog
-        uses: stellarwp/changelogger@main
+        uses: stellarwp/changelogger@v0
         with:
           command: get-changelog-contents
           version: "1.2.0"
@@ -357,7 +357,7 @@ To get HTML output instead of Markdown:
 To read from a specific configured file:
 
 ```yaml
-      - uses: stellarwp/changelogger@main
+      - uses: stellarwp/changelogger@v0
         with:
           command: get-changelog-contents
           version: "1.2.0"
