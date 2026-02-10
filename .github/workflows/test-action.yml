@@ -18,9 +18,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+
+      - uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
 
       - run: npm ci
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+
       - run: npm run build:gha
 
       - name: Ensure debug directory exists
