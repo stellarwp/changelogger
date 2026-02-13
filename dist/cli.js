@@ -238,13 +238,20 @@ const writing_1 = __nccwpck_require__(7999);
  * writing strategy to correctly identify version boundaries.
  *
  * @param options - Command options
- * @param options.version - The version to retrieve contents for
+ * @param options.version - The version to retrieve contents for (required unless `last` is true)
+ * @param options.last - If true, retrieve contents for the most recent version
  * @param options.file - Optional path to a specific configured changelog file
  *
  * @returns A promise that resolves to the changelog entries for the version
  * @throws {Error} If the version is not found or the file cannot be read
  */
 async function run(options) {
+    if (options.version && options.last) {
+        throw new Error("Cannot use both --version and --last");
+    }
+    if (!options.version && !options.last) {
+        throw new Error("Either --version or --last must be specified");
+    }
     const config = await (0, config_1.loadConfig)();
     // Determine which file to read from
     let fileConfig;
@@ -264,10 +271,22 @@ async function run(options) {
     const strategy = await (0, writing_1.loadWritingStrategy)(fileConfig.strategy);
     // Read the file content
     const content = await fs.readFile(fileConfig.path, "utf8");
+    // Resolve the version to look up
+    let version;
+    if (options.last) {
+        const latest = strategy.getLatestVersion(content);
+        if (!latest) {
+            throw new Error(`No version found in ${fileConfig.path}`);
+        }
+        version = latest;
+    }
+    else {
+        version = options.version;
+    }
     // Find the version header
-    const versionHeader = strategy.versionHeaderMatcher(content, options.version);
+    const versionHeader = strategy.versionHeaderMatcher(content, version);
     if (!versionHeader) {
-        throw new Error(`Version ${options.version} not found in ${fileConfig.path}`);
+        throw new Error(`Version ${version} not found in ${fileConfig.path}`);
     }
     // Find the start of the version section header
     const versionHeaderStart = content.indexOf(versionHeader);
@@ -1313,7 +1332,8 @@ async function loadWritingStrategy(formatter) {
             if (typeof module.formatChanges !== "function" ||
                 typeof module.formatVersionHeader !== "function" ||
                 typeof module.versionHeaderMatcher !== "function" ||
-                typeof module.changelogHeaderMatcher !== "function") {
+                typeof module.changelogHeaderMatcher !== "function" ||
+                typeof module.getLatestVersion !== "function") {
                 throw new Error(`Writing strategy file ${formatter} does not export required methods`);
             }
             return module;
@@ -1391,6 +1411,10 @@ const keepachangelog = {
         }
         return firstVersionMatch.index;
     },
+    getLatestVersion(content) {
+        const match = content.match(/^## \[([^\]]+)\]/m);
+        return match?.[1];
+    },
 };
 exports["default"] = keepachangelog;
 
@@ -1447,6 +1471,10 @@ const stellarwpChangelog = {
         }
         return firstVersionMatch.index;
     },
+    getLatestVersion(content) {
+        const match = content.match(/^### \[([^\]]+)\]/m);
+        return match?.[1];
+    },
 };
 exports["default"] = stellarwpChangelog;
 
@@ -1502,6 +1530,10 @@ const stellarwpReadme = {
             return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
+    },
+    getLatestVersion(content) {
+        const match = content.match(/^= \[([^\]]+)\]/m);
+        return match?.[1];
     },
 };
 exports["default"] = stellarwpReadme;
@@ -74517,7 +74549,8 @@ program
 program
     .command("get-changelog-contents")
     .description("Get the changelog contents for a specific version")
-    .requiredOption("-v, --version <version>", "The version to retrieve")
+    .option("-v, --version <version>", "The version to retrieve")
+    .option("-l, --last", "Retrieve contents for the most recent version")
     .option("-f, --file <path>", "Path to the changelog file (must match a configured file)")
     .option("--html", "Convert the Markdown changelog contents to HTML")
     .action(async (options) => {

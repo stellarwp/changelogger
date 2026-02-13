@@ -54,6 +54,11 @@ const stellarwpChangelog: WritingStrategy = {
     }
     return firstVersionMatch.index!;
   },
+
+  getLatestVersion(content: string): string | undefined {
+    const match = content.match(/^### \[([^\]]+)\]/m);
+    return match?.[1];
+  },
 };
 
 export default stellarwpChangelog;

@@ -46,5 +46,9 @@ const keepachangelog = {
         }
         return firstVersionMatch.index;
     },
+    getLatestVersion(content) {
+        const match = content.match(/^## \[([^\]]+)\]/m);
+        return match?.[1];
+    },
 };
 exports.default = keepachangelog;

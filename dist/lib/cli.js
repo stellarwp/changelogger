@@ -50,7 +50,8 @@ program
 program
     .command("get-changelog-contents")
     .description("Get the changelog contents for a specific version")
-    .requiredOption("-v, --version <version>", "The version to retrieve")
+    .option("-v, --version <version>", "The version to retrieve")
+    .option("-l, --last", "Retrieve contents for the most recent version")
     .option("-f, --file <path>", "Path to the changelog file (must match a configured file)")
     .option("--html", "Convert the Markdown changelog contents to HTML")
     .action(async (options) => {

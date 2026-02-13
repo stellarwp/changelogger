@@ -22,6 +22,11 @@ export interface WritingStrategy {
      * Returns the index where new entries should be inserted
      */
     changelogHeaderMatcher: (content: string) => number;
+    /**
+     * Extract the most recent version from the changelog content.
+     * Returns the version string if found, undefined if no version headers exist.
+     */
+    getLatestVersion: (content: string) => string | undefined;
 }
 export declare function loadWritingStrategy(formatter: string): Promise<WritingStrategy>;
 //# sourceMappingURL=writing.d.ts.map

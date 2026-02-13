@@ -46,13 +46,20 @@ const writing_1 = require("../utils/writing");
  * writing strategy to correctly identify version boundaries.
  *
  * @param options - Command options
- * @param options.version - The version to retrieve contents for
+ * @param options.version - The version to retrieve contents for (required unless `last` is true)
+ * @param options.last - If true, retrieve contents for the most recent version
  * @param options.file - Optional path to a specific configured changelog file
  *
  * @returns A promise that resolves to the changelog entries for the version
  * @throws {Error} If the version is not found or the file cannot be read
  */
 async function run(options) {
+    if (options.version && options.last) {
+        throw new Error("Cannot use both --version and --last");
+    }
+    if (!options.version && !options.last) {
+        throw new Error("Either --version or --last must be specified");
+    }
     const config = await (0, config_1.loadConfig)();
     // Determine which file to read from
     let fileConfig;
@@ -72,10 +79,22 @@ async function run(options) {
     const strategy = await (0, writing_1.loadWritingStrategy)(fileConfig.strategy);
     // Read the file content
     const content = await fs.readFile(fileConfig.path, "utf8");
+    // Resolve the version to look up
+    let version;
+    if (options.last) {
+        const latest = strategy.getLatestVersion(content);
+        if (!latest) {
+            throw new Error(`No version found in ${fileConfig.path}`);
+        }
+        version = latest;
+    }
+    else {
+        version = options.version;
+    }
     // Find the version header
-    const versionHeader = strategy.versionHeaderMatcher(content, options.version);
+    const versionHeader = strategy.versionHeaderMatcher(content, version);
     if (!versionHeader) {
-        throw new Error(`Version ${options.version} not found in ${fileConfig.path}`);
+        throw new Error(`Version ${version} not found in ${fileConfig.path}`);
     }
     // Find the start of the version section header
     const versionHeaderStart = content.indexOf(versionHeader);

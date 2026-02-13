@@ -243,6 +243,68 @@ describe("get-changelog-contents command", () => {
     await expect(run({ version: "1.0.0" })).rejects.toThrow("No files configured for changelog");
   });
 
+  describe("--last option", () => {
+    it("should retrieve entries for the latest version from a keepachangelog-formatted file", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      const result = await run({ last: true });
+
+      expect(result).toContain("### Added");
+      expect(result).toContain("- New feature A");
+      expect(result).toContain("- New feature B");
+      expect(result).toContain("### Fixed");
+      expect(result).toContain("- Bug fix C");
+      // Should not contain entries from v1.0.0
+      expect(result).not.toContain("- Initial feature");
+    });
+
+    it("should retrieve entries for the latest version from a stellarwp-changelog-formatted file", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "changelog.md", strategy: "stellarwp-changelog" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpChangelogContent);
+
+      const result = await run({ last: true });
+
+      expect(result).toContain("* Feature - New feature A");
+      expect(result).toContain("* Fix - Bug fix C");
+      expect(result).not.toContain("* Feature - Initial feature");
+    });
+
+    it("should retrieve entries for the latest version from a stellarwp-readme-formatted file", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "readme.txt", strategy: "stellarwp-readme" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+      const result = await run({ last: true });
+
+      expect(result).toContain("* Feature - New feature A");
+      expect(result).toContain("* Fix - Bug fix C");
+      expect(result).not.toContain("* Feature - Initial feature");
+    });
+
+    it("should throw when no version headers exist in the file", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue("# Changelog\n\nNo versions yet.\n");
+
+      await expect(run({ last: true })).rejects.toThrow("No version found in changelog.md");
+    });
+
+    it("should throw when both --version and --last are provided", async () => {
+      await expect(run({ version: "1.0.0", last: true })).rejects.toThrow("Cannot use both --version and --last");
+    });
+
+    it("should throw when neither --version nor --last is provided", async () => {
+      await expect(run({})).rejects.toThrow("Either --version or --last must be specified");
+    });
+  });
+
   describe("--html option", () => {
     it("should convert keepachangelog markdown entries to HTML", async () => {
       mockedLoadConfig.mockResolvedValue(makeConfig());
