@@ -320,7 +320,20 @@ describe("github action entry point", () => {
       });
     });
 
-    it("should error when version is missing", async () => {
+    it("should pass last option when true", async () => {
+      mockInputs({
+        command: "get-changelog-contents",
+      });
+      mockedCore.getBooleanInput.mockImplementation((name: string) => name === "last");
+
+      await run();
+
+      expect(mockedGetChangelogContentsCommand).toHaveBeenCalledWith({
+        last: true,
+      });
+    });
+
+    it("should error when version is missing and last is false", async () => {
       mockInputs({ command: "get-changelog-contents" });
 
       await run();
