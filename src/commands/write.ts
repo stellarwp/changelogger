@@ -165,11 +165,10 @@ export async function run(options: WriteCommandOptions): Promise<string> {
 
     // Ensure the file exists with default content (only in actual run)
     if (!options.dryRun) {
-      const defaultContent = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n";
-      await ensureFileExists(file.path, defaultContent);
+      await ensureFileExists(file.path, "");
     }
 
-    const content = await fs.readFile(file.path, "utf8").catch(() => "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n");
+    const content = await fs.readFile(file.path, "utf8").catch(() => "");
     const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "";
 
     // Format the new changelog entry
