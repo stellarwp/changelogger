@@ -185,6 +185,9 @@ The command will:
 - Extract the entries for that version (without the version header line)
 - Optionally convert the Markdown entries to HTML when `--html` is specified
 
+> [!NOTE]
+> Version boundaries are detected using the configured writing strategy's header matcher. If your changelog file contains non-version content (e.g., headings or text) after the last version entry, that content may be included in the output for that version since there is no subsequent version header to mark the boundary. To avoid this, ensure that there is nothing after the last changelog entry in your file.
+
 ### As a Module
 
 ```typescript
