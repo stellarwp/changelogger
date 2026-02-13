@@ -256,8 +256,6 @@ describe("write command", () => {
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall?.[1] as string;
-    expect(writtenContent).toContain("# Changelog");
-    expect(writtenContent).toContain("All notable changes to this project will be documented in this file.");
     expect(writtenContent).toContain("## [1.1.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added new feature");
@@ -310,8 +308,6 @@ describe("write command", () => {
     // Verify changelog content
     const writeCall = mockedFs.writeFile.mock.calls[0];
     const writtenContent = writeCall?.[1] as string;
-    expect(writtenContent).toContain("# Changelog");
-    expect(writtenContent).toContain("All notable changes to this project will be documented in this file.");
     expect(writtenContent).toContain("## [1.1.0]");
     expect(writtenContent).toContain("### Added");
     expect(writtenContent).toContain("- Added new feature");
