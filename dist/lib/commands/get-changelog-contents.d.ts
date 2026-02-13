@@ -7,7 +7,8 @@ import { GetChangelogContentsOptions } from "../types";
  * writing strategy to correctly identify version boundaries.
  *
  * @param options - Command options
- * @param options.version - The version to retrieve contents for
+ * @param options.version - The version to retrieve contents for (required unless `last` is true)
+ * @param options.last - If true, retrieve contents for the most recent version
  * @param options.file - Optional path to a specific configured changelog file
  *
  * @returns A promise that resolves to the changelog entries for the version

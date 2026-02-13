@@ -28,6 +28,12 @@ export interface WritingStrategy {
    * Returns the index where new entries should be inserted
    */
   changelogHeaderMatcher: (content: string) => number;
+
+  /**
+   * Extract the most recent version from the changelog content.
+   * Returns the version string if found, undefined if no version headers exist.
+   */
+  getLatestVersion: (content: string) => string | undefined;
 }
 
 export async function loadWritingStrategy(formatter: string): Promise<WritingStrategy> {
@@ -42,7 +48,8 @@ export async function loadWritingStrategy(formatter: string): Promise<WritingStr
         typeof module.formatChanges !== "function" ||
         typeof module.formatVersionHeader !== "function" ||
         typeof module.versionHeaderMatcher !== "function" ||
-        typeof module.changelogHeaderMatcher !== "function"
+        typeof module.changelogHeaderMatcher !== "function" ||
+        typeof module.getLatestVersion !== "function"
       ) {
         throw new Error(`Writing strategy file ${formatter} does not export required methods`);
       }

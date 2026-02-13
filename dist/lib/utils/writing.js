@@ -45,7 +45,8 @@ async function loadWritingStrategy(formatter) {
             if (typeof module.formatChanges !== "function" ||
                 typeof module.formatVersionHeader !== "function" ||
                 typeof module.versionHeaderMatcher !== "function" ||
-                typeof module.changelogHeaderMatcher !== "function") {
+                typeof module.changelogHeaderMatcher !== "function" ||
+                typeof module.getLatestVersion !== "function") {
                 throw new Error(`Writing strategy file ${formatter} does not export required methods`);
             }
             return module;

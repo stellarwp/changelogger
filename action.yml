@@ -44,6 +44,10 @@ inputs:
     description: The date to use when writing the changelog
 
   # Get changelog contents inputs
+  last:
+    required: false
+    description: Whether to retrieve the most recent version's changelog contents (get-changelog-contents command)
+    default: "false"
   html:
     required: false
     description: Whether to convert the Markdown changelog contents to HTML (get-changelog-contents command)

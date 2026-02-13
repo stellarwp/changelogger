@@ -165,6 +165,9 @@ Retrieves the already-written changelog entries for a specific version from a ch
 # Get the markdown entries for a specific version
 npm run changelog get-changelog-contents -- --version 1.2.3
 
+# Get entries for the most recent version
+npm run changelog get-changelog-contents -- --last
+
 # Get entries from a specific configured file
 npm run changelog get-changelog-contents -- --version 1.2.3 --file readme.txt
 
@@ -174,7 +177,8 @@ npm run changelog get-changelog-contents -- --version 1.2.3 --html
 
 Options:
 
-- `--version` (required): The version to retrieve changelog contents for
+- `--version`: The version to retrieve changelog contents for. Required unless `--last` is used.
+- `--last`: Retrieve changelog contents for the most recent version in the file. Cannot be used with `--version`.
 - `--file`: Path to a specific configured changelog file (must match a path in the `files` config array). Defaults to the first configured file.
 - `--html`: Convert the Markdown changelog contents to HTML
 
@@ -184,6 +188,9 @@ The command will:
 - Use the file's writing strategy to locate the version header and boundaries
 - Extract the entries for that version (without the version header line)
 - Optionally convert the Markdown entries to HTML when `--html` is specified
+
+> [!NOTE]
+> Version boundaries are detected using the configured writing strategy's header matcher. If your changelog file contains non-version content (e.g., headings or text) after the last version entry, that content may be included in the output for that version since there is no subsequent version header to mark the boundary. To avoid this, ensure that there is nothing after the last changelog entry in your file.
 
 ### As a Module
 
