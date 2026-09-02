@@ -100,7 +100,15 @@ jobs:
           # the pattern requires at least one, so the declarations sitting
           # directly in dist/gha (cli.d.ts, main.d.ts, ...) are not excluded.
           git add -f dist/ ':(exclude,glob)dist/gha/**/*.d.ts' ':(exclude,glob)dist/gha/**/*.d.ts.map'
-          git commit -m "Build for ${TAG_NAME}" || (echo "NO_CHANGES=yes" >> $GITHUB_ENV && echo "No changes to commit")
+          # Decide "nothing to commit" from the index rather than from a failed
+          # commit, so a commit that fails for any other reason fails the job
+          # instead of silently skipping the push and the tag updates.
+          if git diff --cached --quiet; then
+            echo "NO_CHANGES=yes" >> "$GITHUB_ENV"
+            echo "No changes to commit"
+          else
+            git commit -m "Build for ${TAG_NAME}"
+          fi
 
       - name: Fast-forward main to the build commit
         if: ${{ env.NO_CHANGES != 'yes' }}
