@@ -33,6 +33,9 @@ npm run changelog validate
 
 # Write changes to CHANGELOG.md
 npm run changelog write
+
+# Get changelog contents for a specific version
+npm run changelog get-changelog-contents -- --version 1.2.3
 ```
 
 ### CLI Commands Reference
@@ -154,11 +157,47 @@ The command supports multiple output files with different writing strategies:
 
 Each file is processed according to its configured strategy and the changes are written in the appropriate format.
 
+#### `get-changelog-contents` Command
+
+Retrieves the already-written changelog entries for a specific version from a changelog file. This is useful in automation workflows where you need the formatted changelog contents (e.g., for release notes, Slack notifications, or GitHub release bodies).
+
+```bash
+# Get the markdown entries for a specific version
+npm run changelog get-changelog-contents -- --version 1.2.3
+
+# Get entries for the most recent version
+npm run changelog get-changelog-contents -- --last
+
+# Get entries from a specific configured file
+npm run changelog get-changelog-contents -- --version 1.2.3 --file readme.txt
+
+# Get entries converted to HTML
+npm run changelog get-changelog-contents -- --version 1.2.3 --html
+```
+
+Options:
+
+- `--version`: The version to retrieve changelog contents for. Required unless `--last` is used.
+- `--last`: Retrieve changelog contents for the most recent version in the file. Cannot be used with `--version`.
+- `--file`: Path to a specific configured changelog file (must match a path in the `files` config array). Defaults to the first configured file.
+- `--html`: Convert the Markdown changelog contents to HTML
+
+The command will:
+
+- Read the specified (or first configured) changelog file
+- Use the file's writing strategy to locate the version header and boundaries
+- Extract the entries for that version (without the version header line)
+- Optionally convert the Markdown entries to HTML when `--html` is specified
+
+> [!NOTE]
+> Version boundaries are detected using the configured writing strategy's header matcher. If your changelog file contains non-version content (e.g., headings or text) after the last version entry, that content may be included in the output for that version since there is no subsequent version header to mark the boundary. To avoid this, ensure that there is nothing after the last changelog entry in your file.
+
 ### As a Module
 
 ```typescript
 import {
   addCommand,
+  getChangelogContentsCommand,
   validateCommand,
   writeCommand,
   writingStrategies,
@@ -166,6 +205,7 @@ import {
   loadConfig,
   loadWritingStrategy,
   loadVersioningStrategy,
+  escapeRegExp,
   WritingStrategy,
   VersioningStrategy,
 } from "@stellarwp/changelogger";
@@ -447,8 +487,10 @@ Available built-in strategies:
    // custom-writing.js
 
    // You can import utilities from the main package to help with formatting
-   // Note: These are only available when using the writing strategy through changelogger
-   const { getTypeLabel, defaultConfig } = require("@stellarwp/changelogger");
+   // Note: These only resolve when @stellarwp/changelogger is installed in the same
+   // project as this file. It is not resolvable under npx or the GitHub Action, so
+   // do not depend on it for anything you can write inline
+   const { getTypeLabel, defaultConfig, escapeRegExp } = require("@stellarwp/changelogger");
 
    module.exports = {
      /**
@@ -516,7 +558,12 @@ Available built-in strategies:
       * @returns {string|undefined} Matched header or undefined
       */
      versionHeaderMatcher(content, version) {
-       const regex = new RegExp(`^## \\[${version}\\].*$`, "m");
+       // Escape the version so a value such as `.*` matches literally instead of
+       // matching any version header. @stellarwp/changelogger exports this same
+       // helper as escapeRegExp
+       const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+       const regex = new RegExp(`^## \\[${escapedVersion}\\].*$`, "m");
        const match = content.match(regex);
        return match ? match[0] : undefined;
      },
@@ -670,7 +717,16 @@ The changelogger can also be used as a library in your Node.js applications:
 #### TypeScript / ES6 Modules (with bundler)
 
 ```typescript
-import { loadConfig, addCommand, validateCommand, writeCommand, Config, WritingStrategy, VersioningStrategy } from "@stellarwp/changelogger";
+import {
+  loadConfig,
+  addCommand,
+  getChangelogContentsCommand,
+  validateCommand,
+  writeCommand,
+  Config,
+  WritingStrategy,
+  VersioningStrategy,
+} from "@stellarwp/changelogger";
 
 // Load configuration from package.json
 const config = await loadConfig();
@@ -694,12 +750,24 @@ const writeResult = await writeCommand({
   date: "2024-03-20",
 });
 console.log(writeResult);
+
+// Get changelog contents for a version
+const markdownContents = await getChangelogContentsCommand({ version: "1.2.3" });
+console.log(markdownContents);
+
+// Get changelog contents as HTML
+const htmlContents = await getChangelogContentsCommand({ version: "1.2.3", html: true });
+console.log(htmlContents);
+
+// Get changelog contents from a specific file
+const readmeContents = await getChangelogContentsCommand({ version: "1.2.3", file: "readme.txt" });
+console.log(readmeContents);
 ```
 
 #### CommonJS
 
 ```javascript
-const { loadConfig, addCommand, validateCommand, writeCommand } = require("@stellarwp/changelogger");
+const { loadConfig, addCommand, getChangelogContentsCommand, validateCommand, writeCommand } = require("@stellarwp/changelogger");
 
 // Same usage as above
 (async () => {
@@ -750,7 +818,7 @@ console.log(nextVersion); // Your custom versioning logic result
 The package includes TypeScript declarations for full type support:
 
 ```typescript
-import { Config, ChangeFile, WriteCommandOptions, VersioningStrategy, WritingStrategy } from "@stellarwp/changelogger";
+import { Config, ChangeFile, WriteCommandOptions, GetChangelogContentsOptions, VersioningStrategy, WritingStrategy } from "@stellarwp/changelogger";
 
 // All types are available for TypeScript users
 const config: Config = await loadConfig();
@@ -761,9 +829,15 @@ const change: ChangeFile = {
   entry: "Fixed a bug",
 };
 
-const options: WriteCommandOptions = {
+const writeOptions: WriteCommandOptions = {
   overwriteVersion: "1.0.0",
   dryRun: true,
+};
+
+const getContentsOptions: GetChangelogContentsOptions = {
+  version: "1.0.0",
+  file: "readme.txt",
+  html: true,
 };
 ```
 

@@ -3,7 +3,7 @@
  * This file demonstrates how to create a custom writing strategy for @stellarwp/changelogger
  *
  * Note: When using this strategy with changelogger, you can also import utilities:
- * const { getTypeLabel, defaultConfig } = require('@stellarwp/changelogger');
+ * const { getTypeLabel, defaultConfig, escapeRegExp } = require('@stellarwp/changelogger');
  */
 
 module.exports = {
@@ -82,8 +82,13 @@ module.exports = {
    * @returns {string|undefined} Matched header or undefined
    */
   versionHeaderMatcher(content, version) {
+    // Escape the version so a value such as `.*` matches literally instead of
+    // matching any version header. @stellarwp/changelogger exports this same
+    // helper as escapeRegExp
+    const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
     // Match our custom header format
-    const regex = new RegExp(`Version ${version} \\([^)]+\\)`, "m");
+    const regex = new RegExp(`Version ${escapedVersion} \\([^)]+\\)`, "m");
     const match = content.match(regex);
     return match ? match[0] : undefined;
   },
