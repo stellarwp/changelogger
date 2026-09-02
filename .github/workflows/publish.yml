@@ -74,16 +74,20 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     steps:
+      # Check out the commit the release tag points at, not main. The tag is not
+      # guaranteed to be main's tip: a release can be published for a tag on any
+      # branch, and main can move on between the release being published and this
+      # job running.
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
-      - name: Commit built files to main
+      - name: Commit built files on top of the released commit
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
@@ -92,9 +96,26 @@ jobs:
           git add -f dist/ ':(exclude)dist/gha/**/*.d.ts' ':(exclude)dist/gha/**/*.d.ts.map'
           git commit -m "Build for ${TAG_NAME}" || (echo "NO_CHANGES=yes" >> $GITHUB_ENV && echo "No changes to commit")
 
-      - name: Push built files to main
+      - name: Fast-forward main to the build commit
         if: ${{ env.NO_CHANGES != 'yes' }}
-        run: git push origin main
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          RELEASED_SHA: ${{ github.sha }}
+        run: |
+          # Only advance main when the released commit is main's tip, so the push
+          # adds the build commit and nothing else. A release cut from a branch
+          # that is ahead of main would otherwise fast-forward cleanly and carry
+          # that branch's commits onto main along with it.
+          git fetch --depth=1 origin main
+          MAIN_SHA="$(git rev-parse FETCH_HEAD)"
+          if [ "$MAIN_SHA" = "$RELEASED_SHA" ]; then
+            # A plain (non-force) push, so if main moves between the check above
+            # and here, the push is rejected rather than clobbering that commit.
+            git push origin HEAD:main
+            echo "Pushed the build commit to main."
+          else
+            echo "::notice::Left main alone: it points at ${MAIN_SHA}, but ${TAG_NAME} was released from ${RELEASED_SHA}. The build commit is reachable from ${TAG_NAME}, which is what \"uses: stellarwp/changelogger@${TAG_NAME}\" resolves."
+          fi
 
       - name: Update release tag
         if: ${{ env.NO_CHANGES != 'yes' }}
