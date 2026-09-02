@@ -187,8 +187,11 @@ export async function run(options: WriteCommandOptions): Promise<string> {
       // Find the start of the version section header
       const versionHeaderStart = content.indexOf(previousVersion);
 
-      // Find where the version header line ends (after the full header line)
-      const headerLineEnd = content.indexOf("\n", versionHeaderStart) + 1;
+      // Find where the version header line ends (after the full header line). A
+      // header on the final line has no trailing newline, in which case the line
+      // ends at the end of the content
+      const headerNewlineIndex = content.indexOf("\n", versionHeaderStart);
+      const headerLineEnd = headerNewlineIndex === -1 ? content.length : headerNewlineIndex + 1;
 
       // Skip any empty lines after the header
       let contentStart = headerLineEnd;

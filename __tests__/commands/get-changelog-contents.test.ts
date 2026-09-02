@@ -243,6 +243,29 @@ describe("get-changelog-contents command", () => {
     await expect(run({ version: "1.0.0" })).rejects.toThrow("No files configured for changelog");
   });
 
+  describe("version header at the end of the file", () => {
+    it("should return empty entries when the header is the final line without a trailing newline", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue("# Changelog\n\n## [1.1.0] - 2024-03-22\n\n### Added\n- New feature A\n\n## [1.0.0] - 2024-03-20");
+
+      const result = await run({ version: "1.0.0" });
+
+      expect(result).toBe("");
+      // The entries from 1.1.0 sit before the header and must not be returned
+      expect(result).not.toContain("- New feature A");
+    });
+
+    it("should return empty entries when the only header has no trailing newline", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue("# Changelog\n\n## [1.0.0] - 2024-03-20");
+
+      const result = await run({ version: "1.0.0" });
+
+      expect(result).toBe("");
+      expect(result).not.toContain("# Changelog");
+    });
+  });
+
   describe("regular expression metacharacters in the version", () => {
     it("should not match any version when the version is `.*` (keepachangelog)", async () => {
       mockedLoadConfig.mockResolvedValue(makeConfig());
