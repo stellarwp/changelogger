@@ -243,6 +243,68 @@ describe("get-changelog-contents command", () => {
     await expect(run({ version: "1.0.0" })).rejects.toThrow("No files configured for changelog");
   });
 
+  describe("version header at the end of the file", () => {
+    it("should return empty entries when the header is the final line without a trailing newline", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue("# Changelog\n\n## [1.1.0] - 2024-03-22\n\n### Added\n- New feature A\n\n## [1.0.0] - 2024-03-20");
+
+      const result = await run({ version: "1.0.0" });
+
+      expect(result).toBe("");
+      // The entries from 1.1.0 sit before the header and must not be returned
+      expect(result).not.toContain("- New feature A");
+    });
+
+    it("should return empty entries when the only header has no trailing newline", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue("# Changelog\n\n## [1.0.0] - 2024-03-20");
+
+      const result = await run({ version: "1.0.0" });
+
+      expect(result).toBe("");
+      expect(result).not.toContain("# Changelog");
+    });
+  });
+
+  describe("regular expression metacharacters in the version", () => {
+    it("should not match any version when the version is `.*` (keepachangelog)", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      await expect(run({ version: ".*" })).rejects.toThrow("Version .* not found in changelog.md");
+    });
+
+    it("should not match any version when the version is `.*` (stellarwp-changelog)", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "changelog.md", strategy: "stellarwp-changelog" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpChangelogContent);
+
+      await expect(run({ version: ".*" })).rejects.toThrow("Version .* not found in changelog.md");
+    });
+
+    it("should not match any version when the version is `.*` (stellarwp-readme)", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "readme.txt", strategy: "stellarwp-readme" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+      await expect(run({ version: ".*" })).rejects.toThrow("Version .* not found in readme.txt");
+    });
+
+    it("should treat `.` in a version as a literal character", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      // `1x1x0` would match `1.1.0` if the dots were left unescaped.
+      await expect(run({ version: "1x1x0" })).rejects.toThrow("Version 1x1x0 not found in changelog.md");
+    });
+  });
+
   describe("--last option", () => {
     it("should retrieve entries for the latest version from a keepachangelog-formatted file", async () => {
       mockedLoadConfig.mockResolvedValue(makeConfig());
@@ -294,6 +356,18 @@ describe("get-changelog-contents command", () => {
       mockedFs.readFile.mockResolvedValue("# Changelog\n\nNo versions yet.\n");
 
       await expect(run({ last: true })).rejects.toThrow("No version found in changelog.md");
+    });
+
+    it("should skip an undated Unreleased header and return the latest released version", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(
+        "# Changelog\n\n## [Unreleased]\n\n### Added\n- Pending feature\n\n## [1.0.0] - 2024-03-20\n\n### Added\n- Initial feature\n"
+      );
+
+      const result = await run({ last: true });
+
+      expect(result).toContain("- Initial feature");
+      expect(result).not.toContain("- Pending feature");
     });
 
     it("should throw when both --version and --last are provided", async () => {

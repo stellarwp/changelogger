@@ -1,6 +1,6 @@
 import { ChangeFile } from "../../types";
 import { getTypeLabel } from "../config";
-import { WritingStrategy } from "../writing";
+import { escapeRegExp, WritingStrategy } from "../writing";
 
 const keepachangelog: WritingStrategy = {
   formatChanges(version: string, changes: ChangeFile[], previousVersion?: string): string {
@@ -43,7 +43,7 @@ const keepachangelog: WritingStrategy = {
 
   versionHeaderMatcher(content: string, version: string): string | undefined {
     // Match Keep a Changelog version headers
-    const versionRegex = new RegExp(`^(## \\[${version}\\] - (?:[^\n]+))$`, "m");
+    const versionRegex = new RegExp(`^(## \\[${escapeRegExp(version)}\\] - (?:[^\n]+))$`, "m");
     const match = content.match(versionRegex);
     return match ? match[1] : undefined;
   },
@@ -60,7 +60,10 @@ const keepachangelog: WritingStrategy = {
   },
 
   getLatestVersion(content: string): string | undefined {
-    const match = content.match(/^## \[([^\]]+)\]/m);
+    // Use the same header grammar as versionHeaderMatcher so every version this
+    // returns can be found again. A bare `## [Unreleased]` has no date and is
+    // not a released version, so it is skipped
+    const match = content.match(/^## \[([^\]]+)\] - [^\n]+$/m);
     return match?.[1];
   },
 };

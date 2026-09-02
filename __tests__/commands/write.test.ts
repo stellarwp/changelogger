@@ -1090,4 +1090,62 @@ describe("write command", () => {
     expect(secondFixIndex).toBeLessThan(secondFeatureIndex);
     expect(secondFeatureIndex).toBeLessThan(secondTweakIndex);
   });
+
+  describe("changelog file read errors", () => {
+    const changeFile: ChangeFile = {
+      type: "feature",
+      significance: "minor",
+      entry: "Added new feature",
+    };
+
+    /**
+     * Mocks the change file and config reads, and fails the changelog read with
+     * the given error.
+     */
+    function mockChangelogReadError(error: NodeJS.ErrnoException): void {
+      mockedFs.readdir.mockResolvedValue(["change1.yaml"] as any);
+      mockedFs.readFile.mockImplementation(async (path: PathLike | FileHandle) => {
+        const filePath = path.toString();
+        if (filePath.endsWith("change1.yaml")) {
+          return yaml.stringify(changeFile);
+        }
+        if (filePath.endsWith("changelog.md")) {
+          throw error;
+        }
+        if (filePath.endsWith("changelogger.config.json")) {
+          return JSON.stringify({ formatter: "stellarwp" });
+        }
+        throw new Error(`Unexpected file path: ${filePath}`);
+      });
+    }
+
+    it("should propagate a read error that is not ENOENT", async () => {
+      const error: NodeJS.ErrnoException = new Error("EACCES: permission denied, open 'changelog.md'");
+      error.code = "EACCES";
+      mockChangelogReadError(error);
+
+      await loadConfig(true);
+
+      await expect(run({ overwriteVersion: "1.1.0" })).rejects.toThrow("EACCES: permission denied");
+
+      // The changelog must not be rewritten from empty content
+      expect(mockedFs.writeFile).not.toHaveBeenCalled();
+    });
+
+    it("should treat ENOENT as empty content", async () => {
+      const error: NodeJS.ErrnoException = new Error("ENOENT: no such file or directory, open 'changelog.md'");
+      error.code = "ENOENT";
+      mockChangelogReadError(error);
+
+      await loadConfig(true);
+
+      const result = await run({ overwriteVersion: "1.1.0" });
+
+      expect(result).toContain("Updated changelog.md to version 1.1.0");
+
+      const writeCall = mockedFs.writeFile.mock.calls[0];
+      const writtenContent = writeCall?.[1] as string;
+      expect(writtenContent).toContain("- Added new feature");
+    });
+  });
 });

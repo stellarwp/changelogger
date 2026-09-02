@@ -60578,8 +60578,10 @@ async function run(options) {
     }
     // Find the start of the version section header
     const versionHeaderStart = content.indexOf(versionHeader);
-    // Find where the version header line ends
-    const headerLineEnd = content.indexOf("\n", versionHeaderStart) + 1;
+    // Find where the version header line ends. A header on the final line has no
+    // trailing newline, in which case the line ends at the end of the content
+    const headerNewlineIndex = content.indexOf("\n", versionHeaderStart);
+    const headerLineEnd = headerNewlineIndex === -1 ? content.length : headerNewlineIndex + 1;
     // Skip any empty lines after the header
     let contentStart = headerLineEnd;
     while (contentStart < content.length && content[contentStart] === "\n") {
@@ -60988,7 +60990,22 @@ async function run(options) {
         if (!options.dryRun) {
             await ensureFileExists(file.path, "");
         }
-        const content = await fs.readFile(file.path, "utf8").catch(() => "");
+        /**
+         * ENOENT is the only recoverable failure here: the file does not exist yet
+         * on a dry run, or it was deleted after ensureFileExists created it. Any
+         * other error, such as EACCES or EIO, must propagate. Treating it as empty
+         * content would replace the file with only the new entry and discard every
+         * previous release.
+         */
+        let content = "";
+        try {
+            content = await fs.readFile(file.path, "utf8");
+        }
+        catch (err) {
+            if (err.code !== "ENOENT") {
+                throw err;
+            }
+        }
         const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "";
         // Format the new changelog entry
         const header = fileStrategy.formatVersionHeader(version, date, previousVersion);
@@ -61002,8 +61019,11 @@ async function run(options) {
         if (previousVersion) {
             // Find the start of the version section header
             const versionHeaderStart = content.indexOf(previousVersion);
-            // Find where the version header line ends (after the full header line)
-            const headerLineEnd = content.indexOf("\n", versionHeaderStart) + 1;
+            // Find where the version header line ends (after the full header line). A
+            // header on the final line has no trailing newline, in which case the line
+            // ends at the end of the content
+            const headerNewlineIndex = content.indexOf("\n", versionHeaderStart);
+            const headerLineEnd = headerNewlineIndex === -1 ? content.length : headerNewlineIndex + 1;
             // Skip any empty lines after the header
             let contentStart = headerLineEnd;
             while (contentStart < content.length && content[contentStart] === "\n") {
@@ -61295,7 +61315,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.writeCommand = exports.validateCommand = exports.getChangelogContentsCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.getTypeLabel = exports.defaultConfig = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
+exports.writeCommand = exports.validateCommand = exports.getChangelogContentsCommand = exports.addCommand = exports.loadVersioningStrategy = exports.loadWritingStrategy = exports.escapeRegExp = exports.getTypeLabel = exports.defaultConfig = exports.loadConfig = exports.versioningStrategies = exports.writingStrategies = void 0;
 // Import command functions for programmatic usage
 const add_1 = __nccwpck_require__(35357);
 Object.defineProperty(exports, "addCommand", ({ enumerable: true, get: function () { return add_1.run; } }));
@@ -61329,6 +61349,7 @@ Object.defineProperty(exports, "loadConfig", ({ enumerable: true, get: function 
 Object.defineProperty(exports, "defaultConfig", ({ enumerable: true, get: function () { return config_1.defaultConfig; } }));
 Object.defineProperty(exports, "getTypeLabel", ({ enumerable: true, get: function () { return config_1.getTypeLabel; } }));
 var writing_1 = __nccwpck_require__(50473);
+Object.defineProperty(exports, "escapeRegExp", ({ enumerable: true, get: function () { return writing_1.escapeRegExp; } }));
 Object.defineProperty(exports, "loadWritingStrategy", ({ enumerable: true, get: function () { return writing_1.loadWritingStrategy; } }));
 var versioning_1 = __nccwpck_require__(26877);
 Object.defineProperty(exports, "loadVersioningStrategy", ({ enumerable: true, get: function () { return versioning_1.loadVersioningStrategy; } }));
@@ -61893,8 +61914,25 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.escapeRegExp = escapeRegExp;
 exports.loadWritingStrategy = loadWritingStrategy;
 const path = __importStar(__nccwpck_require__(16928));
+/**
+ * Escapes every character that carries special meaning inside a regular
+ * expression so a dynamic value is matched literally.
+ *
+ * Version strings reach `versionHeaderMatcher` from user input, so a value such
+ * as `.*` would otherwise match a version header that was not requested. Every
+ * built-in writing strategy runs the version through this before interpolating
+ * it into a pattern, and custom writing strategies should do the same.
+ *
+ * @param value - The value to escape
+ *
+ * @returns The value with regular expression metacharacters escaped
+ */
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 async function loadWritingStrategy(formatter) {
     // If it's a file path, try to load it
     if (formatter.endsWith(".js") || formatter.endsWith(".ts")) {
@@ -61939,6 +61977,7 @@ async function loadWritingStrategy(formatter) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const config_1 = __nccwpck_require__(67799);
+const writing_1 = __nccwpck_require__(50473);
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes into sections by type.
@@ -61970,7 +62009,7 @@ const keepachangelog = {
     },
     versionHeaderMatcher(content, version) {
         // Match Keep a Changelog version headers
-        const versionRegex = new RegExp(`^(## \\[${version}\\] - (?:[^\n]+))$`, "m");
+        const versionRegex = new RegExp(`^(## \\[${(0, writing_1.escapeRegExp)(version)}\\] - (?:[^\n]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1] : undefined;
     },
@@ -61985,7 +62024,10 @@ const keepachangelog = {
         return firstVersionMatch.index;
     },
     getLatestVersion(content) {
-        const match = content.match(/^## \[([^\]]+)\]/m);
+        // Use the same header grammar as versionHeaderMatcher so every version this
+        // returns can be found again. A bare `## [Unreleased]` has no date and is
+        // not a released version, so it is skipped
+        const match = content.match(/^## \[([^\]]+)\] - [^\n]+$/m);
         return match?.[1];
     },
 };
@@ -62001,6 +62043,7 @@ exports["default"] = keepachangelog;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const config_1 = __nccwpck_require__(67799);
+const writing_1 = __nccwpck_require__(50473);
 const stellarwpChangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -62030,7 +62073,7 @@ const stellarwpChangelog = {
     },
     versionHeaderMatcher(content, version) {
         // Match StellarWP version headers
-        const versionRegex = new RegExp(`^(### \\[${version}\\] (?:[^=]+))$`, "m");
+        const versionRegex = new RegExp(`^(### \\[${(0, writing_1.escapeRegExp)(version)}\\] (?:[^=]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1]?.trim() : undefined;
     },
@@ -62045,7 +62088,10 @@ const stellarwpChangelog = {
         return firstVersionMatch.index;
     },
     getLatestVersion(content) {
-        const match = content.match(/^### \[([^\]]+)\]/m);
+        // Use the same header grammar as versionHeaderMatcher so every version this
+        // returns can be found again. A bare `### [Unreleased]` has no date and is
+        // not a released version, so it is skipped
+        const match = content.match(/^### \[([^\]]+)\] [^=]+$/m);
         return match?.[1];
     },
 };
@@ -62061,6 +62107,7 @@ exports["default"] = stellarwpChangelog;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const config_1 = __nccwpck_require__(67799);
+const writing_1 = __nccwpck_require__(50473);
 const stellarwpReadme = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -62090,7 +62137,7 @@ const stellarwpReadme = {
     },
     versionHeaderMatcher(content, version) {
         // Match StellarWP version headers
-        const versionRegex = new RegExp(`^(= \\[${version}\\] (?:[^=])+ =)$`, "m");
+        const versionRegex = new RegExp(`^(= \\[${(0, writing_1.escapeRegExp)(version)}\\] (?:[^=])+ =)$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1]?.trim() : undefined;
     },
@@ -62105,7 +62152,10 @@ const stellarwpReadme = {
         return firstVersionMatch.index;
     },
     getLatestVersion(content) {
-        const match = content.match(/^= \[([^\]]+)\]/m);
+        // Use the same header grammar as versionHeaderMatcher so every version this
+        // returns can be found again. A bare `= [Unreleased] =` has no date and is
+        // not a released version, so it is skipped
+        const match = content.match(/^= \[([^\]]+)\] [^=]+ =$/m);
         return match?.[1];
     },
 };
