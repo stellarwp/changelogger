@@ -98,8 +98,10 @@ async function run(options) {
     }
     // Find the start of the version section header
     const versionHeaderStart = content.indexOf(versionHeader);
-    // Find where the version header line ends
-    const headerLineEnd = content.indexOf("\n", versionHeaderStart) + 1;
+    // Find where the version header line ends. A header on the final line has no
+    // trailing newline, in which case the line ends at the end of the content
+    const headerNewlineIndex = content.indexOf("\n", versionHeaderStart);
+    const headerLineEnd = headerNewlineIndex === -1 ? content.length : headerNewlineIndex + 1;
     // Skip any empty lines after the header
     let contentStart = headerLineEnd;
     while (contentStart < content.length && content[contentStart] === "\n") {

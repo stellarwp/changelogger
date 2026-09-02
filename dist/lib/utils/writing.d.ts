@@ -28,5 +28,19 @@ export interface WritingStrategy {
      */
     getLatestVersion: (content: string) => string | undefined;
 }
+/**
+ * Escapes every character that carries special meaning inside a regular
+ * expression so a dynamic value is matched literally.
+ *
+ * Version strings reach `versionHeaderMatcher` from user input, so a value such
+ * as `.*` would otherwise match a version header that was not requested. Every
+ * built-in writing strategy runs the version through this before interpolating
+ * it into a pattern, and custom writing strategies should do the same.
+ *
+ * @param value - The value to escape
+ *
+ * @returns The value with regular expression metacharacters escaped
+ */
+export declare function escapeRegExp(value: string): string;
 export declare function loadWritingStrategy(formatter: string): Promise<WritingStrategy>;
 //# sourceMappingURL=writing.d.ts.map

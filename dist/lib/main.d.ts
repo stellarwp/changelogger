@@ -17,7 +17,7 @@ declare const versioningStrategies: {
 export { VersioningStrategy } from "./utils/versioning";
 export { versioningStrategies };
 export { loadConfig, defaultConfig, getTypeLabel } from "./utils/config";
-export { loadWritingStrategy } from "./utils/writing";
+export { escapeRegExp, loadWritingStrategy } from "./utils/writing";
 export { loadVersioningStrategy } from "./utils/versioning";
 export { addCommand, getChangelogContentsCommand, validateCommand, writeCommand };
 //# sourceMappingURL=main.d.ts.map
