@@ -26,6 +26,7 @@ program
   .option("-s, --significance <type>", "The significance of the change (patch, minor, major)")
   .option("-t, --type <type>", "The type of change (added, changed, deprecated, removed, fixed, security)")
   .option("-e, --entry <text>", "The changelog entry text")
+  .option("--filename <name>", "The filename for the change file, without the .yaml extension")
   .option("--auto-filename", "Automatically generate the filename based on the branch name")
   .action(async options => {
     try {

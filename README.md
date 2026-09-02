@@ -51,24 +51,34 @@ npm run changelog add
 # Non-interactive mode - provide all options directly
 npm run changelog add -- --significance minor --type feature --entry "Added new feature X"
 
+# Non-interactive mode with a custom filename
+npm run changelog add -- --significance minor --type feature --entry "Added new feature X" --filename add-feature-x
+
 # Non-interactive mode with auto-generated filename
 npm run changelog add -- --significance minor --type feature --entry "Added new feature X" --auto-filename
 ```
 
 Options:
 
-- `--significance`: The significance of the change (patch, minor, major)
-- `--type`: The type of change (e.g., feature, fix, enhancement)
-- `--entry`: The changelog entry text
-- `--filename`: The desired filename for the changelog entry (optional)
+- `-s, --significance`: The significance of the change (patch, minor, major)
+- `-t, --type`: The type of change (e.g., feature, fix, enhancement)
+- `-e, --entry`: The changelog entry text
+- `--filename`: The filename for the change file, without the `.yaml` extension (optional)
 - `--auto-filename`: Automatically generate the filename based on branch name or timestamp (optional)
 
 The command will:
 
 - Create a new YAML file in the configured changes directory
-- Generate a filename based on the branch name or timestamp
+- Use the filename from `--filename`, or generate one from the branch name or timestamp
 - Handle duplicate filenames by appending a timestamp
 - Validate all inputs before creating the file
+
+When using `--filename`:
+
+- The value is cleaned up with the file naming rules below, so `--filename "Add Feature X"` creates `add-feature-x.yaml`
+- Do not include the `.yaml` extension; it is added for you
+- The filename prompt will be skipped
+- If `--auto-filename` is also passed, it takes precedence and `--filename` is ignored
 
 When using `--auto-filename`:
 
@@ -238,7 +248,7 @@ The changelogger can be used directly in GitHub Actions workflows. All four comm
 | `significance` | No       | Significance of the change: `patch`, `minor`, `major`                    | `add`                                |
 | `type`         | No       | Type of change (e.g., `feature`, `fix`, `tweak`)                         | `add`                                |
 | `entry`        | No       | The changelog entry text                                                 | `add`                                |
-| `filename`     | No       | Custom filename for the changelog entry                                  | `add`                                |
+| `filename`     | No       | Custom filename for the change file, without the `.yaml` extension       | `add`                                |
 | `version`      | No       | Version number for writing or retrieving changelog contents              | `write`, `get-changelog-contents`    |
 | `date`         | No       | Date for the changelog entry (PHP strtotime format)                      | `write`                              |
 | `file`         | No       | Specific file to validate or read from                                   | `validate`, `get-changelog-contents` |
@@ -864,7 +874,7 @@ When adding new changelog entries:
    - Significance: patch, minor, or major
    - Type: feature, tweak, deprecated, removed, fix, or security
    - Entry: Description of the change
-   - Filename: Optional custom filename
+   - Filename: The filename to use, without the `.yaml` extension, defaulting to the branch name. Skipped when `--filename` or `--auto-filename` is passed.
 
 5. **Directory Structure**:
    - Creates the changes directory if it doesn't exist
@@ -908,7 +918,7 @@ await addCommand({
   significance: "minor",
   type: "feature",
   entry: "New feature added",
-  filename: "custom-change.yaml",
+  filename: "custom-change", // Without the .yaml extension
 });
 
 // Validate all change files
