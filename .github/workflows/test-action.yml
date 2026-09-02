@@ -1,10 +1,14 @@
+# Tests the GitHub Action as if it were used in a workflow by providing
+# different inputs and verifying the outputs.
 name: "Test GitHub Action"
-description: "Tests the GitHub Action as if it were used in a workflow by providing different inputs and verifying the outputs."
 
 on:
   pull_request:
     types: [opened, synchronize]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test-action:
@@ -14,6 +18,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # This job runs code from the pull request, so do not leave the
+          # token in .git/config for that code to read. Nothing here performs
+          # an authenticated git operation.
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:

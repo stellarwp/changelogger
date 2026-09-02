@@ -42,6 +42,10 @@ on:
           - pull_request
           - direct_commit
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   add-changelog:
     runs-on: ubuntu-latest

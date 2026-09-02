@@ -243,7 +243,10 @@ The changelogger can be used directly in GitHub Actions workflows. All four comm
 | `file`         | No       | Specific file to validate or read from                                   | `validate`, `get-changelog-contents` |
 | `from`         | No       | Git ref to compare from                                                  | `validate`                           |
 | `to`           | No       | Git ref to compare to                                                    | `validate`                           |
+| `last`         | No       | Retrieve the most recent version instead of `version` (default: `false`) | `get-changelog-contents`             |
 | `html`         | No       | Convert output to HTML (default: `false`)                                | `get-changelog-contents`             |
+
+`get-changelog-contents` requires `version` unless `last` is `true`.
 
 #### Outputs
 
@@ -252,6 +255,29 @@ The changelogger can be used directly in GitHub Actions workflows. All four comm
 | `result`    | The result of the command execution: `success` or `error`             |
 | `filename`  | The file path of the created change file (only set by `add` command)  |
 | `changelog` | The changelog contents (only set by `get-changelog-contents` command) |
+
+#### Permissions
+
+This action does not call the GitHub API and never reads `GITHUB_TOKEN`. It reads and writes change files in the workspace and runs `git` locally for the `from`/`to` comparison, so it needs no token permissions of its own — only the `contents: read` that `actions/checkout` requires.
+
+Declare a `permissions:` block in your workflow instead of relying on the default. Organizations and enterprises set the default `GITHUB_TOKEN` permissions for their repositories, and that default is read-only for enterprises and organizations created on or after 2 February 2023. A workflow with no `permissions:` block receives whatever the current default is, so an administrator changing that setting can break a workflow that nobody edited. The setting controls the default only: a workflow that declares a `permissions:` block gets what it asks for, including scopes the default does not grant.
+
+| What your workflow does                                            | Permissions                               |
+| ------------------------------------------------------------------ | ----------------------------------------- |
+| `validate` or `get-changelog-contents`                             | `contents: read`                          |
+| `add` or `write`, with no commit, push, or pull request afterwards | `contents: read`                          |
+| `add` or `write`, then committing the result to a branch           | `contents: write`                         |
+| `add` or `write`, then opening a pull request                      | `contents: write`, `pull-requests: write` |
+| Passing `get-changelog-contents` output to a release step          | `contents: write`                         |
+
+`add` and `write` change files on the runner only. Those edits are discarded when the job ends unless a later step commits or pushes them, and it is that step, not this action, that requires `contents: write`. The same applies to opening a pull request and to creating a release: the permission belongs to the step that performs the operation.
+
+Two limits apply no matter what the `permissions:` block requests:
+
+- **Pull requests from forks.** The `GITHUB_TOKEN` is read-only for a `pull_request` event raised from a fork, unless an administrator has enabled "Send write tokens to workflows from pull requests".
+- **Opening pull requests.** "Allow GitHub Actions to create and approve pull requests" must be enabled under Settings > Actions > General before any step can open a pull request, even when the job already has `pull-requests: write`.
+
+On GitHub Enterprise Server, an action hosted on github.com resolves only when GitHub Connect is enabled. Without it, mirror this repository onto your instance and reference the mirrored copy in place of `stellarwp/changelogger@v0`.
 
 #### Validate Changelog Entries on Pull Requests
 
@@ -263,6 +289,9 @@ name: Validate Changelog Entry
 on:
   pull_request:
     types: [opened, synchronize]
+
+permissions:
+  contents: read
 
 jobs:
   validate:
@@ -277,6 +306,8 @@ jobs:
           from: ${{ github.event.pull_request.base.sha }}
           to: ${{ github.event.pull_request.head.sha }}
 ```
+
+`fetch-depth: 0` is required so that the `from` and `to` refs are present in the checkout.
 
 Without `from`/`to`, all files in the changes directory are validated:
 
@@ -348,6 +379,19 @@ Retrieve the already-written changelog entries for a version. This is useful for
   uses: softprops/action-gh-release@v2
   with:
     body: ${{ steps.changelog.outputs.changelog }}
+```
+
+The release step needs `contents: write` on the job. See [Permissions](#permissions).
+
+To read the most recent version in the file without naming it, use `last` instead of `version`:
+
+```yaml
+- name: Get changelog
+  id: changelog
+  uses: stellarwp/changelogger@v0
+  with:
+    command: get-changelog-contents
+    last: "true"
 ```
 
 To get HTML output instead of Markdown:
@@ -451,7 +495,7 @@ The changelogger supports multiple versioning strategies:
    ```
 
    > [!IMPORTANT]
-   Custom strategy files must be JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom versioning strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+   > Custom strategy files must be JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom versioning strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
 
    ```bash
    tsc path/to/your/custom-versioning.ts --outDir path/to/your --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck
@@ -602,7 +646,7 @@ Available built-in strategies:
    ```
 
    > [!IMPORTANT]
-   Custom strategy files must be compiled JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom writing strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
+   > Custom strategy files must be compiled JavaScript (`.js`) files. TypeScript (`.ts`) files are not supported at runtime and must be compiled to JavaScript first. This applies both when using the CLI and programmatically because strategy files are loaded dynamically using Node's `import()`, which requires JavaScript files. If you write your custom writing strategy in TypeScript, compile it to CommonJS JavaScript first. Use the below example and then update your configuration to use the compiled `.js` file.
 
    ```bash
    tsc path/to/your/custom-writing.ts --outDir path/to/your/ --module CommonJS --target ES2020 --esModuleInterop false --allowSyntheticDefaultImports false --declaration false --sourceMap false --strict --skipLibCheck

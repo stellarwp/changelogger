@@ -4,12 +4,19 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+permissions:
+  contents: read
+
 jobs:
   build: # make sure build/ci work properly
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # npm run build and npm test execute code from the pull request, so
+          # do not leave the token in .git/config for that code to read.
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
