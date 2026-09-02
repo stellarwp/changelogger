@@ -487,7 +487,9 @@ Available built-in strategies:
    // custom-writing.js
 
    // You can import utilities from the main package to help with formatting
-   // Note: These are only available when using the writing strategy through changelogger
+   // Note: These only resolve when @stellarwp/changelogger is installed in the same
+   // project as this file. It is not resolvable under npx or the GitHub Action, so
+   // do not depend on it for anything you can write inline
    const { getTypeLabel, defaultConfig, escapeRegExp } = require("@stellarwp/changelogger");
 
    module.exports = {
@@ -556,9 +558,12 @@ Available built-in strategies:
       * @returns {string|undefined} Matched header or undefined
       */
      versionHeaderMatcher(content, version) {
-       // Escape the version before interpolating it into a pattern so a value
-       // such as `.*` matches literally instead of matching any version header
-       const regex = new RegExp(`^## \\[${escapeRegExp(version)}\\].*$`, "m");
+       // Escape the version so a value such as `.*` matches literally instead of
+       // matching any version header. @stellarwp/changelogger exports this same
+       // helper as escapeRegExp
+       const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+       const regex = new RegExp(`^## \\[${escapedVersion}\\].*$`, "m");
        const match = content.match(regex);
        return match ? match[0] : undefined;
      },
