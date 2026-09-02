@@ -56,7 +56,10 @@ const stellarwpReadme: WritingStrategy = {
   },
 
   getLatestVersion(content: string): string | undefined {
-    const match = content.match(/^= \[([^\]]+)\]/m);
+    // Use the same header grammar as versionHeaderMatcher so every version this
+    // returns can be found again. A bare `= [Unreleased] =` has no date and is
+    // not a released version, so it is skipped
+    const match = content.match(/^= \[([^\]]+)\] [^=]+ =$/m);
     return match?.[1];
   },
 };

@@ -358,6 +358,18 @@ describe("get-changelog-contents command", () => {
       await expect(run({ last: true })).rejects.toThrow("No version found in changelog.md");
     });
 
+    it("should skip an undated Unreleased header and return the latest released version", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(
+        "# Changelog\n\n## [Unreleased]\n\n### Added\n- Pending feature\n\n## [1.0.0] - 2024-03-20\n\n### Added\n- Initial feature\n"
+      );
+
+      const result = await run({ last: true });
+
+      expect(result).toContain("- Initial feature");
+      expect(result).not.toContain("- Pending feature");
+    });
+
     it("should throw when both --version and --last are provided", async () => {
       await expect(run({ version: "1.0.0", last: true })).rejects.toThrow("Cannot use both --version and --last");
     });
