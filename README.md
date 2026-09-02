@@ -69,7 +69,7 @@ Options:
 The command will:
 
 - Create a new YAML file in the configured changes directory
-- Use the filename from `--filename`, or the branch name or timestamp when `--auto-filename` is passed. When neither is passed, prompt for the filename, defaulting to the branch name or timestamp.
+- Use the filename from `--filename`, or the branch name or timestamp when `--auto-filename` is passed. When neither is passed, a prompt will be shown for the filename, which will default to the branch name or timestamp.
 - Handle duplicate filenames by appending a timestamp
 - Validate all inputs before creating the file
 
