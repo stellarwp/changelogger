@@ -60384,7 +60384,7 @@ function cleanupFilename(name) {
  * @param options.filename - The desired filename for the changelog entry
  * @param options.autoFilename - If true, automatically generates the filename based on branch name or timestamp
  *
- * @returns A promise that resolves to a string message indicating the result
+ * @returns A promise that resolves to an object containing the result message and the file path of the created change file
  * @throws {Error} If there are issues with file operations or invalid inputs
  */
 async function run(options) {
@@ -60456,12 +60456,18 @@ async function run(options) {
         const newFilename = `${filename}-${timestamp}.yaml`;
         const newFilePath = path.join(config.changesDir, newFilename);
         await fs.writeFile(newFilePath, yaml.stringify(changeFile));
-        return `File already exists. Created change file with timestamp: ${newFilePath}`;
+        return {
+            message: `File already exists. Created change file with timestamp: ${newFilePath}`,
+            filePath: newFilePath,
+        };
     }
     catch (error) {
         // File doesn't exist, proceed with original filename
         await fs.writeFile(filePath, yaml.stringify(changeFile));
-        return `Created change file: ${filePath}`;
+        return {
+            message: `Created change file: ${filePath}`,
+            filePath,
+        };
     }
 }
 
@@ -61205,17 +61211,19 @@ async function run() {
         await (0, config_1.loadConfig)();
         // Execute the appropriate command based on input
         switch (command) {
-            case "add":
+            case "add": {
                 if (!significance || !type || !entry) {
                     throw new Error("Significance, type, and entry are required for the add command");
                 }
-                await (0, main_1.addCommand)({
+                const addResult = await (0, main_1.addCommand)({
                     significance,
                     type,
                     entry,
                     ...(filename ? { filename } : { autoFilename: true }),
                 });
+                core.setOutput("filename", addResult.filePath);
                 break;
+            }
             case "validate":
                 await (0, main_1.validateCommand)({
                     ...(validateFile && { file: validateFile }),

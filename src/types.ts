@@ -17,6 +17,11 @@ export interface AddCommandOptions {
   autoFilename?: boolean;
 }
 
+export interface AddCommandResult {
+  message: string;
+  filePath: string;
+}
+
 /**
  * Options for the write command.
  */
