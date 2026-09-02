@@ -1,6 +1,6 @@
 import { ChangeFile } from "../../types";
 import { getTypeLabel } from "../config";
-import { WritingStrategy } from "../writing";
+import { escapeRegExp, WritingStrategy } from "../writing";
 
 const stellarwpReadme: WritingStrategy = {
   formatChanges(version: string, changes: ChangeFile[], previousVersion?: string): string {
@@ -39,7 +39,7 @@ const stellarwpReadme: WritingStrategy = {
 
   versionHeaderMatcher(content: string, version: string): string | undefined {
     // Match StellarWP version headers
-    const versionRegex = new RegExp(`^(= \\[${version}\\] (?:[^=])+ =)$`, "m");
+    const versionRegex = new RegExp(`^(= \\[${escapeRegExp(version)}\\] (?:[^=])+ =)$`, "m");
     const match = content.match(versionRegex);
     return match ? match[1]?.trim() : undefined;
   },
@@ -56,7 +56,10 @@ const stellarwpReadme: WritingStrategy = {
   },
 
   getLatestVersion(content: string): string | undefined {
-    const match = content.match(/^= \[([^\]]+)\]/m);
+    // Use the same header grammar as versionHeaderMatcher so every version this
+    // returns can be found again. A bare `= [Unreleased] =` has no date and is
+    // not a released version, so it is skipped
+    const match = content.match(/^= \[([^\]]+)\] [^=]+ =$/m);
     return match?.[1];
   },
 };
