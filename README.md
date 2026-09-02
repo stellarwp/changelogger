@@ -243,7 +243,10 @@ The changelogger can be used directly in GitHub Actions workflows. All four comm
 | `file`         | No       | Specific file to validate or read from                                   | `validate`, `get-changelog-contents` |
 | `from`         | No       | Git ref to compare from                                                  | `validate`                           |
 | `to`           | No       | Git ref to compare to                                                    | `validate`                           |
+| `last`         | No       | Retrieve the most recent version instead of `version` (default: `false`) | `get-changelog-contents`             |
 | `html`         | No       | Convert output to HTML (default: `false`)                                | `get-changelog-contents`             |
+
+`get-changelog-contents` requires `version` unless `last` is `true`.
 
 #### Outputs
 
@@ -379,6 +382,17 @@ Retrieve the already-written changelog entries for a version. This is useful for
 ```
 
 The release step needs `contents: write` on the job. See [Permissions](#permissions).
+
+To read the most recent version in the file without naming it, use `last` instead of `version`:
+
+```yaml
+- name: Get changelog
+  id: changelog
+  uses: stellarwp/changelogger@v0
+  with:
+    command: get-changelog-contents
+    last: "true"
+```
 
 To get HTML output instead of Markdown:
 
