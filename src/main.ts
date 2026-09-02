@@ -35,7 +35,7 @@ export { versioningStrategies };
 
 // Export utility functions
 export { loadConfig, defaultConfig, getTypeLabel } from "./utils/config";
-export { loadWritingStrategy } from "./utils/writing";
+export { escapeRegExp, loadWritingStrategy } from "./utils/writing";
 export { loadVersioningStrategy } from "./utils/versioning";
 
 // Export command functions for programmatic usage

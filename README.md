@@ -205,6 +205,7 @@ import {
   loadConfig,
   loadWritingStrategy,
   loadVersioningStrategy,
+  escapeRegExp,
   WritingStrategy,
   VersioningStrategy,
 } from "@stellarwp/changelogger";
@@ -487,7 +488,7 @@ Available built-in strategies:
 
    // You can import utilities from the main package to help with formatting
    // Note: These are only available when using the writing strategy through changelogger
-   const { getTypeLabel, defaultConfig } = require("@stellarwp/changelogger");
+   const { getTypeLabel, defaultConfig, escapeRegExp } = require("@stellarwp/changelogger");
 
    module.exports = {
      /**
@@ -555,7 +556,9 @@ Available built-in strategies:
       * @returns {string|undefined} Matched header or undefined
       */
      versionHeaderMatcher(content, version) {
-       const regex = new RegExp(`^## \\[${version}\\].*$`, "m");
+       // Escape the version before interpolating it into a pattern so a value
+       // such as `.*` matches literally instead of matching any version header
+       const regex = new RegExp(`^## \\[${escapeRegExp(version)}\\].*$`, "m");
        const match = content.match(regex);
        return match ? match[0] : undefined;
      },

@@ -82,6 +82,12 @@ describe("stellarwp-readme", () => {
       const result = stellarwpReadme.versionHeaderMatcher(content, "2.0.0");
       expect(result).toBeUndefined();
     });
+
+    it("should treat regular expression metacharacters as literal characters", () => {
+      const content = "= [1.0.0] 2024-03-04 =\n";
+      expect(stellarwpReadme.versionHeaderMatcher(content, ".*")).toBeUndefined();
+      expect(stellarwpReadme.versionHeaderMatcher(content, "1x0x0")).toBeUndefined();
+    });
   });
 
   describe("changelogHeaderMatcher", () => {

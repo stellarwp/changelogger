@@ -243,6 +243,45 @@ describe("get-changelog-contents command", () => {
     await expect(run({ version: "1.0.0" })).rejects.toThrow("No files configured for changelog");
   });
 
+  describe("regular expression metacharacters in the version", () => {
+    it("should not match any version when the version is `.*` (keepachangelog)", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      await expect(run({ version: ".*" })).rejects.toThrow("Version .* not found in changelog.md");
+    });
+
+    it("should not match any version when the version is `.*` (stellarwp-changelog)", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "changelog.md", strategy: "stellarwp-changelog" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpChangelogContent);
+
+      await expect(run({ version: ".*" })).rejects.toThrow("Version .* not found in changelog.md");
+    });
+
+    it("should not match any version when the version is `.*` (stellarwp-readme)", async () => {
+      mockedLoadConfig.mockResolvedValue(
+        makeConfig({
+          files: [{ path: "readme.txt", strategy: "stellarwp-readme" }],
+        })
+      );
+      mockedFs.readFile.mockResolvedValue(stellarwpReadmeContent);
+
+      await expect(run({ version: ".*" })).rejects.toThrow("Version .* not found in readme.txt");
+    });
+
+    it("should treat `.` in a version as a literal character", async () => {
+      mockedLoadConfig.mockResolvedValue(makeConfig());
+      mockedFs.readFile.mockResolvedValue(keepachangelogContent);
+
+      // `1x1x0` would match `1.1.0` if the dots were left unescaped.
+      await expect(run({ version: "1x1x0" })).rejects.toThrow("Version 1x1x0 not found in changelog.md");
+    });
+  });
+
   describe("--last option", () => {
     it("should retrieve entries for the latest version from a keepachangelog-formatted file", async () => {
       mockedLoadConfig.mockResolvedValue(makeConfig());

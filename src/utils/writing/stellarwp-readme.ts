@@ -1,6 +1,6 @@
 import { ChangeFile } from "../../types";
 import { getTypeLabel } from "../config";
-import { WritingStrategy } from "../writing";
+import { escapeRegExp, WritingStrategy } from "../writing";
 
 const stellarwpReadme: WritingStrategy = {
   formatChanges(version: string, changes: ChangeFile[], previousVersion?: string): string {
@@ -39,7 +39,7 @@ const stellarwpReadme: WritingStrategy = {
 
   versionHeaderMatcher(content: string, version: string): string | undefined {
     // Match StellarWP version headers
-    const versionRegex = new RegExp(`^(= \\[${version}\\] (?:[^=])+ =)$`, "m");
+    const versionRegex = new RegExp(`^(= \\[${escapeRegExp(version)}\\] (?:[^=])+ =)$`, "m");
     const match = content.match(versionRegex);
     return match ? match[1]?.trim() : undefined;
   },
