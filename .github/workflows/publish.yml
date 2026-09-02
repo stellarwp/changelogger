@@ -7,9 +7,10 @@ on:
     types: [published]
   workflow_dispatch:
 
+# Least privilege by default. The two jobs that need more grant it themselves,
+# so the build and version-check jobs never hold repository-write or OIDC.
 permissions:
-  id-token: write # Required for OIDC
-  contents: write # Required for pushing build commit and updating tags
+  contents: read
 
 jobs:
   build:
@@ -73,6 +74,8 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+    permissions:
+      contents: write # Pushes the build commit and moves the release tags
     steps:
       # Check out the commit the release tag points at, not main. The tag is not
       # guaranteed to be main's tip: a release can be published for a tag on any
@@ -157,6 +160,9 @@ jobs:
     needs: [build, check-package-version, build-and-commit]
     if: ${{ !cancelled() && needs.build.result == 'success' && needs.check-package-version.result == 'success' && (needs.build-and-commit.result == 'success' || needs.build-and-commit.result == 'skipped') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC trusted publishing
     steps:
       - uses: actions/checkout@v4
 
