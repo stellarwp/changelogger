@@ -168,7 +168,22 @@ export async function run(options: WriteCommandOptions): Promise<string> {
       await ensureFileExists(file.path, "");
     }
 
-    const content = await fs.readFile(file.path, "utf8").catch(() => "");
+    /**
+     * ENOENT is the only recoverable failure here: the file does not exist yet
+     * on a dry run, or it was deleted after ensureFileExists created it. Any
+     * other error, such as EACCES or EIO, must propagate. Treating it as empty
+     * content would replace the file with only the new entry and discard every
+     * previous release.
+     */
+    let content = "";
+    try {
+      content = await fs.readFile(file.path, "utf8");
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw err;
+      }
+    }
+
     const previousVersion = fileStrategy.versionHeaderMatcher(content, version) ?? "";
 
     // Format the new changelog entry
