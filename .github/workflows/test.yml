@@ -19,7 +19,7 @@ jobs:
         id: npm-cache
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('.nvmrc', 'package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
