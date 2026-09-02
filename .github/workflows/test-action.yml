@@ -1,5 +1,6 @@
+# Tests the GitHub Action as if it were used in a workflow by providing
+# different inputs and verifying the outputs.
 name: "Test GitHub Action"
-description: "Tests the GitHub Action as if it were used in a workflow by providing different inputs and verifying the outputs."
 
 on:
   pull_request:
