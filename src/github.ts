@@ -55,13 +55,15 @@ export async function run(): Promise<void> {
         break;
 
       case "get-changelog-contents": {
-        if (!version) {
-          throw new Error("Version is required for the get-changelog-contents command");
+        const last = core.getBooleanInput("last");
+        if (!version && !last) {
+          throw new Error("Either version or last is required for the get-changelog-contents command");
         }
         const changelogFile = core.getInput("file");
         const html = core.getBooleanInput("html");
         const contents = await getChangelogContentsCommand({
-          version,
+          ...(version && { version }),
+          ...(last && { last }),
           ...(changelogFile && { file: changelogFile }),
           ...(html && { html }),
         });

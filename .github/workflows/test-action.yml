@@ -117,3 +117,17 @@ jobs:
         run: |
           test "${{ steps.test_get_html.outputs.result }}" = "success"
           echo "${{ steps.test_get_html.outputs.changelog }}" | grep "<li>"
+
+      # Test 7: Get changelog contents with --last
+      - name: "Test: get-changelog-contents with --last"
+        id: test_get_last
+        uses: ./
+        with:
+          command: get-changelog-contents
+          last: "true"
+          file: "debug/changelog.md"
+
+      - name: "Verify: get-changelog-contents --last returned changelog output"
+        run: |
+          test "${{ steps.test_get_last.outputs.result }}" = "success"
+          echo "${{ steps.test_get_last.outputs.changelog }}" | grep "Integration test entry"

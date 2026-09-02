@@ -296,7 +296,7 @@ describe("github action entry point", () => {
         command: "get-changelog-contents",
         version: "1.2.3",
       });
-      mockedCore.getBooleanInput.mockReturnValue(true);
+      mockedCore.getBooleanInput.mockImplementation((name: string) => name === "html");
 
       await run();
 
@@ -320,12 +320,25 @@ describe("github action entry point", () => {
       });
     });
 
-    it("should error when version is missing", async () => {
+    it("should pass last option when true", async () => {
+      mockInputs({
+        command: "get-changelog-contents",
+      });
+      mockedCore.getBooleanInput.mockImplementation((name: string) => name === "last");
+
+      await run();
+
+      expect(mockedGetChangelogContentsCommand).toHaveBeenCalledWith({
+        last: true,
+      });
+    });
+
+    it("should error when version is missing and last is false", async () => {
       mockInputs({ command: "get-changelog-contents" });
 
       await run();
 
-      expect(mockedCore.setFailed).toHaveBeenCalledWith("Version is required for the get-changelog-contents command");
+      expect(mockedCore.setFailed).toHaveBeenCalledWith("Either version or last is required for the get-changelog-contents command");
       expect(mockedCore.setOutput).toHaveBeenCalledWith("result", "error");
       expect(mockExit).toHaveBeenCalledWith(1);
     });
