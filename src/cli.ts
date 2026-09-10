@@ -2,6 +2,7 @@
 
 import { Command } from "commander";
 import { run as addCommand } from "./commands/add";
+import { run as getChangelogContentsCommand } from "./commands/get-changelog-contents";
 import { run as validateCommand } from "./commands/validate";
 import { run as writeCommand } from "./commands/write";
 import { readFileSync } from "fs";
@@ -42,6 +43,23 @@ program
   .action(async () => {
     try {
       const result = await validateCommand();
+      console.log(result);
+    } catch (error) {
+      console.error("Error:", error instanceof Error ? error.message : "An unexpected error occurred");
+      process.exit(1);
+    }
+  });
+
+program
+  .command("get-changelog-contents")
+  .description("Get the changelog contents for a specific version")
+  .option("-v, --version <version>", "The version to retrieve")
+  .option("-l, --last", "Retrieve contents for the most recent version")
+  .option("-f, --file <path>", "Path to the changelog file (must match a configured file)")
+  .option("--html", "Convert the Markdown changelog contents to HTML")
+  .action(async options => {
+    try {
+      const result = await getChangelogContentsCommand(options);
       console.log(result);
     } catch (error) {
       console.error("Error:", error instanceof Error ? error.message : "An unexpected error occurred");

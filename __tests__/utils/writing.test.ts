@@ -15,6 +15,7 @@ jest.mock("../../src/utils/writing/keepachangelog", () => ({
     formatVersionLink: jest.fn(),
     versionHeaderMatcher: jest.fn(),
     changelogHeaderMatcher: jest.fn(),
+    getLatestVersion: jest.fn(),
   },
 }));
 
@@ -27,6 +28,7 @@ jest.doMock(
     formatVersionLink: jest.fn(),
     versionHeaderMatcher: jest.fn(),
     changelogHeaderMatcher: jest.fn(),
+    getLatestVersion: jest.fn(),
   }),
   { virtual: true }
 );
@@ -48,6 +50,7 @@ describe("Writing Strategy Loader", () => {
     formatVersionLink: jest.fn(),
     versionHeaderMatcher: jest.fn(),
     changelogHeaderMatcher: jest.fn(),
+    getLatestVersion: jest.fn(),
   };
 
   beforeEach(() => {

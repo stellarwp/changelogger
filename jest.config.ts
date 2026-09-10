@@ -14,7 +14,7 @@ const config: Config.InitialOptions = {
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   transformIgnorePatterns: [
-    "node_modules/(?!(inquirer|yaml|@inquirer|figures|chalk|ansi-styles|supports-color|external-editor|mute-stream|run-async|rxjs|is-unicode-supported)/)",
+    "node_modules/(?!(inquirer|yaml|marked|@inquirer|figures|chalk|ansi-styles|supports-color|external-editor|mute-stream|run-async|rxjs|is-unicode-supported)/)",
   ],
   clearMocks: true,
   collectCoverage: true,

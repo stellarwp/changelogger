@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("../config");
+const writing_1 = require("../writing");
 const keepachangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes into sections by type.
@@ -32,7 +33,7 @@ const keepachangelog = {
     },
     versionHeaderMatcher(content, version) {
         // Match Keep a Changelog version headers
-        const versionRegex = new RegExp(`^(## \\[${version}\\] - (?:[^\n]+))$`, "m");
+        const versionRegex = new RegExp(`^(## \\[${(0, writing_1.escapeRegExp)(version)}\\] - (?:[^\n]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1] : undefined;
     },
@@ -45,6 +46,13 @@ const keepachangelog = {
             return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
+    },
+    getLatestVersion(content) {
+        // Use the same header grammar as versionHeaderMatcher so every version this
+        // returns can be found again. A bare `## [Unreleased]` has no date and is
+        // not a released version, so it is skipped
+        const match = content.match(/^## \[([^\]]+)\] - [^\n]+$/m);
+        return match?.[1];
     },
 };
 exports.default = keepachangelog;

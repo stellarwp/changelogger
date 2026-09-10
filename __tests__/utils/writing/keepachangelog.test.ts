@@ -95,4 +95,27 @@ describe("Keep a Changelog Writing Strategy", () => {
       expect(result).toBe("[1.2.3.4]: https://github.com/org/repo/compare/1.2.3.3...1.2.3.4");
     });
   });
+
+  describe("getLatestVersion", () => {
+    it("should return the first version header", () => {
+      const content = "# Changelog\n\n## [1.1.0] - 2024-03-22\n\n### Added\n- A\n\n## [1.0.0] - 2024-03-20\n";
+      expect(keepachangelog.getLatestVersion(content)).toBe("1.1.0");
+    });
+
+    it("should return undefined when no version header exists", () => {
+      expect(keepachangelog.getLatestVersion("# Changelog\n\nNo releases yet.\n")).toBeUndefined();
+    });
+
+    it("should skip an undated Unreleased header", () => {
+      const content = "# Changelog\n\n## [Unreleased]\n\n### Added\n- Pending\n\n## [1.0.0] - 2024-03-20\n";
+      expect(keepachangelog.getLatestVersion(content)).toBe("1.0.0");
+    });
+
+    it("should only return versions that versionHeaderMatcher can find again", () => {
+      const content = "# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - 2024-03-20\n";
+      const version = keepachangelog.getLatestVersion(content);
+      expect(version).toBeDefined();
+      expect(keepachangelog.versionHeaderMatcher(content, version!)).toBeDefined();
+    });
+  });
 });

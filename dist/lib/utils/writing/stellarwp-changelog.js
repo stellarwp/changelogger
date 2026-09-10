@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("../config");
+const writing_1 = require("../writing");
 const stellarwpChangelog = {
     formatChanges(version, changes, previousVersion) {
         // Group changes by type
@@ -30,7 +31,7 @@ const stellarwpChangelog = {
     },
     versionHeaderMatcher(content, version) {
         // Match StellarWP version headers
-        const versionRegex = new RegExp(`^(### \\[${version}\\] (?:[^=]+))$`, "m");
+        const versionRegex = new RegExp(`^(### \\[${(0, writing_1.escapeRegExp)(version)}\\] (?:[^=]+))$`, "m");
         const match = content.match(versionRegex);
         return match ? match[1]?.trim() : undefined;
     },
@@ -43,6 +44,13 @@ const stellarwpChangelog = {
             return mainHeaderMatch ? mainHeaderMatch.index + mainHeaderMatch[0].length + 1 : 0;
         }
         return firstVersionMatch.index;
+    },
+    getLatestVersion(content) {
+        // Use the same header grammar as versionHeaderMatcher so every version this
+        // returns can be found again. A bare `### [Unreleased]` has no date and is
+        // not a released version, so it is skipped
+        const match = content.match(/^### \[([^\]]+)\] [^=]+$/m);
+        return match?.[1];
     },
 };
 exports.default = stellarwpChangelog;

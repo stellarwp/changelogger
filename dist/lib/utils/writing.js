@@ -33,8 +33,25 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.escapeRegExp = escapeRegExp;
 exports.loadWritingStrategy = loadWritingStrategy;
 const path = __importStar(require("path"));
+/**
+ * Escapes every character that carries special meaning inside a regular
+ * expression so a dynamic value is matched literally.
+ *
+ * Version strings reach `versionHeaderMatcher` from user input, so a value such
+ * as `.*` would otherwise match a version header that was not requested. Every
+ * built-in writing strategy runs the version through this before interpolating
+ * it into a pattern, and custom writing strategies should do the same.
+ *
+ * @param value - The value to escape
+ *
+ * @returns The value with regular expression metacharacters escaped
+ */
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 async function loadWritingStrategy(formatter) {
     // If it's a file path, try to load it
     if (formatter.endsWith(".js") || formatter.endsWith(".ts")) {
@@ -45,7 +62,8 @@ async function loadWritingStrategy(formatter) {
             if (typeof module.formatChanges !== "function" ||
                 typeof module.formatVersionHeader !== "function" ||
                 typeof module.versionHeaderMatcher !== "function" ||
-                typeof module.changelogHeaderMatcher !== "function") {
+                typeof module.changelogHeaderMatcher !== "function" ||
+                typeof module.getLatestVersion !== "function") {
                 throw new Error(`Writing strategy file ${formatter} does not export required methods`);
             }
             return module;

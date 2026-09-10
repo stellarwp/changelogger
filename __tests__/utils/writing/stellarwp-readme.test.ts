@@ -82,6 +82,12 @@ describe("stellarwp-readme", () => {
       const result = stellarwpReadme.versionHeaderMatcher(content, "2.0.0");
       expect(result).toBeUndefined();
     });
+
+    it("should treat regular expression metacharacters as literal characters", () => {
+      const content = "= [1.0.0] 2024-03-04 =\n";
+      expect(stellarwpReadme.versionHeaderMatcher(content, ".*")).toBeUndefined();
+      expect(stellarwpReadme.versionHeaderMatcher(content, "1x0x0")).toBeUndefined();
+    });
   });
 
   describe("changelogHeaderMatcher", () => {
@@ -101,6 +107,29 @@ describe("stellarwp-readme", () => {
       const content = "Some content without headers\n";
       const result = stellarwpReadme.changelogHeaderMatcher(content);
       expect(result).toBe(0);
+    });
+  });
+
+  describe("getLatestVersion", () => {
+    it("should return the first version header", () => {
+      const content = "== Changelog ==\n\n= [1.1.0] 2024-03-22 =\n\n* Feature - A\n\n= [1.0.0] 2024-03-20 =\n";
+      expect(stellarwpReadme.getLatestVersion(content)).toBe("1.1.0");
+    });
+
+    it("should return undefined when no version header exists", () => {
+      expect(stellarwpReadme.getLatestVersion("== Changelog ==\n\nNo releases yet.\n")).toBeUndefined();
+    });
+
+    it("should skip an undated version header", () => {
+      const content = "== Changelog ==\n\n= [Unreleased] =\n\n* Feature - Pending\n\n= [1.0.0] 2024-03-20 =\n";
+      expect(stellarwpReadme.getLatestVersion(content)).toBe("1.0.0");
+    });
+
+    it("should only return versions that versionHeaderMatcher can find again", () => {
+      const content = "== Changelog ==\n\n= [Unreleased] =\n\n= [1.0.0] 2024-03-20 =\n";
+      const version = stellarwpReadme.getLatestVersion(content);
+      expect(version).toBeDefined();
+      expect(stellarwpReadme.versionHeaderMatcher(content, version!)).toBeDefined();
     });
   });
 });

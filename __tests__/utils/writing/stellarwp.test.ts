@@ -69,4 +69,27 @@ describe("stellarwp", () => {
       }
     });
   });
+
+  describe("getLatestVersion", () => {
+    it("should return the first version header", () => {
+      const content = "== Changelog ==\n\n### [1.1.0] 2024-03-22\n\n* Feature - A\n\n### [1.0.0] 2024-03-20\n";
+      expect(stellarwp.getLatestVersion(content)).toBe("1.1.0");
+    });
+
+    it("should return undefined when no version header exists", () => {
+      expect(stellarwp.getLatestVersion("== Changelog ==\n\nNo releases yet.\n")).toBeUndefined();
+    });
+
+    it("should skip an undated version header", () => {
+      const content = "== Changelog ==\n\n### [Unreleased]\n\n* Feature - Pending\n\n### [1.0.0] 2024-03-20\n";
+      expect(stellarwp.getLatestVersion(content)).toBe("1.0.0");
+    });
+
+    it("should only return versions that versionHeaderMatcher can find again", () => {
+      const content = "== Changelog ==\n\n### [Unreleased]\n\n### [1.0.0] 2024-03-20\n";
+      const version = stellarwp.getLatestVersion(content);
+      expect(version).toBeDefined();
+      expect(stellarwp.versionHeaderMatcher(content, version!)).toBeDefined();
+    });
+  });
 });

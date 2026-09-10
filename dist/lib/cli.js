@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const add_1 = require("./commands/add");
+const get_changelog_contents_1 = require("./commands/get-changelog-contents");
 const validate_1 = require("./commands/validate");
 const write_1 = require("./commands/write");
 const fs_1 = require("fs");
@@ -39,6 +40,23 @@ program
     .action(async () => {
     try {
         const result = await (0, validate_1.run)();
+        console.log(result);
+    }
+    catch (error) {
+        console.error("Error:", error instanceof Error ? error.message : "An unexpected error occurred");
+        process.exit(1);
+    }
+});
+program
+    .command("get-changelog-contents")
+    .description("Get the changelog contents for a specific version")
+    .option("-v, --version <version>", "The version to retrieve")
+    .option("-l, --last", "Retrieve contents for the most recent version")
+    .option("-f, --file <path>", "Path to the changelog file (must match a configured file)")
+    .option("--html", "Convert the Markdown changelog contents to HTML")
+    .action(async (options) => {
+    try {
+        const result = await (0, get_changelog_contents_1.run)(options);
         console.log(result);
     }
     catch (error) {

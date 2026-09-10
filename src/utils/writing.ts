@@ -28,6 +28,29 @@ export interface WritingStrategy {
    * Returns the index where new entries should be inserted
    */
   changelogHeaderMatcher: (content: string) => number;
+
+  /**
+   * Extract the most recent version from the changelog content.
+   * Returns the version string if found, undefined if no version headers exist.
+   */
+  getLatestVersion: (content: string) => string | undefined;
+}
+
+/**
+ * Escapes every character that carries special meaning inside a regular
+ * expression so a dynamic value is matched literally.
+ *
+ * Version strings reach `versionHeaderMatcher` from user input, so a value such
+ * as `.*` would otherwise match a version header that was not requested. Every
+ * built-in writing strategy runs the version through this before interpolating
+ * it into a pattern, and custom writing strategies should do the same.
+ *
+ * @param value - The value to escape
+ *
+ * @returns The value with regular expression metacharacters escaped
+ */
+export function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export async function loadWritingStrategy(formatter: string): Promise<WritingStrategy> {
@@ -42,7 +65,8 @@ export async function loadWritingStrategy(formatter: string): Promise<WritingStr
         typeof module.formatChanges !== "function" ||
         typeof module.formatVersionHeader !== "function" ||
         typeof module.versionHeaderMatcher !== "function" ||
-        typeof module.changelogHeaderMatcher !== "function"
+        typeof module.changelogHeaderMatcher !== "function" ||
+        typeof module.getLatestVersion !== "function"
       ) {
         throw new Error(`Writing strategy file ${formatter} does not export required methods`);
       }
