@@ -2,18 +2,27 @@ name: Validate Changelog
 
 on:
   pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
 
 jobs:
   validate-changelog:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'No Changelog Needed')"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required for git diff operations
+          # This job runs code from the pull request, so do not leave the
+          # token in .git/config for that code to read. The diff between
+          # from and to is local and needs no credentials.
+          persist-credentials: false
 
       - name: Validate changelog changes
-        uses: stellarwp/changelogger@main
+        uses: ./
         with:
           command: validate
-          validate-from: ${{ github.event.pull_request.base.sha }}
-          validate-to: ${{ github.event.pull_request.head.sha }}
+          from: ${{ github.event.pull_request.base.sha }}
+          to: ${{ github.event.pull_request.head.sha }}

@@ -1,4 +1,4 @@
-import { AddCommandOptions } from "../types";
+import { AddCommandOptions, AddCommandResult } from "../types";
 /**
  * Adds a new changelog entry to the project.
  *
@@ -33,8 +33,8 @@ import { AddCommandOptions } from "../types";
  * @param options.filename - The desired filename for the changelog entry
  * @param options.autoFilename - If true, automatically generates the filename based on branch name or timestamp
  *
- * @returns A promise that resolves to a string message indicating the result
+ * @returns A promise that resolves to an object containing the result message and the file path of the created change file
  * @throws {Error} If there are issues with file operations or invalid inputs
  */
-export declare function run(options: AddCommandOptions): Promise<string>;
+export declare function run(options: AddCommandOptions): Promise<AddCommandResult>;
 //# sourceMappingURL=add.d.ts.map

@@ -73,7 +73,8 @@ describe("add command", () => {
     });
     expect(content.timestamp).toBeDefined();
 
-    expect(result).toContain("Created change file:");
+    expect(result.message).toContain("Created change file:");
+    expect(result.filePath).toContain("test-change.yaml");
   });
 
   it("should use branch name as default filename", async () => {
@@ -88,6 +89,7 @@ describe("add command", () => {
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
     expect(writeCall?.[0]?.toString()).toContain("feature-test-branch.yaml");
+    expect(result.filePath).toContain("feature-test-branch.yaml");
   });
 
   it("should handle special characters in filename", async () => {
@@ -121,7 +123,8 @@ describe("add command", () => {
     expect(mockedFs.writeFile).toHaveBeenCalled();
     const writeCall = mockedFs.writeFile.mock.calls[0];
     expect(writeCall?.[0]?.toString()).toMatch(/existing-file-\d+\.yaml$/);
-    expect(result).toContain("File already exists");
+    expect(result.message).toContain("File already exists");
+    expect(result.filePath).toMatch(/existing-file-\d+\.yaml$/);
   });
 
   it("should handle missing branch name", async () => {

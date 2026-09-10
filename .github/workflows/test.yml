@@ -1,9 +1,11 @@
-name: "build-test"
-on: # rebuild any PRs and main branch changes
+name: "Build and Test"
+on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - main
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
 
 jobs:
   build: # make sure build/ci work properly
@@ -11,6 +13,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # npm run build and npm test execute code from the pull request, so
+          # do not leave the token in .git/config for that code to read.
+          persist-credentials: false
 
       - name: Set Node.js 18.x
         uses: actions/setup-node@v4
