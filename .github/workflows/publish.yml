@@ -7,8 +7,9 @@ on:
     types: [published]
   workflow_dispatch:
 
+# Least privilege by default. The two jobs that need more grant it themselves,
+# so the build and version-check jobs never hold repository-write or OIDC.
 permissions:
-  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -22,6 +23,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
   check-package-version:
     runs-on: ubuntu-latest
@@ -64,9 +70,107 @@ jobs:
             exit 1
           fi
 
-  publish-npm:
-    needs: [build, check-package-version]
+  build-and-commit:
+    needs: [build]
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: write # Pushes the build commit and moves the release tags
+    steps:
+      # Check out the commit the release tag points at, not main. The tag is not
+      # guaranteed to be main's tip: a release can be published for a tag on any
+      # branch, and main can move on between the release being published and this
+      # job running.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Commit built files on top of the released commit
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # The glob magic makes "**/" match zero or more directories. Without it
+          # the pattern requires at least one, so the declarations sitting
+          # directly in dist/gha (cli.d.ts, main.d.ts, ...) are not excluded.
+          git add -f dist/ ':(exclude,glob)dist/gha/**/*.d.ts' ':(exclude,glob)dist/gha/**/*.d.ts.map'
+          # Decide "nothing to commit" from the index rather than from a failed
+          # commit, so a commit that fails for any other reason fails the job
+          # instead of silently skipping the push and the tag updates.
+          if git diff --cached --quiet; then
+            echo "NO_CHANGES=yes" >> "$GITHUB_ENV"
+            echo "No changes to commit"
+          else
+            git commit -m "Build for ${TAG_NAME}"
+          fi
+
+      - name: Fast-forward main to the build commit
+        if: ${{ env.NO_CHANGES != 'yes' }}
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          RELEASED_SHA: ${{ github.sha }}
+        run: |
+          # Only advance main when the released commit is main's tip, so the push
+          # adds the build commit and nothing else. A release cut from a branch
+          # that is ahead of main would otherwise fast-forward cleanly and carry
+          # that branch's commits onto main along with it.
+          git fetch --depth=1 origin main
+          MAIN_SHA="$(git rev-parse FETCH_HEAD)"
+          if [ "$MAIN_SHA" = "$RELEASED_SHA" ]; then
+            # A plain (non-force) push, so if main moves between the check above
+            # and here, the push is rejected rather than clobbering that commit.
+            git push origin HEAD:main
+            echo "Pushed the build commit to main."
+          else
+            echo "::notice::Left main alone: it points at ${MAIN_SHA}, but ${TAG_NAME} was released from ${RELEASED_SHA}. The build commit is reachable from ${TAG_NAME}, which is what \"uses: stellarwp/changelogger@${TAG_NAME}\" resolves."
+          fi
+
+      - name: Update release tag
+        if: ${{ env.NO_CHANGES != 'yes' }}
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Update the tag ref to point at the new commit (with dist/)
+          # Using the API preserves the Release association since the tag name never disappears
+          gh api "repos/${{ github.repository }}/git/refs/tags/${TAG_NAME}" \
+            --method PATCH \
+            --field sha="$(git rev-parse HEAD)" \
+            --field force=true
+
+      # Support for floating version tags (e.g., @v1, @v2, @v3, etc.)
+      - name: Update floating version tag
+        if: ${{ env.NO_CHANGES != 'yes' }}
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MAJOR=$(echo "${TAG_NAME}" | grep -oP '^v?\K[0-9]+')
+          if [ -n "$MAJOR" ]; then
+            # Create or update the major version tag via the API
+            gh api "repos/${{ github.repository }}/git/refs/tags/v${MAJOR}" \
+              --method PATCH \
+              --field sha="$(git rev-parse HEAD)" \
+              --field force=true 2>/dev/null || \
+            gh api "repos/${{ github.repository }}/git/refs" \
+              --method POST \
+              --field ref="refs/tags/v${MAJOR}" \
+              --field sha="$(git rev-parse HEAD)"
+          fi
+
+  publish-npm:
+    needs: [build, check-package-version, build-and-commit]
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.check-package-version.result == 'success' && (needs.build-and-commit.result == 'success' || needs.build-and-commit.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC trusted publishing
     steps:
       - uses: actions/checkout@v4
 
@@ -77,6 +181,11 @@ jobs:
         with:
           node-version: "lts/*"
           registry-url: "https://registry.npmjs.org"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
       - run: npm ci
 

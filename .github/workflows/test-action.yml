@@ -23,6 +23,21 @@ jobs:
           # an authenticated git operation.
           persist-credentials: false
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('.nvmrc', 'package-lock.json') }}
+
+      - run: npm ci
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+
+      - run: npm run build:gha
+
       - name: Ensure debug directory exists
         run: mkdir -p debug
 
