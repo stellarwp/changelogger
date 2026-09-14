@@ -33,7 +33,7 @@ inputs:
     description: The changelog entry text
   filename:
     required: false
-    description: The filename to use when adding a changelog entry
+    description: The filename to use when adding a changelog entry, without the .yaml extension. Defaults to a name generated from the branch name.
 
   # Write command inputs
   version:
