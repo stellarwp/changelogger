@@ -288,7 +288,7 @@ Two limits apply no matter what the `permissions:` block requests:
 - **Pull requests from forks.** The `GITHUB_TOKEN` is read-only for a `pull_request` event raised from a fork, unless an administrator has enabled "Send write tokens to workflows from pull requests".
 - **Opening pull requests.** "Allow GitHub Actions to create and approve pull requests" must be enabled under Settings > Actions > General before any step can open a pull request, even when the job already has `pull-requests: write`.
 
-On GitHub Enterprise Server, an action hosted on github.com resolves only when GitHub Connect is enabled. Without it, mirror this repository onto your instance and reference the mirrored copy in place of `stellarwp/changelogger@v0`.
+On GitHub Enterprise Server, an action hosted on github.com resolves only when GitHub Connect is enabled. Without it, mirror this repository onto your instance and reference the mirrored copy in place of `stellarwp/changelogger@v1`.
 
 #### Validate Changelog Entries on Pull Requests
 
@@ -311,7 +311,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: stellarwp/changelogger@v0
+      - uses: stellarwp/changelogger@v1
         with:
           command: validate
           from: ${{ github.event.pull_request.base.sha }}
@@ -323,7 +323,7 @@ jobs:
 Without `from`/`to`, all files in the changes directory are validated:
 
 ```yaml
-- uses: stellarwp/changelogger@v0
+- uses: stellarwp/changelogger@v1
   with:
     command: validate
 ```
@@ -331,7 +331,7 @@ Without `from`/`to`, all files in the changes directory are validated:
 To validate a specific file:
 
 ```yaml
-- uses: stellarwp/changelogger@v0
+- uses: stellarwp/changelogger@v1
   with:
     command: validate
     file: changelog/my-change.yaml
@@ -342,7 +342,7 @@ To validate a specific file:
 Add a new changelog entry. When `filename` is not provided, the filename is auto-generated:
 
 ```yaml
-- uses: stellarwp/changelogger@v0
+- uses: stellarwp/changelogger@v1
   with:
     command: add
     significance: minor
@@ -353,7 +353,7 @@ Add a new changelog entry. When `filename` is not provided, the filename is auto
 With a custom filename:
 
 ```yaml
-- uses: stellarwp/changelogger@v0
+- uses: stellarwp/changelogger@v1
   with:
     command: add
     significance: patch
@@ -367,7 +367,7 @@ With a custom filename:
 Write pending changelog entries to the configured files:
 
 ```yaml
-- uses: stellarwp/changelogger@v0
+- uses: stellarwp/changelogger@v1
   with:
     command: write
     version: "1.2.0"
@@ -381,7 +381,7 @@ Retrieve the already-written changelog entries for a version. This is useful for
 ```yaml
 - name: Get changelog
   id: changelog
-  uses: stellarwp/changelogger@v0
+  uses: stellarwp/changelogger@v1
   with:
     command: get-changelog-contents
     version: "1.2.0"
@@ -399,7 +399,7 @@ To read the most recent version in the file without naming it, use `last` instea
 ```yaml
 - name: Get changelog
   id: changelog
-  uses: stellarwp/changelogger@v0
+  uses: stellarwp/changelogger@v1
   with:
     command: get-changelog-contents
     last: "true"
@@ -410,7 +410,7 @@ To get HTML output instead of Markdown:
 ```yaml
 - name: Get changelog as HTML
   id: changelog
-  uses: stellarwp/changelogger@v0
+  uses: stellarwp/changelogger@v1
   with:
     command: get-changelog-contents
     version: "1.2.0"
@@ -420,7 +420,7 @@ To get HTML output instead of Markdown:
 To read from a specific configured file:
 
 ```yaml
-- uses: stellarwp/changelogger@v0
+- uses: stellarwp/changelogger@v1
   with:
     command: get-changelog-contents
     version: "1.2.0"
