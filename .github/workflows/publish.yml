@@ -71,7 +71,7 @@ jobs:
           fi
 
   build-and-commit:
-    needs: [build]
+    needs: [build, check-package-version]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     permissions:
