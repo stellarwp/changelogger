@@ -641,7 +641,7 @@ Available built-in strategies:
    * Fix - Fixed a bug
    ```
 
-4. **give**: The changelog format of Give and its add-ons, for both `readme.txt` and `changelog.txt`. The date is written out and the entries sit directly under the version header
+4. **give-readme**: The changelog format of Give and its add-ons, for both `readme.txt` and `changelog.txt`. The date is written out and the entries sit directly under the version header
 
    Example output:
 

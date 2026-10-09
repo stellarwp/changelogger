@@ -67,8 +67,8 @@ describe("Writing Strategy Loader", () => {
       expect(strategy.formatVersionLink).toBeDefined();
     });
 
-    it("should load the give strategy", async () => {
-      const strategy = await loadWritingStrategy("give");
+    it("should load the give-readme strategy", async () => {
+      const strategy = await loadWritingStrategy("give-readme");
       expect(strategy.formatVersionHeader("1.0.0", "2024-03-04")).toBe("\n= 1.0.0: March 4th, 2024 =\n");
       expect(strategy.getLatestVersion).toBeDefined();
     });

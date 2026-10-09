@@ -86,8 +86,8 @@ export async function loadWritingStrategy(formatter: string): Promise<WritingStr
       return (await import("./writing/stellarwp-changelog")).default;
     case "stellarwp-readme":
       return (await import("./writing/stellarwp-readme")).default;
-    case "give":
-      return (await import("./writing/give")).default;
+    case "give-readme":
+      return (await import("./writing/give-readme")).default;
     default:
       throw new Error(`Unknown writing strategy: ${formatter}`);
   }

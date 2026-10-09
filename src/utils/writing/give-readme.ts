@@ -65,7 +65,7 @@ function formatDate(date: string): string {
  * Otherwise a readme section heading such as `= Updating =` matches across lines down to the first
  * version header, and the new version is written above `== Changelog ==`.
  */
-const give: WritingStrategy = {
+const giveReadme: WritingStrategy = {
   formatChanges(version: string, changes: ChangeFile[]): string {
     const groupedChanges = changes.reduce(
       (acc, change) => {
@@ -80,7 +80,7 @@ const give: WritingStrategy = {
 
     return Object.entries(groupedChanges)
       .map(([type, entries]) => {
-        const label = getTypeLabel(type, "give");
+        const label = getTypeLabel(type, "give-readme");
         return entries.map(entry => `* ${label}: ${entry}`).join("\n");
       })
       .filter(section => section.length > 0)
@@ -119,4 +119,4 @@ const give: WritingStrategy = {
   },
 };
 
-export default give;
+export default giveReadme;
