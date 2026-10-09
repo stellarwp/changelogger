@@ -67,6 +67,12 @@ describe("Writing Strategy Loader", () => {
       expect(strategy.formatVersionLink).toBeDefined();
     });
 
+    it("should load the give strategy", async () => {
+      const strategy = await loadWritingStrategy("give");
+      expect(strategy.formatVersionHeader("1.0.0", "2024-03-04")).toBe("\n= 1.0.0: March 4th, 2024 =\n");
+      expect(strategy.getLatestVersion).toBeDefined();
+    });
+
     it("should throw error for unknown strategy", async () => {
       await expect(loadWritingStrategy("unknown")).rejects.toThrow("Unknown writing strategy: unknown");
     });
