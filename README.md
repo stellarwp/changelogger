@@ -641,7 +641,20 @@ Available built-in strategies:
    * Fix - Fixed a bug
    ```
 
-4. **Custom Writing**: You can provide a path to a JavaScript file that implements the writing strategy:
+4. **give**: The changelog format of Give and its add-ons, for both `readme.txt` and `changelog.txt`. The date is written out and the entries sit directly under the version header
+
+   Example output:
+
+   ```text
+   == Changelog ==
+   = 1.2.3: March 22nd, 2024 =
+   * Feature: Added new feature
+   * Fix: Fixed a bug
+   ```
+
+   The version header has no brackets, so automatic versioning can't read the current version from it: pass the version to `write` with `--overwrite-version`.
+
+5. **Custom Writing**: You can provide a path to a JavaScript file that implements the writing strategy:
 
    ```json
    {
